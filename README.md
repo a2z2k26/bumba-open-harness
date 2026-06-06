@@ -1,20 +1,27 @@
 ```
- ____  _   _ __  __ ____    _      _   _    _    ____  _   _ _____ ____ ____
-| __ )| | | |  \/  | __ )  / \    | | | |  / \  |  _ \| \ | | ____/ ___/ ___|
-|  _ \| | | | |\/| |  _ \ / _ \   | |_| | / _ \ | |_) |  \| |  _| \___ \___ \
-| |_) | |_| | |  | | |_) / ___ \  |  _  |/ ___ \|  _ <| |\  | |___ ___) |__) |
-|____/ \___/|_|  |_|____/_/   \_\ |_| |_/_/   \_\_| \_\_| \_|_____|____/____/
+ ____  _   _ __  __ ____    _         _    ____ _____ _   _ _____
+| __ )| | | |  \/  | __ )  / \       / \  / ___| ____| \ | |_   _|
+|  _ \| | | | |\/| |  _ \ / _ \     / _ \| |  _|  _| |  \| | | |
+| |_) | |_| | |  | | |_) / ___ \   / ___ \ |_| | |___| |\  | | |
+|____/ \___/|_|  |_|____/_/   \_\ /_/   \_\____|_____|_| \_| |_|
+
+ _   _    _    ____  _   _ _____ ____ ____
+| | | |  / \  |  _ \| \ | | ____/ ___/ ___|
+| |_| | / _ \ | |_) |  \| |  _| \___ \___ \
+|  _  |/ ___ \|  _ <| |\  | |___ ___) |__) |
+|_| |_/_/   \_\_| \_\_| \_|_____|____/____/
 ```
 
 <br>
 
 # Bumba Open Harness
 
-Bumba Open Harness is a local, single-operator agent harness that connects a
-Discord control surface, durable SQLite memory, scheduled automation services,
-and a pluggable model backend layer. This variant is the OpenRouter-ready
-edition: it keeps Claude Code support, but the backend registry can route work
-to OpenRouter-compatible HTTP models for lower cost and broader model choice.
+Bumba Open Harness is the OpenRouter-ready edition of Bumba Agent Harness: a
+24/7 local agent harness for multi-agent, multi-model orchestration. It connects
+a Discord control surface, durable SQLite memory, scheduled automation services,
+typed agent teams, and a pluggable model backend layer. This variant keeps
+Claude Code support, but the backend registry can route work to
+OpenRouter-compatible HTTP models for lower cost and broader model choice.
 
 The repository is prepared for public adoption. It does not include private
 deployment history, local machine paths, personal job-search data, resumes,
@@ -24,18 +31,18 @@ an adopter supplies their own profile, criteria, secrets, and approval database.
 
 ## What It Does
 
-- Runs a Discord bot that accepts operator messages and routes them through the
-  bridge.
+- Runs as a 24/7 local control plane for coordinating operator messages,
+  scheduled services, chiefs, specialists, and model backends.
 - Persists conversation state, service state, events, and operational memory in
   SQLite.
 - Supports scheduled services for briefings, calendar/email workflows, job
   search, knowledge review, health checks, and maintenance.
-- Provides a Zone 4 department system where chiefs route work to typed
-  specialists with explicit tool boundaries.
+- Provides a multi-agent Zone 4 department system where chiefs route work to
+  typed specialists with explicit tool boundaries.
 - Vendors two MCP servers, `bumba-memory` and `bumba-sandbox`, so deployments do
   not depend on local absolute paths.
-- Includes an OpenRouter backend implementation plus fallback/cross-model
-  adapter code.
+- Includes OpenRouter, fallback, and cross-model adapter code for multi-model
+  orchestration.
 
 ## Repository Layout
 
