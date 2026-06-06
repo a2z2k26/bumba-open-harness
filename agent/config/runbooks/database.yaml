@@ -1,0 +1,27 @@
+id: database-locked
+name: SQLite Database Locked or Busy
+trigger:
+  condition: "components.database.status == down"
+symptoms:
+  - SQLite busy timeout exceeded (5000ms)
+  - Messages queue up but never process
+  - WAL file grows unboundedly
+steps:
+  - id: check_db_exists
+    check: "Does memory.db exist?"
+    command: "test -f /opt/bumba-harness/data/memory.db && echo OK || echo FAIL"
+    on_pass: "Database file exists"
+    on_fail: "Database file missing — needs recovery from backup"
+  - id: check_wal_size
+    check: "Is WAL file reasonably sized?"
+    command: "ls -la /opt/bumba-harness/data/memory.db-wal 2>/dev/null | awk '{if($5 < 104857600) print \"OK: \"$5\" bytes\"; else print \"FAIL: \"$5\" bytes (>100MB)\"}' || echo 'OK: no WAL'"
+    on_pass: "WAL size normal"
+    on_fail: "WAL file too large — checkpoint may be blocked"
+    fix: "sqlite3 /opt/bumba-harness/data/memory.db 'PRAGMA wal_checkpoint(TRUNCATE);'"
+  - id: check_integrity
+    check: "Is database integrity OK?"
+    command: "sqlite3 /opt/bumba-harness/data/memory.db 'PRAGMA quick_check;' 2>/dev/null"
+    on_pass: "Integrity check passed"
+    on_fail: "Database corruption detected — restore from backup"
+resolution: "WAL checkpoint should resolve most lock issues. If corrupted, restore from data/backups/."
+escalation: "L3 (operator) if corruption detected"

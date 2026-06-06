@@ -1,0 +1,40 @@
+{
+  "name": "flutter",
+  "description": "Flutter with Dart - Cross-platform mobile development setup",
+  "version": "1.0.0",
+  "framework": "flutter",
+  "typescript": false,
+  "outputPath": "lib/design_system",
+  "autoSync": true,
+  "storybook": false,
+  "features": {
+    "tests": true,
+    "backups": true,
+    "linting": true
+  },
+  "transformerOptions": {
+    "useStyledComponents": false,
+    "useTailwind": false,
+    "useEmotions": false,
+    "generateStories": false,
+    "generateTests": true,
+    "widgetbook": true
+  },
+  "additionalDependencies": [
+    "flutter"
+  ],
+  "devDependencies": [
+    "flutter_test",
+    "widgetbook"
+  ],
+  "scripts": {
+    "test": "flutter test",
+    "analyze": "flutter analyze"
+  },
+  "notes": [
+    "Flutter widgets and themes",
+    "Design tokens as Dart constants",
+    "Widgetbook for component showcase",
+    "Flutter test for testing"
+  ]
+}

@@ -1,0 +1,29 @@
+id: oauth-token-expired
+name: OAuth Token Expired or Refresh Failed
+trigger:
+  or:
+    - "components.token.status == down"
+    - "components.token.expires_in_seconds < 300"
+symptoms:
+  - Claude subprocess exits with auth error
+  - token_refresher.py logs "refresh failed" or "HTTP 401/403"
+  - .secrets file has expired token
+steps:
+  - id: check_secrets_readable
+    check: "Is .secrets file readable?"
+    command: "test -r /opt/bumba-harness/data/.secrets && echo OK || echo FAIL"
+    on_pass: "File readable"
+    on_fail: "File permissions issue"
+    fix: "chmod 600 /opt/bumba-harness/data/.secrets && chown bumba-agent:staff /opt/bumba-harness/data/.secrets"
+  - id: check_refresh_token
+    check: "Is refresh token present?"
+    command: "grep -c 'claude_oauth_refresh_token=.' /opt/bumba-harness/data/.secrets 2>/dev/null || echo 0"
+    on_pass: "Refresh token present"
+    on_fail: "Refresh token missing. Requires operator re-authentication."
+  - id: check_api_reachable
+    check: "Can reach Anthropic OAuth endpoint?"
+    command: "curl -s -o /dev/null -w '%{http_code}' --max-time 5 https://console.anthropic.com/v1/oauth/token"
+    on_pass: "API reachable"
+    on_fail: "Network issue or API down"
+resolution: "Token refresh should auto-recover within 5 minutes. If not, operator must re-authenticate via OAuth flow."
+escalation: "L3 (operator DM) if auto-refresh fails after 3 retries"

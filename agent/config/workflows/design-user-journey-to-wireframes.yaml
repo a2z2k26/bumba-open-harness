@@ -1,0 +1,59 @@
+name: design.user_journey_to_wireframes
+trigger: explicit
+budget:
+  max_cost_usd: 2.50
+  max_duration_seconds: 900
+steps:
+  - name: scope-research-target
+    department: design
+    intent: >-
+      Have design-ux-researcher confirm the journey-mapping target: identify
+      the user segment, the job-to-be-done, the entry trigger, the desired
+      end-state, and any known constraints (channel, device, time-pressure).
+      Surface assumptions explicitly so the operator can correct scope before
+      the journey is mapped.
+    outputs: [research_scope]
+
+  - name: deliver-journey-map
+    department: design
+    intent: >-
+      Have design-ux-researcher produce a journey map for {research_scope}:
+      ordered steps the user takes, the user's goal at each step, emotional
+      state, friction points, decision moments, and the artifacts they touch.
+      Output as a structured list of stages with attributes per stage —
+      machine-readable so the next step can consume it deterministically.
+    inputs: [research_scope]
+    outputs: [journey_map]
+
+  - name: identify-screens-and-states
+    department: design
+    intent: >-
+      Have design-interaction-designer translate {journey_map} into a list of
+      screens and states required: one or more screens per journey stage,
+      every state each screen must support (empty, loading, error, populated,
+      success), and the inter-screen transitions. Flag any journey gaps where
+      a stage requires multiple screens or a screen serves multiple stages.
+    inputs: [journey_map]
+    outputs: [screen_inventory]
+
+  - name: produce-wireframes
+    department: design
+    intent: >-
+      Have design-interaction-designer produce low-fidelity wireframes for
+      every screen in {screen_inventory}: layout structure, content
+      hierarchy, primary actions, secondary actions, and navigation surfaces.
+      Skip visual design — this is structural. Annotate each wireframe with
+      the journey stage it serves and the user goal it advances.
+    inputs: [screen_inventory]
+    outputs: [wireframes]
+
+  - name: synthesize-design-package
+    department: design
+    intent: >-
+      Have design-chief synthesize {journey_map}, {screen_inventory}, and
+      {wireframes} into a Discord-readable design package: link to the
+      wireframe artifacts, summary of the journey, count of screens by stage,
+      open questions surfaced by the interaction designer, and a recommended
+      next step (visual design, prototyping, or research validation).
+    inputs: [journey_map, screen_inventory, wireframes]
+    outputs: [design_package]

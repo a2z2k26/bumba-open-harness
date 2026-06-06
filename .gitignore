@@ -1,0 +1,43 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+dist/
+build/
+*.db
+*.db-wal
+*.db-shm
+.coverage
+coverage.xml
+htmlcov/
+.secrets
+*.log
+.DS_Store
+.mcp.json
+node_modules/
+.dmux/
+
+# Runtime and agent-generated state.
+.claude/
+.worktrees/
+agent/agent/
+agent/data/experiments.md
+data/readiness-report.md
+
+# Browser profiles contain cookies and session tokens.
+data/browser-profiles/*.json
+agent/data/browser-profiles/*.json
+
+# Filled local job-search profile and criteria may contain personal data.
+agent/job_search/candidate.json
+agent/job_search/criteria.json
+
+# Optional vendored/upstream Claude Code plugin payloads.
+agent/config/claude-files/plugins/anthropic-agent-skills/
+agent/config/claude-files/plugins/claude-plugins-official/
+
+# Vendored MCP server dependencies are regenerated locally.
+mcp-servers/*/node_modules/
+mcp-servers/**/.DS_Store

@@ -1,0 +1,21 @@
+# Compaction events — fired by the bridge when transcript compaction is
+# recommended or performed. The runtime trigger lives in
+# bridge/invocation_pipeline.py (compound_pressure auto-compact check, P8.2
+# #1748) and consumers include bridge/compaction_checkpoint.py
+# (PreCompact externalization, Sprint 03.05 #995).
+
+compaction_recommended:
+  kind: event
+  name: Compaction Recommended
+  category: "Health & Status"
+  description: >
+    Fires when compound pressure (budget + context simultaneously elevated)
+    crosses the auto-compact threshold per
+    ``bridge.compound_pressure.should_auto_compact``. Payload carries the
+    triggering signals so downstream PreCompact externalization can
+    pre-stash the high-value transcript subset before compaction dilutes
+    it. Advances #1420 / D7.8 (75% context-fill auto-compact).
+  source_module: bridge.invocation_pipeline
+  schema_ref: "dict — reason, budget_level, context_recommendation, context_pressure"
+  event_type: compaction.recommended
+  access_method: push:event_bus

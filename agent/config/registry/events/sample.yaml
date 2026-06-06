@@ -1,0 +1,12 @@
+# FIXTURE ONLY — sample entry for loader tests and CI health smoke.
+# Not a real entry. Real entries land in E2.5.
+# E2.6 gate exempts files matching sample*.yaml.
+cost_daily_summary:
+  kind: event
+  name: Daily Cost Summary
+  category: "Cost & Resources"
+  description: "Emitted by CostTracker at end of each day with token totals."
+  source_module: bridge.cost_tracker
+  schema_ref: CostSummary
+  event_type: cost.daily_summary
+  access_method: push:event_bus

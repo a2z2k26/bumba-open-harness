@@ -1,0 +1,282 @@
+{
+  "$schema": "./schema.json",
+  "version": "1.0.0",
+  "last_updated": "2026-03-29",
+  "features": [
+    {
+      "id": "discord-gateway",
+      "name": "Discord Gateway",
+      "version": "1.0.0",
+      "status": "active",
+      "module": "discord_bot.py",
+      "depends_on": [],
+      "config_keys": ["discord.token", "discord.operator_id"],
+      "added_date": "2026-02-23",
+      "description": "Real-time Discord Bot API integration with slash commands and message handling."
+    },
+    {
+      "id": "claude-runner",
+      "name": "Claude Code Subprocess Runner",
+      "version": "1.0.0",
+      "status": "active",
+      "module": "claude_runner.py",
+      "depends_on": ["session-manager"],
+      "config_keys": ["claude.model", "claude.max_turns", "claude.timeout_seconds"],
+      "added_date": "2026-02-23",
+      "description": "Spawns claude -p subprocess, parses streaming JSON, and classifies errors."
+    },
+    {
+      "id": "session-manager",
+      "name": "Session Manager",
+      "version": "1.0.0",
+      "status": "active",
+      "module": "session_manager.py",
+      "depends_on": ["persistent-memory"],
+      "config_keys": ["session.idle_timeout_seconds", "session.max_turns"],
+      "added_date": "2026-02-23",
+      "description": "Manages Claude session lifecycle: creation, idle timeout, expiry, and summaries."
+    },
+    {
+      "id": "persistent-memory",
+      "name": "Persistent Memory Store",
+      "version": "1.0.0",
+      "status": "active",
+      "module": "memory.py",
+      "depends_on": [],
+      "config_keys": ["memory.db_path", "memory.max_context_entries"],
+      "added_date": "2026-02-23",
+      "description": "SQLite-backed conversation storage and FTS5 knowledge store with context assembly."
+    },
+    {
+      "id": "smart-model-routing",
+      "name": "Smart Model Routing",
+      "version": "1.0.0",
+      "status": "active",
+      "module": "model_router.py",
+      "depends_on": ["routing-feedback"],
+      "config_keys": ["routing.default_model", "routing.haiku_threshold_tokens"],
+      "added_date": "2026-02-24",
+      "description": "Three-tier smart routing (haiku/sonnet/opus) with department hints and override prefixes."
+    },
+    {
+      "id": "autonomy-layer",
+      "name": "Autonomy Layer",
+      "version": "1.0.0",
+      "status": "active",
+      "module": "autonomy.py",
+      "depends_on": ["guardrails", "trust-scoring", "tier-management", "escalation"],
+      "config_keys": ["autonomy.enabled", "autonomy.quiet_hours_start", "autonomy.quiet_hours_end"],
+      "added_date": "2026-02-25",
+      "description": "Phase 5 orchestration facade wiring guardrails, trust scores, tiers, and escalation."
+    },
+    {
+      "id": "guardrails",
+      "name": "Input/Output Guardrails",
+      "version": "1.0.0",
+      "status": "active",
+      "module": "guardrails.py",
+      "depends_on": [],
+      "config_keys": [],
+      "added_date": "2026-02-25",
+      "description": "Input/output validation and prompt injection detection for all messages."
+    },
+    {
+      "id": "trust-scoring",
+      "name": "Trust Scoring",
+      "version": "1.0.0",
+      "status": "active",
+      "module": "trust_score.py",
+      "depends_on": [],
+      "config_keys": [],
+      "added_date": "2026-02-25",
+      "description": "Per-capability trust scoring (0-100) that gates autonomous execution."
+    },
+    {
+      "id": "tier-management",
+      "name": "Skill Tier Management",
+      "version": "1.0.0",
+      "status": "active",
+      "module": "tier_manager.py",
+      "depends_on": ["trust-scoring"],
+      "config_keys": [],
+      "added_date": "2026-02-25",
+      "description": "Manages skill tiers: A (auto-deploy), B (approval required), C (manual only)."
+    },
+    {
+      "id": "escalation",
+      "name": "Escalation Engine",
+      "version": "1.0.0",
+      "status": "active",
+      "module": "escalation.py",
+      "depends_on": [],
+      "config_keys": ["escalation.quiet_hours_start", "escalation.quiet_hours_end"],
+      "added_date": "2026-02-25",
+      "description": "Four-level escalation system with quiet hours, de-escalation, and defer support."
+    },
+    {
+      "id": "hybrid-search",
+      "name": "Hybrid Search",
+      "version": "1.0.0",
+      "status": "active",
+      "module": "hybrid_search.py",
+      "depends_on": ["local-embeddings", "vector-store"],
+      "config_keys": ["search.rrf_k", "search.vector_weight"],
+      "added_date": "2026-02-26",
+      "description": "RRF fusion of FTS5 keyword search and vector semantic search for memory retrieval."
+    },
+    {
+      "id": "local-embeddings",
+      "name": "Local Embeddings Engine",
+      "version": "1.0.0",
+      "status": "active",
+      "module": "local_embeddings.py",
+      "depends_on": [],
+      "config_keys": ["embeddings.model", "embeddings.backend"],
+      "added_date": "2026-02-26",
+      "description": "Local embedding generation via ONNX/CoreML/hash fallback without network calls."
+    },
+    {
+      "id": "vector-store",
+      "name": "Vector Store",
+      "version": "1.0.0",
+      "status": "active",
+      "module": "vector_store.py",
+      "depends_on": ["local-embeddings"],
+      "config_keys": ["vector_store.db_path"],
+      "added_date": "2026-02-26",
+      "description": "SQLite-backed vector store with optional sqlite-vec ANN indexing."
+    },
+    {
+      "id": "multi-agent-tmux",
+      "name": "Multi-Agent Tmux Manager",
+      "version": "1.0.0",
+      "status": "active",
+      "module": "tmux_agents.py",
+      "depends_on": ["tool-isolation"],
+      "config_keys": ["agents.max_concurrent"],
+      "added_date": "2026-03-01",
+      "description": "Background agent spawning and lifecycle management via tmux sessions."
+    },
+    {
+      "id": "tool-isolation",
+      "name": "Tool Isolation",
+      "version": "1.0.0",
+      "status": "active",
+      "module": "tool_isolation.py",
+      "depends_on": [],
+      "config_keys": [],
+      "added_date": "2026-03-01",
+      "description": "Per-agent MCP config filtering to restrict tool access in multi-agent scenarios."
+    },
+    {
+      "id": "skill-evolution",
+      "name": "Skill Evolution Engine",
+      "version": "1.0.0",
+      "status": "active",
+      "module": "skill_evolution.py",
+      "depends_on": [],
+      "config_keys": [],
+      "added_date": "2026-03-04",
+      "description": "Detects recurring failure patterns, generates skill proposals, and auto-deploys Tier A skills."
+    },
+    {
+      "id": "routing-feedback",
+      "name": "Routing Feedback Engine",
+      "version": "1.0.0",
+      "status": "active",
+      "module": "routing_feedback.py",
+      "depends_on": [],
+      "config_keys": [],
+      "added_date": "2026-02-24",
+      "description": "Tracks tool/model performance and triggers auto-escalation on repeated failures."
+    },
+    {
+      "id": "temporal-knowledge",
+      "name": "Temporal Knowledge Store",
+      "version": "1.0.0",
+      "status": "active",
+      "module": "temporal_knowledge.py",
+      "depends_on": ["persistent-memory"],
+      "config_keys": [],
+      "added_date": "2026-02-25",
+      "description": "Time-aware versioned knowledge entries with rollback and staleness detection."
+    },
+    {
+      "id": "few-shot-learning",
+      "name": "Few-Shot Learning Store",
+      "version": "1.0.0",
+      "status": "active",
+      "module": "few_shot.py",
+      "depends_on": ["persistent-memory"],
+      "config_keys": [],
+      "added_date": "2026-02-25",
+      "description": "In-context learning from successful interactions to improve future responses."
+    },
+    {
+      "id": "mission-control-api",
+      "name": "Mission Control REST API",
+      "version": "1.0.0",
+      "status": "active",
+      "module": "api_server.py",
+      "depends_on": ["task-pipeline", "quality-gate", "webhook-receiver"],
+      "config_keys": ["api.enabled", "api.port", "api.host"],
+      "added_date": "2026-03-14",
+      "description": "aiohttp REST API + WebSocket server with 33 endpoints for the Mission Control dashboard."
+    },
+    {
+      "id": "task-pipeline",
+      "name": "Task Pipeline",
+      "version": "1.0.0",
+      "status": "active",
+      "module": "task_pipeline.py",
+      "depends_on": [],
+      "config_keys": [],
+      "added_date": "2026-03-14",
+      "description": "Structured Kanban task pipeline with state machine transitions (inbox through done/failed)."
+    },
+    {
+      "id": "quality-gate",
+      "name": "Quality Gate",
+      "version": "1.0.0",
+      "status": "active",
+      "module": "quality_gate.py",
+      "depends_on": ["task-pipeline"],
+      "config_keys": [],
+      "added_date": "2026-03-14",
+      "description": "Code review quality gates with approval workflow and automated checks."
+    },
+    {
+      "id": "webhook-receiver",
+      "name": "GitHub Webhook Receiver",
+      "version": "1.0.0",
+      "status": "active",
+      "module": "webhook_receiver.py",
+      "depends_on": ["task-pipeline"],
+      "config_keys": ["github.webhook_secret"],
+      "added_date": "2026-03-14",
+      "description": "Inbound GitHub webhook handler with HMAC-SHA256 signature verification."
+    },
+    {
+      "id": "budget-enforcement",
+      "name": "Daily Budget Enforcement",
+      "version": "1.0.0",
+      "status": "active",
+      "module": "budget.py",
+      "depends_on": [],
+      "config_keys": ["budget.daily_limit_usd", "budget.pressure_threshold"],
+      "added_date": "2026-02-23",
+      "description": "Enforces daily API spend limits with pressure signals and budget alerts."
+    },
+    {
+      "id": "circuit-breaker",
+      "name": "Circuit Breaker",
+      "version": "1.0.0",
+      "status": "active",
+      "module": "circuit_breaker.py",
+      "depends_on": [],
+      "config_keys": [],
+      "added_date": "2026-02-24",
+      "description": "Failure detection and automatic recovery via open/half-open/closed state machine."
+    }
+  ]
+}

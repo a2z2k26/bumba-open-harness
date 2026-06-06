@@ -1,0 +1,44 @@
+name: design.design_system_audit
+trigger: explicit
+budget:
+  max_cost_usd: 1.50
+  max_duration_seconds: 600
+steps:
+  - name: gather-component-inventory
+    department: design
+    intent: >-
+      Have design-system-architect enumerate the current component inventory:
+      list every component in the design system (Figma + code registries),
+      capture each component's name, token references, and last-modified date.
+    outputs: [inventory_data]
+
+  - name: audit-against-tokens
+    department: design
+    intent: >-
+      Have design-visual-designer audit {inventory_data} against the canonical
+      token set: flag components using off-system colors, type scales, spacing,
+      or shadows. Report each deviation with component name, property, current
+      value, and the closest canonical token.
+    inputs: [inventory_data]
+    outputs: [token_findings]
+
+  - name: audit-component-consistency
+    department: design
+    intent: >-
+      Have design-system-architect audit {inventory_data} for structural
+      consistency: duplicate components, naming-convention violations, missing
+      variants, and components shipped without documentation. Report each gap
+      with severity (critical/major/minor) and a recommended fix.
+    inputs: [inventory_data]
+    outputs: [consistency_findings]
+    parallel_with: audit-against-tokens
+
+  - name: synthesize-audit-report
+    department: design
+    intent: >-
+      Have design-chief synthesize {token_findings} and {consistency_findings}
+      into a single Discord-readable audit report: top 5 highest-impact issues,
+      prioritized fix list, and a one-paragraph executive summary suitable for
+      operator review at sprint-close.
+    inputs: [token_findings, consistency_findings]
+    outputs: [audit_report]

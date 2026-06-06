@@ -1,0 +1,17 @@
+# ATS-hosted company seed list for Sprint 06.05+ (Plan 06).
+#
+# Each top-level key is an ATS provider; the value is a list of
+# ``{token, name}`` records. ``token`` is the company-specific slug
+# the ATS API expects in its URL path. ``name`` is operator-readable
+# only — used for logging and listing display.
+#
+# Operator fills in the real company tokens post-merge (see Sprint 06.05
+# DoD). Until then the lists ship empty so the scrapers register cleanly
+# but produce zero listings — graceful no-op vs broken pipeline.
+#
+# Greenhouse and Lever blocks are placeholders for Sprints 06.06 / 06.07
+# respectively.
+
+ashby: []
+greenhouse: []
+lever: []

@@ -1,0 +1,64 @@
+# Self-serve roster registry REST surface — RR.3 (#2593).
+# Operator-only (bearer/operator auth). Reads + writes over RosterRegistryStore.
+
+roster_list_get:
+  kind: action
+  name: List Registered Specialists (all departments)
+  category: "Agents"
+  description: >-
+    Lists every operator-registered runtime specialist across all departments
+    (the roster overlay). Reads RosterRegistryStore.list_all; empty list when
+    no store is wired. Read-only.
+  source_module: bridge.api.routes_roster
+  schema_ref: "dict — specialists[], count"
+  method: GET
+  path: /api/roster
+  auth: bearer
+  access_method: rest
+
+roster_list_department_get:
+  kind: action
+  name: List Registered Specialists (one department)
+  category: "Agents"
+  description: >-
+    Lists the registered-specialist overlay for a single department. Reads
+    RosterRegistryStore.list_for_department. Read-only.
+  source_module: bridge.api.routes_roster
+  schema_ref: "dict — department, specialists[], count"
+  method: GET
+  path: /api/roster/{department}
+  auth: bearer
+  access_method: rest
+
+roster_register_post:
+  kind: action
+  name: Register Runtime Specialist
+  category: "Agents"
+  description: >-
+    Validates and registers a runtime specialist into a department roster
+    (department exists, agent_ref resolves, no duplicate/shadow). On success
+    invalidates the team's chief-agent cache (via the store on_change hook) so
+    the next chief build sees the overlay, and emits
+    z4.roster.specialist_registered. Validation failure returns 400 carrying
+    the error (never a 500).
+  source_module: bridge.api.routes_roster
+  schema_ref: "dict — registered, specialist"
+  method: POST
+  path: /api/roster/register
+  auth: bearer
+  access_method: rest
+
+roster_unregister_post:
+  kind: action
+  name: Unregister Runtime Specialist
+  category: "Agents"
+  description: >-
+    Removes a registered specialist from a department roster and invalidates
+    the team's chief-agent cache. Returns 404 when the specialist is not
+    registered.
+  source_module: bridge.api.routes_roster
+  schema_ref: "dict — unregistered, department"
+  method: POST
+  path: /api/roster/unregister
+  auth: bearer
+  access_method: rest

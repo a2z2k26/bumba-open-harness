@@ -1,0 +1,55 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/your-org/bumba-open-harness/config/feature-specs/schema.json",
+  "title": "BridgeFeature",
+  "description": "Schema for a Bumba bridge capability feature specification.",
+  "type": "object",
+  "required": ["id", "name", "version", "status", "module", "description", "added_date"],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Stable lowercase hyphenated identifier.",
+      "pattern": "^[a-z0-9][a-z0-9\\-]*[a-z0-9]$"
+    },
+    "name": {
+      "type": "string",
+      "description": "Human-readable feature name."
+    },
+    "version": {
+      "type": "string",
+      "description": "Semantic version string.",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["active", "beta", "deprecated", "planned"],
+      "description": "Deployment status of this feature."
+    },
+    "module": {
+      "type": "string",
+      "description": "Primary bridge module filename (e.g. 'autonomy.py')."
+    },
+    "depends_on": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "List of feature IDs this feature depends on.",
+      "default": []
+    },
+    "config_keys": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "bridge.toml keys that configure this feature.",
+      "default": []
+    },
+    "added_date": {
+      "type": "string",
+      "description": "ISO 8601 date when this feature was added.",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
+    "description": {
+      "type": "string",
+      "description": "One-sentence description of what the feature does."
+    }
+  }
+}

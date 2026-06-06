@@ -1,0 +1,44 @@
+name: feature-flag-drift
+
+# Keeps the feature flag registry in sync with bridge configuration.
+
+on:
+  pull_request:
+    paths:
+      - "agent/bridge/config.py"
+      - "agent/config/feature_flags.yaml"
+      - "agent/config/bridge.toml"
+      - "agent/scripts/check_feature_flags.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Feature-flag drift gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    # Skip gate when PR title contains override token (docs-only PRs).
+    # Mirrors the registry-completeness pattern.
+    if: ${{ github.event_name != 'pull_request' || !contains(github.event.pull_request.title, '[skip flag-gate]') }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Python dependencies
+        run: pip install pyyaml
+
+      - name: Run feature-flag drift check
+        run: python3 agent/scripts/check_feature_flags.py

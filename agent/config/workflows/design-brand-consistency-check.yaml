@@ -1,0 +1,53 @@
+name: design.brand_consistency_check
+trigger: explicit
+budget:
+  max_cost_usd: 1.50
+  max_duration_seconds: 600
+steps:
+  - name: intake-artifact
+    department: design
+    intent: >-
+      Have design-visual-designer intake the candidate artifact: confirm
+      surface (marketing page, in-product screen, social asset, deck), pull
+      brand-guidelines reference (colors, typography, voice, photographic
+      style, motion principles), and produce a checklist of brand dimensions
+      that apply to this artifact type.
+    outputs: [artifact_context]
+
+  - name: audit-visual-system
+    department: design
+    intent: >-
+      Have design-visual-designer audit {artifact_context} against
+      brand-guidelines. Check: color usage (primary/secondary/accent applied
+      per system, no off-brand colors), typography (correct typefaces, weights,
+      scale steps), iconography style, photographic treatment, layout
+      proportions, and motion language. Critically — flag any moments that
+      read as generic AI aesthetic (default gradients, stock illustrations,
+      vanilla card grids) rather than the distinctive brand voice the system
+      requires.
+    inputs: [artifact_context]
+    outputs: [visual_findings]
+
+  - name: audit-tone-and-craft
+    department: design
+    intent: >-
+      Have design-visual-designer audit {artifact_context} for tone-of-voice
+      and craft signals: copy register (does it sound like the brand or
+      like marketing-template filler), detail-level (intentional asymmetry
+      and craft moments vs flat default), and whether the artifact would be
+      recognizable as this brand if all logos were removed. Report each gap
+      with example, current state, and the brand-aligned direction.
+    inputs: [artifact_context]
+    outputs: [tone_findings]
+    parallel_with: audit-visual-system
+
+  - name: synthesize-consistency-verdict
+    department: design
+    intent: >-
+      Have design-chief synthesize {visual_findings} and {tone_findings} into
+      a Discord-readable brand-consistency verdict. Include: top-line ship/
+      revise/reject recommendation, severity-ranked finding list, and a
+      "would the operator put his name on this" judgment call surfaced explicitly
+      so the operator can make the final ship decision.
+    inputs: [visual_findings, tone_findings]
+    outputs: [consistency_verdict]

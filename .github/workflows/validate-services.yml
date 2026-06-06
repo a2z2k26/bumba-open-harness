@@ -1,0 +1,30 @@
+name: Validate services
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install dependencies
+        run: |
+          pip install -e "agent/[dev]" 2>/dev/null \
+            || pip install -r agent/requirements.txt 2>/dev/null \
+            || echo "No requirements found — proceeding with stdlib only"
+      - name: Run structural validator
+        run: cd agent && python -m bridge.services.runner --validate

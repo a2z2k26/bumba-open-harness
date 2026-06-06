@@ -1,0 +1,29 @@
+department: qa
+mode: report_only
+defaults:
+  mcp_servers: []
+  tools:
+    - read_file
+    - search_knowledge
+    - memory_recall
+    - run_tests
+    - coverage_report
+    - security_scan
+  skills: []
+chief:
+  qa-chief: {}
+specialists:
+  # Code-oriented QA roles get the LSP-backed code-intelligence tools
+  # (Z4-20/#2446). Granted via per-specialist tools so non-code roles
+  # (accessibility/mobile/performance) do NOT inherit them.
+  qa-engineer:
+    tools: [lsp_find_definition, lsp_find_references, lsp_diagnostics]
+  security-auditor: {}
+  performance-tester: {}
+  code-reviewer:
+    tools: [lsp_find_definition, lsp_find_references, lsp_diagnostics]
+  accessibility-tester: {}
+  api-tester: {}
+  automation-engineer:
+    tools: [lsp_find_definition, lsp_find_references, lsp_diagnostics]
+  mobile-tester: {}

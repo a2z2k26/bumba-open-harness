@@ -1,0 +1,314 @@
+team:
+  name: board
+  zone: 4
+  description: >
+    Strategy Board. A panel of seven board-level agents with distinct
+    reasoning perspectives. Convened for high-stakes decisions, strategic
+    direction, business validation, and architectural choices. The CEO frames,
+    moderates, and synthesizes; the six specialist board members deliberate.
+
+  escalation:
+    from_zone: 3
+    triggers:
+      - "Strategic decision needed"
+      - "Board review requested"
+      - "Business validation needed"
+      - "Architecture decision needed"
+      - "High-stakes trade-off"
+      - "Complexity >= 9"
+    complexity_threshold: 9
+    auto_escalate: false
+
+  constraints:
+    # Plan-04 #1497 + #1500: per-invocation cap raised 3.00 → 6.00 to
+    # absorb the documented 4× cross-vendor cost multiplier when
+    # board.cross_vendor_enabled=true. Daily cap raised 8 → 24 for
+    # the same reason. Per-invocation cap is a hard ceiling on a
+    # single deliberation; daily cap is a soft cap on aggregate spend.
+    cost_limit_usd: 6.00
+    # 2026-05-20 (#2379): bumped timeout_seconds 900 → 1800. Post-#2275 cheap-
+    # frontier model swap (DeepSeek/GLM/Kimi/Qwen via OpenRouter) traded
+    # ~50x cost reduction for proportionally higher per-call latency. Board's
+    # 6-specialist roster × multi-round deliberation + chief synthesis now
+    # runs 15-25 min on cheap-frontier where it ran 5-10 min on Opus. Two
+    # consecutive board runs failed at 900s with no functional bug — pure
+    # wall-clock. 1800s (~30 min) gives 2x headroom against the observed
+    # cheap-frontier latency profile; cost_limit_usd: 6.00 remains the real
+    # safety net against pathological runaways. If a deliberation actually
+    # hangs vs. just-slow, 1800s still detects it. If we see 1800s tripped,
+    # the right next move is structural — either carve board out from cheap-
+    # frontier back to Opus/Sonnet, or reduce roster size for routine asks.
+    timeout_seconds: 1800
+    concurrency_limit: 2
+    # #1645: strict-floor activation 2026-05-12. Chiefs of delegate-
+    # mode teams MUST delegate to ≥1 specialist. Gate 8 in teams._verify
+    # fires `success=False` when employee_results count < this value.
+    # #1725 (P3.4, 2026-05-12): bumped 1 → 6 to require the chief to hear
+    # from every claude-adapter board member by default. Strict-floor
+    # classification doc (docs/architecture/2026-05-12-1645-delegation-
+    # floor-classification.md:215) recommends `len(workers)`. With #1724
+    # (P3.3, PR #1770) the runtime roster is filtered by
+    # board_cross_vendor_enabled: flag-off (default) materialises 6
+    # claude-adapter workers; flag-on materialises all 9. Gate 8 compares
+    # against the FILTERED count (len(employee_results)), so a static 9
+    # would fail every default flag-off run. 6 honors the audit's primary
+    # harm (closes the `1`-member-memo vulnerability) without breaking
+    # flag-off mode. When the operator flips board_cross_vendor_enabled
+    # ON and wants the 3 openrouter-adapter directors to also be
+    # required-to-speak, raise this to 9 (loose under flag-off would
+    # then re-emerge; the proper end-state is a dynamic floor — tracked
+    # as a follow-up if/when operator demands strict-9 in flag-on mode).
+    expected_min_specialists: 6
+    # #1970 (2026-05-15): bumped request_limit 30 → 150. Pre-#1970 these
+    # caps were silently ignored — the runtime used pydantic-ai's library
+    # default (50). The first real /board smoke after #1963 (OpenRouter
+    # wiring) tripped UsageLimitExceeded at 50 requests because a healthy
+    # 9-specialist deliberation does 2-4 model requests each + chief
+    # synthesis overhead — easily 60-100+ requests per board run. 150 is
+    # the operator-declared headroom that #1970 actually threads through.
+    #
+    # #1974 (2026-05-15): bumped response_token_limit 40000 → 250000. The
+    # first real deliberation post-#1971 produced 120,127 output tokens
+    # across 9 specialists before tripping the 40k cap. 250k gives ~2x
+    # headroom over the observed run; cost_limit_usd: 6.00 remains the
+    # actual safety net against pathological runaways.
+    #
+    # 2026-05-19 (#2375): bumped request_token_limit 100_000 → 250_000.
+    # First post-Track-2-validation /board failed `UsageLimitExceeded:
+    # input_tokens_limit of 100000 (input_tokens=143912)` on the FIRST
+    # request of a fresh deliberation — 6+ specialists' chief_doctrine +
+    # expertise_files + system_prompt + delegate-tool-call setup already
+    # exceeds 100K to bootstrap. 250k matches response_token_limit and
+    # gives ~1.7x headroom over the observed bootstrap; cost_limit_usd:
+    # 6.00 remains the actual safety net. If we see 250k tripped, the
+    # right next move is on-demand expertise loading, not another bump.
+    usage_limits:
+      request_limit: 150
+      request_token_limit: 250000
+      response_token_limit: 250000
+    # zone4-warmth.D.01 (#2299) — long approval cycles + big synth runs
+    # justify a 4h warm-idle window so the operator can step away mid-
+    # board-deliberation and resume on a warm chief instead of cold-starting.
+    warm_idle_timeout_seconds: 14400  # 4 hours
+
+  budget:
+    daily_limit_usd: 24.00
+    alert_thresholds: [0.50, 0.75, 0.90]
+
+  tools:
+    common: [search_knowledge, recall_decision]
+    department: [recall_past_decisions]
+    per_employee: {}
+
+  # Sprint P2.4 follow-up (#1655) — Strategy Board flipped to
+  # `deny_by_default` with an empty `allowed_servers` list. The board's
+  # 9 deliberation specialists call only in-process pydantic-ai tools
+  # (`search_knowledge`, `recall_decision`, `recall_past_decisions`,
+  # `delegate`) — no MCP server is ever consulted during a deliberation.
+  # Evidence:
+  #   - PR #1654 description: "Switching to deny_by_default is safe (the
+  #     board does not call any MCP server)".
+  #   - `tools.{common,department}` enumerates only in-process names.
+  #   - Specialist prompts at `agent/config/agents/zone4/board/*.md`
+  #     contain no MCP-server reference.
+  # Effect: the filtered `.mcp.json` emitted for board runs is `{}`. Any
+  # future need to reach an MCP server from the board surfaces as a
+  # subprocess error (no servers reachable), forcing the operator to
+  # enumerate the precise need rather than silently inheriting.
+  mcp:
+    mode: deny_by_default
+    allowed_servers: []
+
+  vapi:
+    enabled: false
+    model: gpt-4o-mini
+    voice: alloy
+    greeting: ""
+    tools: []
+
+  chief:
+    name: board-ceo
+    role: >
+      Chairs the Strategy Board. Frames questions for deliberation, moderates
+      board member responses, synthesizes toward decisions, enforces deliberation
+      constraints, and authors the final board memo.
+    # 2026-06-04 #2566: chief on anthropic-oauth (subscription Claude via the
+    # bridge's minted OAuth token), NOT codex. Codex `exec` cannot drive
+    # pydantic-ai tool-calling (delegate/final_result) — it's an autonomous
+    # agent that runs its own tools + returns prose (verified vs codex docs +
+    # issue openai/codex#15451). Chiefs REQUIRE tool-calling, so they run on
+    # anthropic-oauth (native AnthropicModel = full tool support, subscription-
+    # billed, no OpenRouter, no API key). Workers stay codex-exec (prose only).
+    # Mirrors the proven strategy-chief + ops-chief (#2596) pattern.
+    model: anthropic-oauth:claude-sonnet-4-5
+    adapter: "claude"
+    # 2026-05-20 Track 2: cheap-frontier tool/output validation needs retry headroom
+    retries: 3
+    skills:
+      - zero-micromanagement
+      - mental-model
+      - active-listener
+      - thinking-modalities
+      - business-validation
+    expertise: agent/config/expertise/updatable/board-ceo.md
+    expertise_max_lines: 2000
+    system_prompt: agent/config/agents/zone4/board/board-ceo.md
+    domain:
+      read: ["*"]
+      write:
+        - "agent/config/expertise/board-ceo.md"
+        - "sessions/"
+        - "docs/board/"
+    thinking: extended
+    max_turns: 50
+    timeout_minutes: 45.0
+
+  workers:
+    - name: board-revenue
+      role: "Revenue strategy, monetization, pricing, unit economics, growth"
+      # #2026-05-18 zone4-model-allocation: unit-economics math reasoning
+      model: "codex-exec:"
+      adapter: "codex-exec"
+      retries: 3
+      skills: [mental-model, thinking-modalities]
+      expertise: agent/config/expertise/updatable/board-revenue.md
+      expertise_max_lines: 2000
+      system_prompt: agent/config/agents/zone4/board/board-revenue.md
+      domain:
+        read: ["*"]
+        write: ["docs/board/", "sessions/"]
+
+    - name: board-compounder
+      role: "Long-term value creation, compounding effects, moat building, patient capital thinking"
+      # #2026-05-18 zone4-model-allocation: second-order / compounding reasoning depth
+      model: "codex-exec:"
+      adapter: "codex-exec"
+      retries: 3
+      skills: [mental-model, thinking-modalities]
+      expertise: agent/config/expertise/updatable/board-compounder.md
+      expertise_max_lines: 2000
+      system_prompt: agent/config/agents/zone4/board/board-compounder.md
+      domain:
+        read: ["*"]
+        write: ["docs/board/", "sessions/"]
+
+    - name: board-product-strategist
+      role: "Product vision, market fit, user value, feature strategy, roadmap"
+      # #2026-05-18 zone4-model-allocation: product-narrative synthesis
+      model: "codex-exec:"
+      adapter: "codex-exec"
+      retries: 3
+      skills: [mental-model, thinking-modalities]
+      expertise: agent/config/expertise/updatable/board-product-strategist.md
+      expertise_max_lines: 2000
+      system_prompt: agent/config/agents/zone4/board/board-product-strategist.md
+      domain:
+        read: ["*"]
+        write: ["docs/board/", "sessions/"]
+
+    - name: board-technical-architect
+      role: "Technical feasibility, architecture decisions, scalability, technical risk"
+      # #2026-05-18 zone4-model-allocation: code/architecture grounded; GLM's tool-use
+      model: "codex-exec:"
+      adapter: "codex-exec"
+      retries: 3
+      skills: [mental-model, thinking-modalities]
+      expertise: agent/config/expertise/updatable/board-technical-architect.md
+      expertise_max_lines: 2000
+      system_prompt: agent/config/agents/zone4/board/board-technical-architect.md
+      domain:
+        read: ["*"]
+        write: ["docs/board/", "sessions/"]
+
+    - name: board-contrarian
+      role: "Devil's advocate, assumption challenging, risk surfacing, pre-mortem thinking"
+      # #2026-05-18 zone4-model-allocation: different model family = genuinely different priors
+      model: "codex-exec:"
+      adapter: "codex-exec"
+      retries: 3
+      skills: [mental-model, thinking-modalities]
+      expertise: agent/config/expertise/updatable/board-contrarian.md
+      expertise_max_lines: 2000
+      system_prompt: agent/config/agents/zone4/board/board-contrarian.md
+      domain:
+        read: ["*"]
+        write: ["docs/board/", "sessions/"]
+
+    - name: board-moonshot
+      role: "10x thinking, transformative possibilities, unconventional approaches, long-horizon vision"
+      # #2026-05-18 zone4-model-allocation: reasoning depth for ambitious 10x framing
+      model: "codex-exec:"
+      adapter: "codex-exec"
+      retries: 3
+      skills: [mental-model, thinking-modalities]
+      expertise: agent/config/expertise/updatable/board-moonshot.md
+      expertise_max_lines: 2000
+      system_prompt: agent/config/agents/zone4/board/board-moonshot.md
+      domain:
+        read: ["*"]
+        write: ["docs/board/", "sessions/"]
+
+    # ------------------------------------------------------------------
+    # Sprint 04.05 — Cross-vendor seats (operator-curated). These three
+    # board members route through `bridge.cross_model.openrouter_adapter`
+    # so the Strategy Board can deliberate across model vendors. Operator
+    # may rename / re-author expertise + system_prompt later; the names,
+    # roles, and adapter wiring are the durable contract from this sprint.
+    # Convocation is gated by `BridgeConfig.board_cross_vendor_enabled`
+    # (default OFF) until Sprint 04.07 flips it after a shadow period.
+    # ------------------------------------------------------------------
+    - name: board-cross-vendor-strategist
+      role: >
+        Cross-vendor strategist. Reasons about strategy from a non-Anthropic
+        model perspective so the Board surfaces blindspots the Anthropic
+        majority shares. Pairs with board-contrarian for adversarial review.
+      # #2026-05-18 zone4-model-allocation: non-Anthropic vendor perspective (European)
+      model: "codex-exec:"
+      adapter: "codex-exec"
+      retries: 3
+      skills: [mental-model, thinking-modalities]
+      expertise: agent/config/expertise/updatable/board-cross-vendor-strategist.md
+      expertise_max_lines: 2000
+      system_prompt: agent/config/agents/zone4/board/board-cross-vendor-strategist.md
+      domain:
+        read: ["*"]
+        write: ["docs/board/", "sessions/"]
+
+    - name: board-openrouter-generalist
+      role: >
+        OpenRouter generalist. Provides a baseline cross-vendor read on the
+        question — broad-spectrum reasoning without a specialist hat. Useful
+        for sanity-checking specialist conclusions against a generic LLM
+        baseline routed via OpenRouter.
+      # #2026-05-18 zone4-model-allocation: GLM as broad-spectrum generalist read
+      model: "codex-exec:"
+      adapter: "codex-exec"
+      retries: 3
+      skills: [mental-model, thinking-modalities]
+      expertise: agent/config/expertise/updatable/board-openrouter-generalist.md
+      expertise_max_lines: 2000
+      system_prompt: agent/config/agents/zone4/board/board-openrouter-generalist.md
+      domain:
+        read: ["*"]
+        write: ["docs/board/", "sessions/"]
+
+    - name: board-systems-thinker
+      role: >
+        Systems thinker. Maps second- and third-order effects, feedback
+        loops, and cross-domain interactions. Routed through OpenRouter so
+        its reasoning lineage is independent of the Anthropic majority.
+      # #2026-05-18 zone4-model-allocation: feedback-loop + interaction modeling
+      model: "codex-exec:"
+      adapter: "codex-exec"
+      retries: 3
+      skills: [mental-model, thinking-modalities]
+      expertise: agent/config/expertise/updatable/board-systems-thinker.md
+      expertise_max_lines: 2000
+      system_prompt: agent/config/agents/zone4/board/board-systems-thinker.md
+      domain:
+        read: ["*"]
+        write: ["docs/board/", "sessions/"]
+
+# S04: MCP server allowlist for DEPARTMENT write jail
+# Empty list = inherit bridge default (permissive); expand via operator PR
+mcp_servers: []

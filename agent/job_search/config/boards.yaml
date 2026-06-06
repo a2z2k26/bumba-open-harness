@@ -1,0 +1,80 @@
+# Per-board configuration for the job-search pipeline (D5.7).
+#
+# This file is the source of truth for whether a board's auto-submit pipeline
+# should expect a logged-in browser session. The chief reads this at run-time
+# and, if requires_login: true, calls
+# teams.job_search._browser_profiles.profile_path_for_board(board) to thread
+# storage_state_path into BrowserInput.
+#
+# Adding a new board: append a key + the two fields below. Operator runs
+# `python -m scripts.capture_browser_profile <board> --url <login_url>` once
+# to capture the session. Profiles live at
+# /opt/bumba-harness/data/browser-profiles/<board>.json (.gitignored).
+#
+# Out of scope: multi-account profiles (one profile per board for now;
+# multi-account is post-1.0).
+
+boards:
+  remotive:
+    requires_login: false
+    login_hint: "Public board, no login required. Listed for completeness."
+
+  himalayas:
+    requires_login: false
+    login_hint: "Public API. Some apply-flows redirect to ATS that may require login (handled per-listing)."
+
+  jobicy:
+    requires_login: false
+    login_hint: "Public board."
+
+  remoteok:
+    requires_login: false
+    login_hint: "Public board, applies redirect to external ATS."
+
+  workingnomads:
+    requires_login: false
+    login_hint: "Public board."
+
+  weworkremotely:
+    requires_login: false
+    login_hint: "Public board."
+
+  ycombinator:
+    requires_login: true
+    login_hint: "Work-at-a-Startup requires login. Operator captures profile via Google OAuth."
+
+  ashby:
+    requires_login: true
+    login_hint: "Some Ashby-hosted boards prefill profile fields when logged in. Operator-curated company seeds in companies.yaml."
+
+  greenhouse:
+    requires_login: true
+    login_hint: "Greenhouse-hosted boards prefill profile fields when logged in. Skip captcha + email-verify wall."
+
+  lever:
+    requires_login: true
+    login_hint: "Lever-hosted boards prefill profile fields when logged in."
+
+  dribbble:
+    requires_login: true
+    login_hint: "Dribbble jobs require login. Operator captures via Dribbble account."
+
+  behance:
+    requires_login: true
+    login_hint: "Behance jobs require Adobe ID login. Operator captures via Adobe sign-in."
+
+  coroflot:
+    requires_login: true
+    login_hint: "Coroflot prefers logged-in apply flow. Operator captures via Coroflot account."
+
+  builtin:
+    requires_login: true
+    login_hint: "BuiltIn requires login for some apply-now flows."
+
+  nodesk:
+    requires_login: false
+    login_hint: "Public board."
+
+  dice:
+    requires_login: true
+    login_hint: "Dice is in _ACCOUNT_REQUIRED_BOARDS — chief already gates this. Profile capture optional."

@@ -1,0 +1,27 @@
+# Skill Journey — seed data and trust floors for Zone 3 canonical skills.
+# Loaded by SkillStore at init and Dispatcher at construction.
+
+skills:
+  - name: fix-test
+    tier: experimental
+    trust_floor: 0.0   # S15: minimum agent proficiency to route this skill
+
+  - name: review-pr
+    tier: experimental
+    trust_floor: 0.0
+
+  - name: ship-feature
+    tier: experimental
+    trust_floor: 0.0
+
+  - name: refactor
+    tier: experimental
+    trust_floor: 0.0
+
+  - name: chat
+    tier: canonical    # chat is trivially reliable
+    trust_floor: 0.0
+
+  - name: query
+    tier: canonical
+    trust_floor: 0.0

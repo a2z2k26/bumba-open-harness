@@ -1,0 +1,1150 @@
+# Runtime skill allocations — OPERATOR APPROVED
+# Generated 2026-05-16 during #1112 planning session
+# Approved by operator: 2026-05-17 (#2149)
+#
+# Operator-review edits applied (16 total across two review passes):
+# Pass 1 (initial):
+#   - qa-penetration-tester typo → penetration-tester
+#   - executive_readiness cross-zone to strategy-product-chief
+#   - eval-harness cross-zone to qa-chief + qa-engineer
+# Pass 2 (deeper sweep — addresses under-served agents):
+#   - fastapi-pro-developer added to python_stack
+#   - flutter-expert, nextjs-developer, graphql-architect, terraform-engineer
+#     added as ancillary specialty allocations
+#   - QA specialists (api-tester, accessibility-tester, mobile-tester) get
+#     real-domain skills (webapp-testing + mobile transforms)
+#   - ops-cloud-architect + ops-network-engineer get cloud/observability skills
+#   - design figma_core expanded to interaction-designer + prototyper
+#   - design-chief gets visual-styling skills for direction work
+#   - strategy-product-chief added to ux_discovery, enterprise_teaching
+#   - board-revenue added to finance_metrics (activation-ready)
+#   - notion_integration universal across ALL Zone 4 depts (Notion = central data layer)
+#   - altitude-horizon-framework added to engineering-chief
+#   - memory_protocols + llm-architect (matches Cat 10 cross-allocation pattern)
+#   - arch_core dedup: removed redundant chief-role rule (universal already covers it)
+
+approved_by_operator: 2026-05-17
+
+# Schema:
+#   category: human-readable group name (15 total)
+#   skills: list of skill names
+#   allocation: ordered list of allocation rules
+#     - zone: 3 or 4
+#       department: <name> | null  (Zone 3 has only 'engineering'; null for ancillary specialty agents)
+#       role: chief | specialist | null  (null = both)
+#       agents: [list of specific named agents]  (optional, narrows further)
+
+categories:
+  - id: 1
+    name: "Engineering — Code patterns/frameworks"
+    approved: 2026-05-16
+    skills:
+      python_stack:
+        - python-patterns
+        - python-testing
+        - python-packaging
+        - django-patterns
+        - django-security
+        - django-tdd
+        - django-verification
+        - fastapi-templates
+        - uv-package-manager
+        - async-python-patterns
+        allocation:
+          - zone: 3
+            department: engineering
+            agents: [engineering-backend-architect, engineering-api-engineer, fastapi-pro-developer]
+      go_stack:
+        - golang-patterns
+        - golang-testing
+        allocation:
+          - zone: 3
+            department: engineering
+            agents: [engineering-backend-architect]
+            note: carry-forward for cross-repo work
+      java_jvm_stack:
+        - java-coding-standards
+        - jpa-patterns
+        - springboot-patterns
+        - springboot-security
+        - springboot-tdd
+        - springboot-verification
+        allocation:
+          - zone: 3
+            department: engineering
+            agents: [engineering-backend-architect]
+            note: carry-forward for cross-repo work
+      cpp_stack:
+        - cpp-coding-standards
+        - cpp-testing
+        allocation:
+          - zone: 3
+            department: engineering
+            agents: [engineering-backend-architect]
+            note: carry-forward for cross-repo work
+      swift_stack:
+        - swift-actor-persistence
+        - swift-concurrency-6-2
+        - swift-protocol-di-testing
+        - swiftui-patterns
+        allocation:
+          - zone: 3
+            department: engineering
+            agents: [swift-expert]
+            note: ancillary specialty agent, carry-forward
+      frontend_react:
+        - frontend-patterns
+        - react-modernization
+        - transform-react
+        - transform-react-native
+        - transform-vue
+        - transform-angular
+        - transform-svelte
+        - transform-flutter
+        - transform-swiftui
+        - transform-jetpack-compose
+        allocation:
+          - zone: 3
+            department: engineering
+            agents: [engineering-frontend-developer, react-specialist, nextjs-developer]
+          - zone: 4
+            department: design
+            agents: [design-prototyper]
+            note: |
+              Sprint 5d.01 (#2168) — prototyper produces working prototypes across
+              frameworks; needs transform-* skills cross-zone for prototyping output.
+              Brief 03 §1 lists transform-* under prototyper responsibilities.
+      flutter_specialty:
+        - transform-flutter
+        allocation:
+          - zone: 3
+            department: engineering
+            agents: [flutter-expert]
+            note: flutter-expert is ancillary specialty agent
+      graphql_specialty:
+        - api-design
+        - backend-patterns
+        allocation:
+          - zone: 3
+            department: engineering
+            agents: [graphql-architect]
+            note: graphql-architect is ancillary specialty agent; uses backend-patterns + api-design as foundational
+      terraform_specialty:
+        - deployment-patterns
+        - docker-patterns
+        allocation:
+          - zone: 3
+            department: engineering
+            agents: [terraform-engineer]
+            note: terraform-engineer is ancillary specialty agent; no terraform-specific Bumba skill so foundational deployment patterns substitute
+      gsap_animation:
+        - gsap-core
+        - gsap-fundamentals
+        - gsap-timeline
+        - gsap-scrolltrigger
+        - gsap-plugins
+        - gsap-utils
+        - gsap-react
+        - gsap-frameworks
+        - gsap-performance
+        allocation:
+          - zone: 3
+            department: engineering
+            agents: [engineering-frontend-developer]
+      ai_llm_engineering:
+        - langchain-architecture
+        allocation:
+          - zone: 3
+            department: engineering
+            agents: [ai-engineer, llm-architect]
+            note: ancillary specialty agents
+      node_backend:
+        - nodejs-backend-patterns
+        allocation:
+          - zone: 3
+            department: engineering
+            agents: [engineering-backend-architect]
+      payment_infra:
+        - stripe-integration
+        allocation:
+          - zone: 3
+            department: engineering
+            agents: [engineering-chief, engineering-backend-architect]
+
+# Categories 2-15 pending walk
+
+  - id: 2
+    name: "Engineering — Testing & verification"
+    approved: 2026-05-16
+    skills:
+      foundational:
+        - tdd-workflow
+        - verification-loop
+        allocation:
+          - zone: 3
+            department: engineering  # universal across team — no role narrowing
+      e2e_web:
+        - e2e-testing
+        - webapp-testing
+        allocation:
+          - zone: 3
+            department: engineering
+            agents: [engineering-frontend-developer]
+          - zone: 4
+            department: qa
+            agents: [qa-automation-engineer, qa-api-tester, qa-accessibility-tester]
+            note: qa-api-tester needs webapp-testing for API endpoint validation; qa-accessibility-tester needs webapp-testing for browser-based a11y checks
+          - zone: 4
+            department: design
+            agents: [design-accessibility-specialist]
+            note: |
+              Sprint 5d.01 (#2168) — design-accessibility-specialist gets
+              webapp-testing for browser-based a11y validation. Brief 03 §1 calls
+              for accessibility-tester cross-zone allocation; the actual
+              testing-substrate skill is webapp-testing (same one qa-accessibility-tester uses).
+      qa_specialty_mobile:
+        - transform-react-native
+        - transform-flutter
+        allocation:
+          - zone: 4
+            department: qa
+            agents: [qa-mobile-tester]
+            note: mobile-tester needs framework knowledge to validate native + cross-platform builds
+      llm_eval:
+        - eval-harness
+        - Eval
+        allocation:
+          - zone: 3
+            department: engineering
+            agents: [engineering-chief, ai-engineer, llm-architect]
+          - zone: 4
+            department: qa
+            agents: [qa-chief, qa-engineer]
+            note: output-quality verification for Phase 5 qa workflows (#2175-#2178)
+
+  - id: 3
+    name: "Engineering — Code review & quality"
+    approved: 2026-05-16
+    skills:
+      review_core:
+        - code-review-excellence
+        - coding-standards
+        - plankton-code-quality
+        - normalize
+        allocation:
+          - zone: 3
+            department: engineering  # universal across team
+      review_owner:
+        - code-review-excellence
+        allocation:
+          - zone: 3
+            department: engineering
+            agents: [engineering-code-reviewer]  # primary owner
+      security:
+        - security-review
+        - security-scan
+        allocation:
+          - zone: 3
+            department: engineering
+            agents: [engineering-code-reviewer]
+          - zone: 4
+            department: qa
+            agents: [qa-security-auditor, penetration-tester]
+      hardening:
+        - harden
+        allocation:
+          - zone: 3
+            department: engineering  # universal
+          - zone: 4
+            department: ops
+      audit_practice:
+        - audit
+        allocation:
+          - zone: 3
+            department: engineering  # universal
+            note: pattern proven in 2026-05-15 audit-remediation
+          - zone: 4
+            department: qa
+            agents: [qa-chief, qa-engineer, qa-security-auditor, qa-performance-tester, qa-accessibility-tester]
+            note: |
+              Sprint 5d.01 (#2174) — qa specialists need the audit skill for the
+              specialized post-development audits the brief 04 Section 4 calls for
+              (accessibility_audit, security_review_pre_release, performance_baseline).
+              The audit pattern proved out in 2026-05-15 audit-remediation; same
+              shape applies to qa workflows.
+          - zone: 4
+            department: ops
+            agents: [ops-chief, ops-devops-specialist, ops-sre-engineer, ops-monitoring-specialist, ops-database-admin]
+            note: |
+              Sprint 5o.01 (#2179) — ops specialists need the audit skill for the
+              per-specialist output bars in brief 05 §3 (deploy audit-trailed,
+              DB-change audit, observability audit, post-mortem audit) and the
+              workflows in §4 (`ops.deploy_to_mini` requires deploy audit trail
+              to `data/deploys/<sha>.json`; `ops.health_check_pass` produces
+              a markdown report).
+
+  - id: 4
+    name: "Engineering — Architecture/infrastructure"
+    approved: 2026-05-16
+    skills:
+      arch_core:
+        - architecture-patterns
+        - error-handling-patterns
+        allocation:
+          - zone: 3
+            department: engineering  # universal; chief is primary practitioner
+      backend_api:
+        - backend-patterns
+        - api-design
+        allocation:
+          - zone: 3
+            department: engineering
+            agents: [engineering-backend-architect, engineering-api-engineer]
+          - zone: 4
+            department: qa
+            agents: [qa-api-tester]
+            note: |
+              Sprint 5d.01 (#2174) — qa-api-tester needs api-design for contract
+              conformance validation against OpenAPI/schema specs per brief 04
+              §4 `qa.api_contract_test` workflow.
+      database:
+        - database-migrations
+        - postgres-patterns
+        - sql-optimization-patterns
+        allocation:
+          - zone: 3
+            department: engineering
+            agents: [engineering-database-specialist]
+          - zone: 4
+            department: ops
+            agents: [ops-database-admin]
+      deployment_containers:
+        - deployment-patterns
+        - docker-patterns
+        allocation:
+          - zone: 3
+            department: engineering
+            agents: [engineering-devops-engineer]
+          - zone: 4
+            department: ops
+            agents: [ops-devops-specialist, ops-kubernetes-engineer]
+      observability:
+        - distributed-tracing
+        allocation:
+          - zone: 3
+            department: engineering
+            agents: [engineering-performance-engineer]
+          - zone: 4
+            department: ops
+            agents: [ops-monitoring-specialist, ops-sre-engineer, ops-network-engineer]
+            note: ops-network-engineer needs distributed-tracing for network-layer observability
+          - zone: 4
+            department: qa
+            agents: [qa-performance-tester]
+            note: |
+              Sprint 5d.01 (#2174) — qa-performance-tester needs distributed-tracing
+              to establish baselines + detect regressions per the brief 04 §4
+              `qa.performance_baseline` workflow.
+      ops_cloud:
+        - deployment-patterns
+        - docker-patterns
+        allocation:
+          - zone: 4
+            department: ops
+            agents: [ops-cloud-architect]
+            note: ops-cloud-architect needs deployment + container patterns for cloudflare/digitalocean orchestration; MCP-level cloudflare/digitalocean skill scoping handled in Phase 5 Sprint 5o.05 (#2182)
+      ops_mcp_cloud:
+        - cloudflare
+        - digitalocean
+        allocation:
+          - zone: 4
+            department: ops
+            agents: [ops-cloud-architect, ops-devops-specialist]
+            note: |
+              Sprint 5o.05 (#2182) — scope cloudflare + digitalocean MCPs to ops
+              specialists. Previously globally available; now explicitly
+              allocated so the skill allocator narrows to ops-cloud-architect +
+              ops-devops-specialist as the consumers of cloud-provider MCPs.
+      ops_mcp_container:
+        - docker-gateway
+        allocation:
+          - zone: 4
+            department: ops
+            agents: [ops-devops-specialist, ops-kubernetes-engineer]
+            note: |
+              Sprint 5o.05 (#2182) — scope docker-gateway MCP to container/k8s
+              ops specialists. devops-specialist handles container runtime;
+              kubernetes-engineer needs the docker-gateway surface for
+              container-image inspection inside cluster workflows.
+
+  - id: 5
+    name: "Design — Figma/visual systems"
+    approved: 2026-05-16
+    skills:
+      figma_core:
+        - figma-use
+        - figma-generate-design
+        - figma-generate-library
+        - figma-implement-design
+        - figma-code-connect
+        - figma-create-design-system-rules
+        - figma-create-new-file
+        - design-figma-sketch
+        - pencil-to-figma
+        allocation:
+          - zone: 4
+            department: design
+            agents: [design-ui-designer, design-visual-designer, design-system-architect, design-interaction-designer, design-prototyper]
+      frontend_design_bridge:
+        - frontend-design
+        - bumba-design-director-frontend
+        allocation:
+          - zone: 4
+            department: design
+            role: chief
+          - zone: 4
+            department: design
+            agents: [design-ui-designer]
+            note: |
+              Sprint 5d.01 (#2168) — ui-designer authors production-grade frontend
+              compositions inline; needs frontend-design + bumba-design-director-frontend
+              for distinctive high-craft output, not just figma artifacts.
+          - zone: 3
+            department: engineering
+            agents: [engineering-frontend-developer]
+      visual_aesthetic:
+        - liquid-glass-design
+        allocation:
+          - zone: 4
+            department: design
+            agents: [design-visual-designer]
+      bridge_infra:
+        - design-bridge-shared
+        - design-sync-cascade
+        - design-sync-monitor
+        allocation:
+          - zone: 4
+            department: design
+            role: chief
+          - zone: 4
+            department: design
+            agents: [design-system-architect]
+            note: |
+              Sprint 5d.01 (#2168) — system-architect designs the bridge cascade
+              shape (token taxonomy, sync triggers, design-system rules contract);
+              needs bridge_infra skills alongside chief.
+      design_general:
+        - design
+        allocation:
+          - zone: 4
+            department: design  # universal
+
+  - id: 6
+    name: "Design — UX research/strategy"
+    approved: 2026-05-16
+    skills:
+      ux_discovery:
+        - discovery-interview-prep
+        - discovery-process
+        - jobs-to-be-done
+        - opportunity-solution-tree
+        - customer-journey-map
+        - customer-journey-mapping-workshop
+        - problem-framing-canvas
+        - problem-statement
+        - proto-persona
+        - lean-ux-canvas
+        - recommendation-canvas
+        allocation:
+          - zone: 4
+            department: design
+            agents: [design-ux-researcher, design-interaction-designer]
+          - zone: 4
+            department: strategy
+            agents: [strategy-requirement-engineer, strategy-user-analyst, strategy-product-chief]
+      user_stories:
+        - user-story
+        - user-story-mapping
+        - user-story-mapping-workshop
+        - user-story-splitting
+        allocation:
+          - zone: 4
+            department: design
+            agents: [design-ux-researcher, design-interaction-designer]
+          - zone: 4
+            department: strategy
+            agents: [strategy-requirement-engineer, strategy-user-analyst]
+            note: |
+              Sprint 5s.01 (#2183) — user-analyst added: user-research-synthesis bar
+              (brief 06 §3) calls for translating research findings into actionable
+              recommendations, which is exactly what user-story-mapping + splitting
+              codify. Already in ux_discovery; needs the story-shaping skills to
+              close the synthesis loop.
+          - zone: 3
+            department: engineering
+            role: chief
+
+  - id: 7
+    name: "Design — Visual polish/aesthetics"
+    approved: 2026-05-16
+    skills:
+      visual_styling:
+        - taste-skill
+        - soft-skill
+        - ui-ux-pro-max
+        - minimalist-skill
+        - redesign-skill
+        - bolder
+        - quieter
+        - colorize
+        allocation:
+          - zone: 4
+            department: design
+            agents: [design-visual-designer, design-ui-designer]
+            note: |
+              Sprint 5d.01 (#2168) — ui-designer added to visual_styling. UI work
+              and visual styling overlap in practice (taste/soft/minimalist apply
+              to component-level interface decisions, not just artwork). Brief 03
+              §1 lists visual-styling under ui-designer responsibilities.
+          - zone: 4
+            department: design
+            role: chief
+            note: chief needs visual-styling skills to evaluate visual quality and direct visual-designer
+      motion_storyboarding:
+        - animate
+        - storyboard
+        allocation:
+          - zone: 4
+            department: design
+            agents: [design-interaction-designer, design-prototyper]
+      critique_polish:
+        - critique
+        - polish
+        - delight
+        allocation:
+          - zone: 4
+            department: design
+            agents: [design-visual-designer]
+          - zone: 4
+            department: design
+            role: chief
+      adapt_responsive:
+        - adapt
+        allocation:
+          - zone: 4
+            department: design
+            agents: [design-accessibility-specialist]
+          - zone: 4
+            department: qa
+            agents: [qa-accessibility-tester]
+            note: |
+              Sprint 5d.01 (#2174) — qa-accessibility-tester needs adapt for
+              responsive-breakpoint a11y validation per brief 04 §4
+              `qa.accessibility_audit` workflow (WCAG audits include responsive
+              behavior).
+      extract_distill:
+        - extract
+        - distill
+        allocation:
+          - zone: 4
+            department: design  # universal across team
+      output_engineering_cross:
+        - output-skill
+        - optimize
+        allocation:
+          - zone: 4
+            department: design  # universal
+          - zone: 3
+            department: engineering
+            agents: [engineering-frontend-developer]
+
+  - id: 8
+    name: "Product strategy"
+    approved: 2026-05-16
+    skills:
+      prd_roadmap:
+        - prd-development
+        - roadmap-planning
+        - product-strategy-session
+        - prioritization-advisor
+        - feature-investment-advisor
+        - epic-hypothesis
+        - epic-breakdown-advisor
+        allocation:
+          - zone: 4
+            department: strategy
+            agents: [strategy-product-chief, strategy-requirement-engineer, strategy-roadmap-strategist]
+      market_positioning:
+        - market-research
+        - company-research
+        - tam-sam-som-calculator
+        - positioning-statement
+        - positioning-workshop
+        - acquisition-channel-advisor
+        - pestel-analysis
+        allocation:
+          - zone: 4
+            department: strategy
+            agents: [strategy-market-researcher, strategy-competitive-intelligence-analyst]
+          - zone: 4
+            department: strategy
+            agents: [strategy-business-analyst]
+            note: |
+              Sprint 5s.01 (#2183) — business-analyst pairs with market-researcher
+              on the `strategy.tam_sam_som_for_idea` workflow (brief 06 §4); needs
+              tam-sam-som-calculator + company-research + market-research for the
+              market-sizing canvas. Also useful for finance-analysis bar (brief §3
+              "decision-relevance" requires market context).
+      strategy_mcp_search:
+        - brave-search
+        allocation:
+          - zone: 4
+            department: strategy
+            agents: [strategy-market-researcher, strategy-competitive-intelligence-analyst]
+            note: |
+              Sprint 5s.07 (#2188) — scope brave-search MCP to strategy team.
+              Previously globally available; now explicitly allocated. Primary
+              consumers are market-researcher + competitive-intelligence-analyst
+              per brief 06 §3 (market-report quality bar requires fresh search
+              for source citations + competitive intel).
+          - zone: 4
+            department: strategy
+            role: chief
+            note: |
+              strategy-product-chief uses brave-search for cross-cutting research
+              when orchestrating market/positioning workflows.
+      finance_metrics:
+        - finance-based-pricing-advisor
+        - finance-metrics-quickref
+        - saas-economics-efficiency-metrics
+        - saas-revenue-growth-metrics
+        - business-health-diagnostic
+        allocation:
+          - zone: 4
+            department: strategy
+            agents: [strategy-business-analyst, strategy-product-metrics-analyst]
+          - zone: 4
+            department: board
+            agents: [board-revenue]
+            note: board-revenue is the board persona for revenue/financial work; activates first when board work resumes
+      executive_readiness:
+        - executive-onboarding-playbook
+        - vp-cpo-readiness-advisor
+        - director-readiness-advisor
+        - ai-shaped-readiness-advisor
+        allocation:
+          - zone: 4
+            department: board
+            agents: [board-ceo, board-product-strategist, board-revenue]
+            note: |
+              Sprint 5b.01 (#2166) — narrow executive_readiness from department-wide
+              to the three board personas that actually do executive-onboarding /
+              readiness work. The other 8 board personas (compounder, contrarian,
+              cross-vendor-strategist, drunken-master, moonshot, openrouter-generalist,
+              systems-thinker, technical-architect) operate on different lenses
+              (technical, contrarian, moonshot, etc.) and shouldn't have
+              VP/CPO/director playbooks flowing to them by default.
+          - zone: 4
+            department: strategy
+            agents: [strategy-product-chief]
+            note: board is dormant short-term; strategy-product-chief is active and handles operator-strategy work
+      pol_probes:
+        - pol-probe
+        - pol-probe-advisor
+        allocation:
+          - zone: 4
+            department: strategy
+            role: chief
+          - zone: 4
+            department: strategy
+            agents: [strategy-product-chief]
+
+  - id: 9
+    name: "Agent/skill infrastructure (meta)"
+    approved: 2026-05-16
+    skills:
+      universal_skill_discovery:
+        - using-superpowers
+        allocation:
+          - zone: 3  # universal across all zones
+            note: foundational skill-discovery; flow to every agent in every zone
+          - zone: 4
+            note: universal across all Zone 4 departments
+      agent_harness:
+        - agent-development
+        - agent-harness-construction
+        - agent-identifier
+        - configured-agent
+        - agentic-engineering
+        allocation:
+          - zone: 3
+            department: engineering  # universal
+          - zone: 3
+            department: engineering
+            role: chief
+            note: chief is primary owner
+      command_hook_rule:
+        - command-development
+        - command-name
+        - hook-development
+        - rule-identifier
+        - writing-rules
+        - configure-ecc
+        - configure
+        - claude-md-improver
+        - claude-automation-recommender
+        allocation:
+          - zone: 3
+            department: engineering
+            role: chief
+          - zone: 3
+            department: engineering
+            agents: [engineering-devops-engineer]
+      mcp_development:
+        - mcp-builder
+        - mcp-integration
+        - build-mcp-app
+        - build-mcp-server
+        - build-mcpb
+        allocation:
+          - zone: 3
+            department: engineering
+            agents: [mcp-developer]  # ancillary specialty agent
+          - zone: 3
+            department: engineering
+            role: chief
+      plugin_development:
+        - plugin-settings
+        - plugin-structure
+        allocation:
+          - zone: 3
+            department: engineering
+            role: chief
+      skill_development:
+        - skill-authoring-workflow
+        - skill-creator
+        - skill-development
+        - skill-stocktake
+        allocation:
+          - zone: 3
+            department: engineering  # universal — anyone may need to author skills
+      orchestration_swarm:
+        - swarm-advanced
+        - swarm-orchestration
+        - tmux-orchestration
+        - autonomous-loops
+        - continuous-agent-loop
+        allocation:
+          - zone: 3
+            department: engineering
+            role: chief
+          - zone: 3
+            department: engineering
+            agents: [engineering-devops-engineer]
+
+  - id: 10
+    name: "AI/LLM patterns"
+    approved: 2026-05-16
+    skills:
+      claude_api_general:
+        - claude-api
+        - claude-opus-4-5-migration
+        allocation:
+          - zone: 3
+            department: engineering  # universal
+      prompt_engineering:
+        - prompt-engineering-patterns
+        - prompt-improver
+        - context-engineering-advisor
+        allocation:
+          - zone: 3
+            department: engineering  # universal
+          - zone: 3
+            department: engineering
+            agents: [prompt-engineer]  # ancillary specialty primary
+          - zone: 4
+            department: strategy
+            role: chief
+      llm_specialized:
+        - rag-implementation
+        - foundation-models-on-device
+        - cost-aware-llm-pipeline
+        - regex-vs-llm-structured-text
+        - iterative-retrieval
+        - content-engine
+        - content-hash-cache-pattern
+        allocation:
+          - zone: 3
+            department: engineering
+            agents: [ai-engineer, llm-architect]
+      ai_foundational:
+        - karpathy-guidelines
+        - ai-first-engineering
+        allocation:
+          - zone: 3
+            department: engineering  # universal
+          - zone: 3
+            department: engineering
+            role: chief
+
+  - id: 11
+    name: "Workspace / productivity (Google + Notion + Obsidian)"
+    approved: 2026-05-16
+    skills:
+      gws_calendar_meet:
+        - gws-calendar
+        - gws-calendar-agenda
+        - gws-calendar-insert
+        - gws-meet
+        allocation:
+          - zone: 3
+            department: engineering  # universal
+          - zone: 4
+            department: strategy
+          - zone: 4
+            department: board
+      gws_email:
+        - gws-gmail
+        - gws-gmail-read
+        - gws-gmail-send
+        - gws-gmail-triage
+        allocation:
+          - zone: 3
+            department: engineering  # universal
+          - zone: 4
+            department: ops
+            role: chief
+          - zone: 4
+            department: strategy
+      gws_docs_drive:
+        - gws-docs
+        - gws-docs-write
+        - gws-drive
+        - gws-drive-upload
+        - gws-sheets
+        - gws-sheets-append
+        - gws-sheets-read
+        - gws-keep
+        - gws-tasks
+        - gws-people
+        - gws-shared
+        - gws-chat-send
+        allocation:
+          - zone: 3
+            department: engineering  # universal
+          - zone: 4
+            department: strategy
+      notion_integration:
+        - notion-knowledge-capture
+        - notion-meeting-intelligence
+        - notion-research-documentation
+        - notion-spec-to-implementation
+        allocation:
+          - zone: 3
+            department: engineering  # universal
+          - zone: 4
+            department: strategy  # universal — Notion is central data layer
+          - zone: 4
+            department: ops
+          - zone: 4
+            department: qa
+          - zone: 4
+            department: design
+          - zone: 4
+            department: board
+            note: Notion is the central data layer per External Product integration thesis; every Z4 dept consumes/writes Notion data
+      obsidian_local:
+        - obsidian-bases
+        - obsidian-cli
+        - obsidian-markdown
+        - defuddle
+        allocation:
+          - zone: 3
+            department: engineering
+            role: chief
+            note: operator-paired only; obsidian is operator's personal vault
+
+  - id: 12
+    name: "Comms & writing"
+    approved: 2026-05-16
+    skills:
+      routine_comms:
+        - article-writing
+        - doc-coauthoring
+        - internal-comms
+        - eol-message
+        allocation:
+          - zone: 4
+            department: strategy  # universal
+          - zone: 3
+            department: engineering
+            role: chief
+      executive_external_comms:
+        - press-release
+        - investor-materials
+        - investor-outreach
+        allocation:
+          - zone: 4
+            department: board
+          - zone: 4
+            department: strategy
+            role: chief
+      presentations:
+        - presentations
+        - frontend-slides
+        allocation:
+          - zone: 4
+            department: design
+            agents: [design-visual-designer]
+          - zone: 4
+            department: strategy
+          - zone: 4
+            department: board
+      brand:
+        - brand-guidelines
+        allocation:
+          - zone: 4
+            department: design  # universal
+          - zone: 4
+            department: strategy
+      utility_misc:
+        - slack-gif-creator
+        allocation:
+          - zone: 3
+            department: engineering
+            role: chief
+            note: operator-paired utility, low-value
+
+  - id: 13
+    name: "Document/file formats"
+    approved: 2026-05-16
+    skills:
+      office_formats:
+        - docx
+        - pdf
+        - pptx
+        - xlsx
+        allocation:
+          - zone: 3
+            department: engineering  # universal
+          - zone: 4
+            department: strategy  # universal
+      design_artifacts:
+        - canvas-design
+        - theme-factory
+        - algorithmic-art
+        allocation:
+          - zone: 4
+            department: design
+            agents: [design-visual-designer]
+      canvas_format:
+        - json-canvas
+        allocation:
+          - zone: 4
+            department: design
+          - zone: 3
+            department: engineering
+            role: chief
+      doc_ai_processing:
+        - nutrient-document-processing
+        allocation:
+          - zone: 3
+            department: engineering
+            agents: [ai-engineer]
+      web_artifacts:
+        - web-artifacts-builder
+        allocation:
+          - zone: 4
+            department: design
+          - zone: 3
+            department: engineering
+            agents: [engineering-frontend-developer]
+      niche_utilities:
+        - visa-doc-translate
+        allocation:
+          - zone: 3
+            department: engineering
+            role: chief
+            note: niche utility, operator-paired only
+
+  - id: 14
+    name: "Workshop/facilitation"
+    approved: 2026-05-16
+    skills:
+      facilitation:
+        - workshop-facilitation
+        allocation:
+          - zone: 4
+            department: strategy  # universal
+          - zone: 4
+            department: design
+            role: chief
+      strategic_framing:
+        - altitude-horizon-framework
+        allocation:
+          - zone: 4
+            department: strategy
+          - zone: 4
+            department: board
+          - zone: 3
+            department: engineering
+            role: chief
+            note: chief uses altitude/horizon for architecture-strategy decisions
+      clarification:
+        - clarify
+        allocation:
+          - zone: 3
+            department: engineering  # universal
+          - zone: 4
+            department: strategy  # universal
+
+  - id: 15
+    name: "Process/orchestration/handoff"
+    approved: 2026-05-16
+    skills:
+      handoff_universal:
+        - handoff-prepare
+        - handoff-receive
+        allocation:
+          - zone: 3
+            note: universal across all zones (handoff protocol is cross-cutting)
+          - zone: 4
+            note: universal across all Zone 4 departments
+      onboarding:
+        - onboard
+        - m5-onboard
+        allocation:
+          - zone: 3
+            department: engineering
+            role: chief
+      session_hygiene_universal:
+        - session-report
+        - learned
+        - continuous-learning
+        - continuous-learning-v2
+        - strategic-compact
+        - search-first
+        allocation:
+          - zone: 3
+            note: universal across all zones
+          - zone: 4
+            note: universal across all Zone 4 departments
+      debugging:
+        - debugging-strategies
+        allocation:
+          - zone: 3
+            department: engineering  # universal
+          - zone: 4
+            department: ops
+            agents: [ops-sre-engineer, ops-network-engineer]
+            note: |
+              Sprint 5o.01 (#2179) — sre-engineer + network-engineer need
+              debugging-strategies for incident response per brief 05 §3
+              ("acknowledge, scope, mitigate, post-mortem" bar).
+      rfc_pipeline:
+        - ralphinho-rfc-pipeline
+        allocation:
+          - zone: 3
+            department: engineering
+            role: chief
+          - zone: 4
+            department: strategy
+            role: chief
+      git_github:
+        - git-advanced-workflows
+        - github-actions-templates
+        allocation:
+          - zone: 3
+            department: engineering  # universal
+          - zone: 3
+            department: engineering
+            agents: [engineering-devops-engineer]
+          - zone: 4
+            department: ops
+            agents: [ops-devops-specialist, ops-chief]
+            note: |
+              Sprint 5o.01 (#2179) — ops-devops-specialist needs git + GH actions
+              templates for the `ops.deploy_to_mini` workflow (pre-check clean
+              tree, atomic-reversible deploys per brief 05 §3 + §4). ops-chief
+              coordinates deploys across services.
+      opencli:
+        - opencli-adapter-author
+        - opencli-autofix
+        - opencli-usage
+        allocation:
+          - zone: 3
+            department: engineering
+            agents: [cli-developer]  # ancillary specialty
+      reference_examples:
+        - example-skill
+        - example-command
+        - project-guidelines-example
+        allocation:
+          - zone: 3
+            department: engineering
+            role: chief
+      enterprise_teaching:
+        - enterprise-agent-ops
+        - teach-impeccable
+        allocation:
+          - zone: 3
+            department: engineering
+            role: chief
+          - zone: 4
+            department: strategy
+            agents: [strategy-product-chief]
+            note: strategy chief regularly authors briefs/playbooks/training docs; teach-impeccable applies
+      misc_low_value:
+        - nanoclaw-repl
+        - math-olympiad
+        - cardputer-buddy
+        - playground
+        allocation:
+          - zone: 3
+            department: engineering
+            role: chief
+            note: operator-paired utilities, low-value
+
+  - id: 16
+    name: "Closeout — stragglers not caught in categories 1-15"
+    approved: 2026-05-16
+    note: |
+      Completeness-check pass surfaced 15 inventory items not allocated.
+      10 are README/doc files (.md) inside skill dirs — not actual skills, not allocated.
+      The 5 real skills below are explicitly added here.
+    skills:
+      bumba_plugin_skills:
+        - bumba-frontend-design
+        - bumba-nlp-design
+        allocation:
+          - zone: 4
+            department: design
+            agents: [design-ui-designer, design-visual-designer]
+          - zone: 3
+            department: engineering
+            agents: [engineering-frontend-developer]
+      memory_protocols:
+        - memory-agent-protocol
+        - memory-awareness
+        allocation:
+          - zone: 3
+            department: engineering
+            role: chief
+          - zone: 3
+            department: engineering
+            agents: [ai-engineer, llm-architect]
+            note: llm-architect designs memory systems alongside ai-engineer; matches Cat 10 llm_specialized cross-allocation pattern
+      data_io:
+        - clickhouse-io
+        allocation:
+          - zone: 3
+            department: engineering
+            agents: [engineering-database-specialist, data-engineer]
+            note: data-engineer is ancillary specialty agent
+      file_access:
+        - access
+        allocation:
+          - zone: 3
+            department: engineering
+            role: chief
+            note: low-value utility, operator-paired

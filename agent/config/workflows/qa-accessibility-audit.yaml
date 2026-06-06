@@ -1,0 +1,84 @@
+name: qa.accessibility_audit
+trigger: explicit
+budget:
+  max_cost_usd: 1.50
+  max_duration_seconds: 600
+# 1112 Sprint 5q.03 — Zone 4 QA Layer 2 workflow paired with the
+# qa-accessibility-tester specialist output bar
+# (agent/config/agents/zone4/qa/output-bars/qa-accessibility-tester.md).
+#
+# Purpose: operator-invoked at sprint-close to run a WCAG/contrast/focus/
+# aria audit on a shipped artifact (UI component, page, design system,
+# or full app surface). The output bar this workflow holds the chief to:
+#
+#   - Every WCAG 2.1 AA criterion is explicitly evaluated — pass, fail,
+#     or N/A with rationale. No silent skips. Counting "12 checked" when
+#     the standard has ~50 fails the bar.
+#   - Every fail finding has reproduction steps + concrete remediation
+#     citing specific element/selector + change (not "improve aria
+#     coverage").
+#   - Severity bucketing reflects USER-IMPACT, not implementer-cost.
+#     A focus trap is critical even if the fix is small.
+#   - Bumba-specific checks beyond WCAG: dynamic-content aria-live
+#     regions, focus return after modal close, skip-link presence,
+#     keyboard-only completion of every interactive flow.
+#
+# Distinct from design.accessibility_pass (Sprint 5d.04 / #2170) which
+# operates at DESIGN-TIME against Figma artifacts. This workflow operates
+# at POST-SHIP audit time against shipped code.
+#
+# Flat layout per workflow_registry.py:63 glob.
+steps:
+  - name: scope-target
+    department: qa
+    intent: >
+      Identify the audit target precisely: what UI component / page /
+      design system / app surface was shipped, what commit/version is
+      live, what user-facing surfaces are in scope. State explicitly
+      what is OUT of scope.
+    outputs: ["target_scope"]
+
+  - name: wcag-aa-evaluation
+    department: qa
+    inputs: ["target_scope"]
+    intent: >
+      Walk every WCAG 2.1 AA criterion against the target. Per criterion
+      record: pass / fail / N/A + evidence + (for fail) reproduction
+      steps + concrete remediation. Silent skips are not allowed —
+      criteria not applicable get an explicit N/A with rationale.
+    outputs: ["wcag_findings"]
+
+  - name: bumba-specific-checks
+    department: qa
+    inputs: ["target_scope"]
+    intent: >
+      Run Bumba-specific accessibility checks beyond WCAG: dynamic-content
+      aria-live regions, focus return after modal close, skip-link
+      presence on long pages, keyboard-only completion of every
+      interactive flow. Cite specific elements/selectors. Reports the
+      screen reader used + keyboard-flow evidence.
+    outputs: ["bumba_findings"]
+
+  - name: severity-bucket
+    department: qa
+    inputs: ["wcag_findings", "bumba_findings"]
+    intent: >
+      Bucket every finding by user-impact severity:
+        - critical (blocks ship)
+        - high (ship-with-fix-PR-open)
+        - medium (next-sprint)
+        - low (backlog)
+      Severity reflects user-impact, NOT implementer-cost. A focus trap
+      is critical even if the fix is small.
+    outputs: ["bucketed_findings"]
+
+  - name: synthesize-report
+    department: qa
+    inputs: ["target_scope", "wcag_findings", "bumba_findings", "bucketed_findings"]
+    intent: >
+      Produce the audit report at docs/qa/<date>-accessibility-audit-<target>.md
+      with all five required sections per the qa-accessibility-tester
+      output bar: target description, WCAG 2.1 AA findings, Bumba-specific
+      findings, severity-bucketed fix list, re-audit recommendation. Plus
+      a one-line Discord summary with pass/fail + finding count.
+    outputs: ["report_path", "discord_summary"]

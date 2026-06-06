@@ -1,0 +1,41 @@
+# Agents metrics — few-shot ingest quality counters and Z3 zone counters.
+
+few_shot_ingest_skipped_fail:
+  kind: metric
+  name: Few-Shot Ingest Skipped (Fail)
+  category: "Agents"
+  description: Count of few-shot examples skipped because quality evaluation failed outright.
+  source_module: bridge.app
+  schema_ref: "int — cumulative counter"
+  metric_name: few_shot.ingest_skipped_fail
+  access_method: "pull:/api/metrics/{name}"
+
+few_shot_ingest_quality_flag:
+  kind: metric
+  name: Few-Shot Ingest Quality Flagged
+  category: "Agents"
+  description: Count of few-shot examples flagged below quality threshold by the evaluator.
+  source_module: bridge.app
+  schema_ref: "int — cumulative counter"
+  metric_name: few_shot.ingest_quality_flag
+  access_method: "pull:/api/metrics/{name}"
+
+few_shot_ingest_quality_pass:
+  kind: metric
+  name: Few-Shot Ingest Quality Passed
+  category: "Agents"
+  description: Count of few-shot examples that passed quality evaluation and were stored.
+  source_module: bridge.app
+  schema_ref: "int — cumulative counter"
+  metric_name: few_shot.ingest_quality_pass
+  access_method: "pull:/api/metrics/{name}"
+
+few_shot_ingest_quality_no_eval:
+  kind: metric
+  name: Few-Shot Ingest No Evaluator
+  category: "Agents"
+  description: Count of few-shot examples stored without quality evaluation (no evaluator configured).
+  source_module: bridge.app
+  schema_ref: "int — cumulative counter"
+  metric_name: few_shot.ingest_quality_no_eval
+  access_method: "pull:/api/metrics/{name}"

@@ -1,0 +1,82 @@
+# Sprint 08.02 (Issue #780). See docs/testing/decaying-backlog.md for the
+# decay schedule and rationale.
+#
+# Bucket counts at commit time:
+#   - Total findings before triage: 824
+#   - Auto-fixed in commit 1: 683
+#   - Manual fixes in commit 2 (+ follow-up): 18 across 16 files
+#   - Bucket B suppressions (per-file-ignores): 122 (across 30 files / globs)
+#   - Bucket C exclusions (rule-excluded): 0
+#
+# Authoring policy: this file is the source of truth for ruff. The legacy
+# [tool.ruff] section in pyproject.toml has been removed in commit 3 to
+# avoid drift. Add a per-file-ignores entry (Bucket B) only with a
+# justification comment AND a decay date <= 6 months out.
+
+target-version = "py313"
+line-length = 100
+
+extend-exclude = [
+    # Jinja-style {{ }} placeholders, not real Python/TOML
+    "config/claude-files/templates/",
+    # Bundled third-party / vendored skill scripts shipped to Claude Code as
+    # operator skill content; not part of the bridge's runtime code path.
+    # These will be either pruned (Plan 09 cleanup) or formatted in a
+    # dedicated sweep — decay 2026-10-01.
+    "config/claude-files/skills/",
+]
+
+[lint]
+select = ["E", "F", "W"]
+ignore = [
+    "E501",  # line-too-long — relaxed by project convention
+    "E402",  # module-level-import-not-at-top — relaxed by project convention
+]
+
+[lint.per-file-ignores]
+# ----- Bridge: deferred-import / forward-reference patterns ---------------
+# These modules use string annotations (`-> "ServiceResult"`) and import the
+# referenced symbol inside the function body to avoid circular imports.
+# Pyflakes reports F821 because the name is not visible at module scope.
+# Logic is correct at runtime; revisit when the circular-import pattern is
+# untangled (Plan 09 services unification).
+"bridge/services/briefing.py" = ["F821"]            # ServiceResult forward ref. Revisit 2026-10-01.
+"bridge/services/calendar.py" = ["F821"]            # ServiceResult forward ref. Revisit 2026-10-01.
+"bridge/services/checkin.py" = ["F821"]             # ServiceResult forward ref. Revisit 2026-10-01.
+"bridge/services/consolidation_service.py" = ["F821"]  # ServiceResult forward ref. Revisit 2026-10-01.
+"bridge/services/email.py" = ["F821"]               # ServiceResult forward ref. Revisit 2026-10-01.
+"bridge/services/inbox_nurture.py" = ["F401", "F821"]  # F401: intentional gmail_interface availability check. F821: ServiceResult forward ref. Revisit 2026-10-01.
+"bridge/services/knowledge_review.py" = ["F821"]    # ServiceResult forward ref. Revisit 2026-10-01.
+"bridge/services/meeting_prebrief.py" = ["F821"]    # ServiceResult forward ref. Revisit 2026-10-01.
+"bridge/services/project_pulse.py" = ["F821"]       # ServiceResult forward ref. Revisit 2026-10-01.
+"bridge/services/retro.py" = ["F821"]               # ServiceResult forward ref. Revisit 2026-10-01.
+"bridge/services/subscription_tracker.py" = ["F821"]  # ServiceResult forward ref. Revisit 2026-10-01.
+"bridge/services/weekly_review.py" = ["F821"]       # ServiceResult forward ref. Revisit 2026-10-01.
+"bridge/self_healing.py" = ["F821"]                 # ClaudeResult forward ref (deferred import to avoid circular). Revisit 2026-10-01.
+"bridge/skill_journey.py" = ["F821"]                # SkillStore forward ref (deferred import). Revisit 2026-10-01.
+"job_search/approval.py" = ["F821"]                 # SnapshotMismatch forward ref (caught from inline import). Revisit 2026-10-01.
+
+# ----- E741 ambiguous variable name ('l') in production paths -------------
+# Single-letter `l` used as iteration var in regex/list-walking contexts;
+# rename would touch many lines for no semantic gain. Loosened per-file.
+"bridge/commands.py" = ["E741"]                     # 'l' iter var in command parsing. Revisit 2026-10-01.
+"bridge/command_handlers/lifecycle.py" = ["E741"]   # 'l' iter var in command parsing — inherited from bridge/commands.py post demote-split (#1305). Revisit 2026-10-01.
+"bridge/quality_checkers/test.py" = ["E741"]        # 'l' iter var. Revisit 2026-10-01.
+"bridge/quality_checkers/typecheck.py" = ["E741"]   # 'l' iter var. Revisit 2026-10-01.
+"bridge/tick_context.py" = ["E741"]                 # 'l' iter var. Revisit 2026-10-01.
+"job_search/tools/scoring.py" = ["E741"]            # 'l' iter var in keyword loop. Revisit 2026-10-01.
+"teams/tools/_job_search.py" = ["E741"]             # 'l' iter var in 3 helpers. Revisit 2026-10-01.
+
+# ----- Tests: relaxed F841/F821/E741/E731 ---------------------------------
+# Test files commonly bind values for clarity even when not asserted on
+# (`result = ...` with later side-effect checks), and use string forward
+# references to types-under-test before fixtures resolve. These patterns
+# would require invasive rewrites that obscure intent. Suppress at the
+# directory glob to keep the test suite readable.
+"tests/**" = [
+    "F841",  # unused-variable — common pattern: bind for debugging/clarity
+    "F821",  # undefined-name — string forward refs to types under test
+    "E741",  # ambiguous-name — 'l' as iter var in fixtures/loops
+    "E731",  # lambda-assignment — used in test_self_healing for a one-off mock
+]
+# Revisit 2026-10-26: re-evaluate after the test-suite cleanup pass.

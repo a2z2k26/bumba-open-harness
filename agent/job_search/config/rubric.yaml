@@ -1,0 +1,126 @@
+# OPERATOR-APPROVED: template
+# Source: public starter rubric; replace with the adopting operator's rubric.
+#
+# CI guard rejects PRs that change rubric.yaml without a refreshed
+# OPERATOR-APPROVED line dated >= the most recent commit touching this file.
+# See .github/workflows/rubric-guard.yml.
+#
+# Weights MUST sum to 1.000 (verified by CI + DoD check).
+# Letter-grade thresholds are consistent across all dimensions:
+#   A >= 4.5, B >= 3.5, C >= 2.5, D >= 1.5, F < 1.5
+
+dimensions:
+  - name: role-target-fit
+    weight: 0.18
+    eval_prompt_fragment: "How well does the role match the candidate's target role, seniority, and responsibilities?"
+    score_anchors:
+      1: "Clearly outside the target role family"
+      2: "Adjacent role with limited overlap"
+      3: "Reasonable match with some gaps"
+      4: "Strong match for target responsibilities"
+      5: "Exact match for target role and seniority"
+    letter_grade_thresholds: &letter_thresholds
+      A: 4.5
+      B: 3.5
+      C: 2.5
+      D: 1.5
+      F: 0.0
+
+  - name: comp-band-fit
+    weight: 0.15
+    eval_prompt_fragment: "Does posted compensation meet the candidate's stated floor and include clear upside?"
+    score_anchors:
+      1: "Below floor or no comp posted"
+      2: "Below floor with vague or no equity"
+      3: "At or near floor, equity unclear"
+      4: "Above floor with some equity disclosed"
+      5: "Above floor with clearly stated equity grant + refresh policy"
+    letter_grade_thresholds: *letter_thresholds
+
+  - name: remote-or-hybrid-fit
+    weight: 0.12
+    eval_prompt_fragment: "How compatible is the work model with the candidate's location and schedule preferences?"
+    score_anchors:
+      1: "On-site 5 days/week, no remote option"
+      2: "Hybrid 4+ days in office"
+      3: "Hybrid 2-3 days in office"
+      4: "Remote-friendly with occasional travel"
+      5: "Remote-first, async-friendly, distributed-by-default culture"
+    letter_grade_thresholds: *letter_thresholds
+
+  - name: mission-alignment
+    weight: 0.10
+    eval_prompt_fragment: "How directly does the company's mission align with the candidate's stated domain interests?"
+    score_anchors:
+      1: "Anti-aligned (ad tech, surveillance, dark-pattern growth, gambling)"
+      2: "Neutral / unrelated industry"
+      3: "Adjacent — operator could find meaning"
+      4: "Strong alignment with operator's stated interests"
+      5: "Direct mission alignment — the company is building what operator already builds for fun"
+    letter_grade_thresholds: *letter_thresholds
+
+  - name: company-stage-fit
+    weight: 0.10
+    eval_prompt_fragment: "Is the company at the right stage for autonomy + upside without excessive risk or constraint?"
+    score_anchors:
+      1: "Pre-seed / unfunded (too risky) or FAANG-scale (too constrained)"
+      2: "Late-stage public or Seed with no traction"
+      3: "Series A or large public with autonomous teams"
+      4: "Series B or D with real revenue + clear scope"
+      5: "Series B-D, growing, autonomy-rich, design-led leadership"
+    letter_grade_thresholds: *letter_thresholds
+
+  - name: tech-stack-fit
+    weight: 0.08
+    eval_prompt_fragment: "Does the tech stack match the candidate's stated skills and preferred tools?"
+    score_anchors:
+      1: "Java/PHP/Salesforce/legacy enterprise stack"
+      2: "Mixed — some operator fluency, mostly unfamiliar"
+      3: "One core operator language with some adjacent tooling"
+      4: "Modern stack with most operator-fluent tools"
+      5: "TS/React/Python/SwiftUI core stack — operator is fully fluent day one"
+    letter_grade_thresholds: *letter_thresholds
+
+  - name: autonomy-level
+    weight: 0.08
+    eval_prompt_fragment: "How much scope and decision-making does the role grant?"
+    score_anchors:
+      1: "Strict ticket-taker, decisions made above"
+      2: "Implementation owner, narrow scope"
+      3: "Feature owner with some technical discretion"
+      4: "Founding-team-level autonomy on a feature area"
+      5: "Founding-engineer-level scope — set direction, choose stack, own outcomes"
+    letter_grade_thresholds: *letter_thresholds
+
+  - name: growth-trajectory
+    weight: 0.07
+    eval_prompt_fragment: "Is the role a stretch with a clear path forward, or a plateau?"
+    score_anchors:
+      1: "Plateau / lateral move with no growth path"
+      2: "Slight stretch but unclear ladder"
+      3: "Clear ladder at current level"
+      4: "Stretch role with documented progression"
+      5: "Stretch role with clear ladder to staff/principal/founding leadership"
+    letter_grade_thresholds: *letter_thresholds
+
+  - name: equity-quality
+    weight: 0.07
+    eval_prompt_fragment: "Are equity terms real and meaningful at this stage?"
+    score_anchors:
+      1: "No equity, or underwater options"
+      2: "Token grant, weak vesting"
+      3: "Standard ISOs at flat-stage company"
+      4: "Solid ISOs at growing-stage company with reasonable strike"
+      5: "Real ISOs at growing-stage company, fair strike, refresh policy"
+    letter_grade_thresholds: *letter_thresholds
+
+  - name: schedule-flexibility
+    weight: 0.05
+    eval_prompt_fragment: "How flexible is the daily schedule? Async vs sync expectations?"
+    score_anchors:
+      1: "Strict 9-5 with on-call rotations"
+      2: "Set hours, mostly sync, limited flex"
+      3: "Core hours overlap, flex outside"
+      4: "Mostly async with light sync expectations"
+      5: "Fully async — outcomes over hours"
+    letter_grade_thresholds: *letter_thresholds

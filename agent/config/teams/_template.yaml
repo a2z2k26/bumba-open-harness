@@ -1,0 +1,230 @@
+# =============================================================================
+# Zone 4 team — golden-path template (D7.13 #1425)
+# =============================================================================
+#
+# This file is the SINGLE canonical input for `scripts/scaffold_zone4.py` and
+# `scripts/scaffold_doctor.py`. When `_scaffolding_templates.py` renders a
+# new team YAML, the field set here is the contract — every required field
+# is present, every optional field is shown with the default, every field
+# has a one-line comment explaining what it is for.
+#
+# Filenames starting with `_` are skipped by `DepartmentRegistry` discovery
+# (see `teams._registry`), so this file ships in the teams dir without
+# becoming a runnable team. It IS loaded by `validate_team_yaml.py`
+# `--check-template` to confirm it parses cleanly under the strict Pydantic
+# schema (`teams._config._RootSchema`, extra="forbid").
+#
+# Operator workflow:
+#   1. `python -m scripts.scaffold_zone4 chief-specialist <name>`  (or other kind)
+#   2. `python -m scripts.validate_team_yaml <name>`                (cross-ref check)
+#   3. `python -m scripts.scaffold_doctor <name>`                   (diff vs golden)
+#   4. `make new-team NAME=<name>`                                  (one-shot wrapper)
+#
+# Hard rules:
+#   - Field names must match `teams._config._RootSchema` exactly. The schema
+#     is strict (`extra: forbid`); typos surface as load-time errors.
+#   - Paths in `expertise:` / `system_prompt:` must resolve relative to the
+#     repo root (e.g. `agent/config/expertise/updatable/<name>.md`).
+#   - Per-employee tool keys in `tools.per_employee:` must be the literal
+#     `name:` string of a worker (not the role).
+#   - When in doubt: copy a real team YAML (qa.yaml is the simplest;
+#     strategy.yaml is the most feature-complete) and edit from there.
+# =============================================================================
+
+team:
+  # Department name. Must be kebab-case (a-z, 0-9, -), unique across teams/.
+  # The DepartmentRegistry discovers teams by file stem; the name field must
+  # match the file stem (e.g. team.name "design" → file `design.yaml`).
+  name: example
+
+  # Zone identifier. Production teams are zone 4. Lower zones are reserved
+  # for system internals (zone 1 = identity, zone 2 = always-on services,
+  # zone 3 = engineering).
+  zone: 4
+
+  # One-paragraph department description. Used by /departments listing and
+  # the routing layer to match operator intent against teams. Keep it short:
+  # who they are, what they're invoked for, the typical handoff input.
+  description: >
+    One-paragraph description of what this department is for, when to invoke
+    it, and what kind of work it owns. Used by the routing layer.
+
+  # ---------------------------------------------------------------------------
+  # Escalation — optional. Tells the routing layer when to auto-escalate
+  # work into this department from a lower zone (typically zone 3).
+  # ---------------------------------------------------------------------------
+  escalation:
+    # Source zone that escalations originate from.
+    from_zone: 3
+    # Free-form list of phrases the routing layer matches against.
+    triggers:
+      - "Example trigger phrase"
+    # Complexity score (0-10) above which auto-escalation considers firing.
+    complexity_threshold: 5
+    # If true, the routing layer escalates without operator confirmation.
+    # Default false; set true only for low-risk, high-frequency departments.
+    auto_escalate: false
+
+  # ---------------------------------------------------------------------------
+  # Constraints — execution limits enforced per `manager.run()` call.
+  # ---------------------------------------------------------------------------
+  constraints:
+    # Max USD spend per single team invocation.
+    cost_limit_usd: 1.50
+    # Max wall-clock seconds before the run is cancelled.
+    timeout_seconds: 600
+    # Max parallel worker invocations.
+    concurrency_limit: 4
+    # Pydantic-AI usage caps applied to every Agent in this team. Runtime
+    # resolves these through `teams._usage_policy` using the chief model's
+    # provider; the first provider-aware rollout preserves these exact caps.
+    usage_limits:
+      request_limit: 20
+      request_token_limit: 250000
+      response_token_limit: 250000
+    # Gate-8 minimum specialist invocations enforced by `teams._verify`.
+    # Default `1` matches the strict-floor doctrine activated by #1645
+    # (see `docs/architecture/2026-05-12-1645-delegation-floor-classification.md`).
+    # Set to `0` only for solo-agent teams (`workers: []`); set to
+    # `len(workers)` when the chief must hear from every specialist
+    # (e.g. board peer-ranked deliberation).
+    expected_min_specialists: 1
+
+  # ---------------------------------------------------------------------------
+  # Budget — daily-aggregate USD cap enforced by `bridge.budget`.
+  # ---------------------------------------------------------------------------
+  budget:
+    daily_limit_usd: 5.00
+    # Fractional thresholds (0.0-1.0) at which alerts fire to the operator.
+    alert_thresholds: [0.50, 0.75, 0.90]
+
+  # ---------------------------------------------------------------------------
+  # Tools — provisioned via `bridge.tool_shed`.
+  # ---------------------------------------------------------------------------
+  tools:
+    # Tools every member of this team gets.
+    common:
+      - read_file
+      - search_knowledge
+      - memory_recall
+    # Tools only the chief (manager) gets.
+    department:
+      - example_department_tool
+    # Per-worker tool overrides. Keys MUST match `name:` of a worker below.
+    # P2.4 (2026-05-11) supersedes per-employee tool isolation in production.
+    # MCP isolation is enforced via `mcp.mode: deny_by_default` + `mcp.allowed_servers`
+    # below. Leave `per_employee: {}` empty unless you have a Z4-specific reason
+    # to override a single specialist's tool list (none of the 8 production teams do).
+    per_employee: {}
+    # Tool-NAME allowlist (E4.5). Empty list = no narrowing. Non-empty
+    # list = a tool name not in this list cannot be registered on any
+    # employee for this team. Distinct from `mcp.allowed_servers` below,
+    # which controls which MCP servers the team's subprocess can reach.
+    allowed_tools: []
+    # Sprint P2.4 — explicit tool-name blocklist applied AFTER
+    # `allowed_tools`. Denied wins over allowed. Use for "everything in
+    # the team default EXCEPT these dangerous names" patterns.
+    denied_tools: []
+
+  # ---------------------------------------------------------------------------
+  # MCP — server-level allowlist (Sprint P2.4).
+  #
+  # Distinct from `tools.allowed_tools` above. Both layers compose: a tool
+  # name not in `tools.allowed_tools` cannot be invoked, AND an MCP server
+  # not in `mcp.allowed_servers` (under `deny_by_default`) cannot be reached.
+  # ---------------------------------------------------------------------------
+  mcp:
+    # `permissive` (default) treats an empty `allowed_servers` list as
+    # "inherit the bridge default MCP config" (every server in `.mcp.json`
+    # is reachable). `deny_by_default` treats an empty list as "no MCP
+    # servers at all" — the filtered MCP config emitted for this team
+    # contains `{}`. Production teams that want strict isolation should
+    # set `mode: deny_by_default` and enumerate every server they need.
+    mode: permissive
+    # Names match keys under `mcpServers:` in `agent/.mcp.json`. Empty
+    # list + `permissive` = inherit bridge default. Empty list +
+    # `deny_by_default` = no MCP servers.
+    allowed_servers: []
+
+  # ---------------------------------------------------------------------------
+  # VAPI — voice receptionist for this department (optional).
+  # ---------------------------------------------------------------------------
+  vapi:
+    # Set true only if this department is voice-callable.
+    enabled: false
+    model: gpt-4o-mini
+    voice: shimmer
+    greeting: "Example department here. What can I help you with?"
+    # Tools surfaced to the VAPI receptionist.
+    tools: []
+
+  # ---------------------------------------------------------------------------
+  # Chief (manager) — required. Drives the deliberation; calls `delegate()`.
+  # ---------------------------------------------------------------------------
+  chief:
+    # Chief name. Convention: `<team-name>-chief` or `<team-name>-director`.
+    name: example-chief
+    # Optional one-paragraph role statement. Surfaced in the system prompt.
+    role: >
+      Orchestrates the example department. Translates operator goals into
+      structured briefs, delegates work to specialists, and synthesizes.
+    # Model string. Short forms (`opus-4.6`, `sonnet-4.6`, `haiku-4.5`) are
+    # mapped to anthropic: prefixes by `_normalize_model_string`. Use the
+    # full `provider:model` form for non-Anthropic models (e.g.
+    # `openrouter:openai/gpt-5`).
+    model: opus-4.6
+    # Cross-vendor adapter. `claude` (default) routes through pydantic_ai/
+    # Anthropic. `openrouter` routes through `bridge.cross_model.openrouter_adapter`.
+    adapter: claude
+    # Skill bundles auto-loaded into the chief's expertise.
+    skills:
+      - mental-model
+    # Path to the chief's expertise file (markdown). Resolved relative to
+    # repo root. MUST exist on disk; the validator checks this.
+    expertise: agent/config/expertise/updatable/example-chief.md
+    # Cap on how many lines of expertise are injected (defense-in-depth).
+    expertise_max_lines: 1000
+    # Path to the chief's system-prompt file. Resolved relative to repo root.
+    # MUST exist on disk; the validator checks this.
+    system_prompt: config/agents/zone4/example/example-chief.md
+    # Filesystem domain. `read: ["*"]` = read-anywhere. `write:` lists
+    # allowed write prefixes; everything else is rejected by the domain lock.
+    domain:
+      read: ["*"]
+      write:
+        - "agent/config/expertise/example-chief.md"
+        - "sessions/"
+    # Pydantic-AI thinking mode. Empty / "extended" / model-specific values.
+    thinking: extended
+    # Max conversational turns before the chief auto-stops.
+    max_turns: 30
+    # Per-run timeout (minutes). Distinct from `constraints.timeout_seconds`
+    # (which is wall-clock for the whole team run).
+    timeout_minutes: 20.0
+    # Retries on transient failures.
+    retries: 2
+
+  # ---------------------------------------------------------------------------
+  # Workers (specialists) — empty list = solo-agent team (chief = worker).
+  # Each worker entry uses the same field set as `chief:` above.
+  # ---------------------------------------------------------------------------
+  workers:
+    - name: example-specialist
+      role: "One-line role description for routing and delegation hints."
+      model: sonnet-4.6
+      adapter: claude
+      skills: [mental-model]
+      expertise: agent/config/expertise/updatable/example-specialist.md
+      system_prompt: config/agents/zone4/example/example-specialist.md
+      domain:
+        read: ["*"]
+        write:
+          - "docs/example/"
+          - "sessions/"
+      retries: 1
+
+# ---------------------------------------------------------------------------
+# MCP-server allowlist for the DEPARTMENT write jail (S04).
+# Empty list = inherit bridge default (permissive). Expand via operator PR.
+# ---------------------------------------------------------------------------
+mcp_servers: []

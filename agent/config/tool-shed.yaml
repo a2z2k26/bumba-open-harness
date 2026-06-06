@@ -1,0 +1,96 @@
+# Tool Shed Registry — Zone 3 Engineering
+tools:
+  github:
+    category: code
+    always_loaded: true
+    agents: [all]
+  bumba-memory:
+    category: memory
+    always_loaded: true
+    agents: [all]
+  playwright:
+    category: testing
+    always_loaded: false
+    agents:
+      - engineering-frontend-developer
+      - engineering-performance-engineer
+  chrome-devtools:
+    category: testing
+    always_loaded: false
+    agents:
+      - engineering-frontend-developer
+      - engineering-performance-engineer
+  shadcn:
+    category: design
+    always_loaded: false
+    agents:
+      - engineering-frontend-developer
+  magic-ui:
+    category: design
+    always_loaded: false
+    agents:
+      - engineering-frontend-developer
+  mongodb:
+    category: data
+    always_loaded: false
+    agents:
+      - engineering-database-specialist
+      - engineering-backend-architect
+  cloudflare:
+    category: infrastructure
+    always_loaded: false
+    agents:
+      - engineering-devops-engineer
+  digitalocean:
+    category: infrastructure
+    always_loaded: false
+    agents:
+      - engineering-devops-engineer
+  docker-gateway:
+    category: infrastructure
+    always_loaded: false
+    agents:
+      - engineering-devops-engineer
+  bumba-sandbox:
+    category: execution
+    always_loaded: false
+    agents:
+      - engineering-chief
+  brave-search:
+    category: search
+    always_loaded: false
+    agents:
+      - engineering-chief
+      - engineering-backend-architect
+      - engineering-frontend-developer
+      - engineering-architect-reviewer
+      - engineering-refactoring-specialist
+  bumba-figma:
+    category: design
+    always_loaded: false
+    agents:
+      - engineering-frontend-developer
+  figma-context:
+    category: design
+    always_loaded: false
+    agents:
+      - engineering-frontend-developer
+  notion:
+    category: productivity
+    always_loaded: false
+    agents:
+      - engineering-chief
+  pencil:
+    category: design
+    always_loaded: false
+    agents:
+      - engineering-frontend-developer
+  context7:
+    category: search
+    always_loaded: false
+    agents:
+      - engineering-chief
+      - engineering-backend-architect
+      - engineering-frontend-developer
+      - engineering-api-engineer
+      - engineering-tdd-orchestrator

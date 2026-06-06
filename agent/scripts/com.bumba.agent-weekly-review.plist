@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.bumba.agent-weekly-review</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/opt/bumba-harness/agent-flat/agent/.venv/bin/python</string>
+        <string>-m</string>
+        <string>bridge.services.runner</string>
+        <string>weekly_review</string>
+    </array>
+    <key>WorkingDirectory</key>
+    <string>/opt/bumba-harness/agent-flat/agent</string>
+    <key>UserName</key>
+    <string>bumba-agent</string>
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Weekday</key>
+        <integer>0</integer>
+        <key>Hour</key>
+        <integer>18</integer>
+        <key>Minute</key>
+        <integer>0</integer>
+    </dict>
+    <key>StandardOutPath</key>
+    <string>/opt/bumba-harness/logs/weekly-review-stdout.log</string>
+    <key>StandardErrorPath</key>
+    <string>/opt/bumba-harness/logs/weekly-review-stderr.log</string>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/opt/bumba-harness/.local/bin:/opt/bumba-harness/agent-flat/agent/.venv/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+        <key>PYTHONPATH</key>
+        <string>/opt/bumba-harness/agent-flat/agent</string>
+    </dict>
+</dict>
+</plist>

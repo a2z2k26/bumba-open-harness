@@ -1,0 +1,6 @@
+# Public Semgrep configuration.
+#
+# CI runs Semgrep's automatic rules against the bridge runtime. The ignore file
+# excludes vendored Claude Code payloads that are not part of the Python bridge.
+
+rules: []

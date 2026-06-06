@@ -1,0 +1,45 @@
+{
+  "name": "react-ts-storybook",
+  "description": "React with TypeScript, Storybook, and Styled Components - Full featured setup for component development",
+  "version": "1.0.0",
+  "framework": "react",
+  "typescript": true,
+  "outputPath": "src/design-system",
+  "autoSync": true,
+  "storybook": true,
+  "features": {
+    "tests": true,
+    "backups": true,
+    "linting": true
+  },
+  "transformerOptions": {
+    "useStyledComponents": true,
+    "useTailwind": false,
+    "useEmotions": false,
+    "generateStories": true,
+    "generateTests": true,
+    "storybookVersion": "10.x"
+  },
+  "additionalDependencies": [
+    "styled-components",
+    "@types/styled-components",
+    "storybook",
+    "@storybook/react-vite",
+    "@storybook/addon-docs"
+  ],
+  "devDependencies": [
+    "@testing-library/react",
+    "@testing-library/jest-dom",
+    "jest"
+  ],
+  "scripts": {
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build",
+    "test": "jest"
+  },
+  "notes": [
+    "Requires Storybook to be installed",
+    "Styled Components will be used for component styling",
+    "Test files will be generated alongside components"
+  ]
+}

@@ -1,0 +1,27 @@
+id: claude-timeout
+name: Claude Subprocess Timeout
+trigger:
+  condition: "components.claude.status == down"
+symptoms:
+  - Claude invocation exceeds timeout (default 120s)
+  - Message processing stalls
+  - stderr shows timeout or process killed
+steps:
+  - id: check_binary
+    check: "Is claude binary accessible?"
+    command: "which claude 2>/dev/null && echo OK || echo FAIL"
+    on_pass: "Binary found"
+    on_fail: "Claude binary not in PATH"
+    fix: "Verify Claude Code installation: npm install -g @anthropic-ai/claude-code"
+  - id: check_oauth
+    check: "Is OAuth token valid?"
+    command: "grep 'claude_oauth_token=.' /opt/bumba-harness/data/.secrets 2>/dev/null | head -1 | wc -c | xargs test 10 -lt && echo OK || echo FAIL"
+    on_pass: "Token present"
+    on_fail: "OAuth token missing or empty"
+  - id: check_disk
+    check: "Sufficient disk space?"
+    command: "df -h /opt/bumba-harness | tail -1 | awk '{gsub(/%/,\"\",$5); if($5 < 90) print \"OK\"; else print \"FAIL: \"$5\"% used\"}'"
+    on_pass: "Disk space adequate"
+    on_fail: "Disk nearly full — Claude may fail to write temp files"
+resolution: "If timeout is transient, circuit breaker will handle retry. If persistent, check OAuth token and network."
+escalation: "L2 (Discord alert) after 3 consecutive timeouts"

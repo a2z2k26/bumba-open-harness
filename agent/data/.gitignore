@@ -1,0 +1,6 @@
+.claude-token
+*.jsonl
+
+# Runtime experiment-loop heartbeat — written by scripts/experiment_loop.py, not source.
+experiment-heartbeat.json
+

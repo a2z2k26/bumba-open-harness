@@ -1,0 +1,59 @@
+name: migrate-stickiness
+on:
+  pull_request:
+    paths:
+      - "agent/tests/.migrate-stickiness.txt"
+      - "agent/tests/**"
+      - "agent/job_search/tests/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify canonical test paths and absence of duplicates
+        run: |
+          set -e
+          missing=0
+          dupes_found=0
+          while IFS= read -r path; do
+            [ -z "$path" ] && continue
+            case "$path" in
+              \#*) continue ;;
+            esac
+            if [ ! -f "$path" ]; then
+              echo "MISSING canonical path: $path"
+              missing=$((missing + 1))
+              continue
+            fi
+            basename=$(basename "$path")
+            # Find duplicates by basename anywhere in repo, excluding the
+            # canonical path itself plus hidden/cache directories.
+            dupes=$(find . -name "$basename" \
+              -not -path "./$path" \
+              -not -path "*/.git/*" \
+              -not -path "*/.venv/*" \
+              -not -path "*/.claude/*" \
+              -not -path "*/__pycache__/*" \
+              -not -path "*/node_modules/*" \
+              2>/dev/null || true)
+            if [ -n "$dupes" ]; then
+              echo "DUPLICATE of $basename found outside canonical path:"
+              echo "$dupes"
+              dupes_found=$((dupes_found + 1))
+            fi
+          done < agent/tests/.migrate-stickiness.txt
+          if [ "$missing" -gt 0 ] || [ "$dupes_found" -gt 0 ]; then
+            echo "FAIL: $missing missing, $dupes_found duplicate basenames."
+            exit 1
+          fi
+          echo "All canonical test paths present and unique."

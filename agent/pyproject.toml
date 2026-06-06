@@ -1,0 +1,184 @@
+[project]
+name = "bumba-bridge"
+version = "0.3.0"
+description = "Discord-to-agent backend bridge for the Bumba Open Harness"
+requires-python = ">=3.13"
+dependencies = [
+    "discord.py[voice]>=2.4.0",
+    "aiosqlite>=0.20.0",
+    "keyring>=25.0.0",
+    "pydantic-ai[anthropic]>=1.78,<2.0",
+    "opentelemetry-api>=1.20",
+]
+
+[project.optional-dependencies]
+voice = [
+    "aiohttp>=3.9.0",
+    "discord-ext-voice-recv>=0.5.0",
+]
+# Job-search browser substrate (Sprint 5j.03, #2128). Optional because
+# the cloakbrowser package ships a ~200MB stealth-Chromium binary that
+# we only want on the Mac mini runtime, not in every dev environment.
+# Install with: `uv pip install -e ".[job-search-browser]"` on the mini.
+# Per ADR 2026-05-17 — empirical smoke against Greenhouse must run before
+# #2157 Greenhouse workflow lands. Lazy-imported in
+# job_search/browser/driver.py so absence is non-fatal until first launch.
+job-search-browser = [
+    "cloakbrowser>=0.1.0",
+]
+# Local in-process embedding backend (#2560). Optional because onnxruntime
+# ships a large native binary we only want on the Mac mini runtime, not in
+# every dev environment. Absence is non-fatal — LocalEmbeddingEngine._load_model
+# falls back to the deterministic hash backend (degraded recall, FTS5 still
+# works). Install on the mini with: `uv pip install -e ".[embeddings]"`.
+# Model: google/embeddinggemma-300m ONNX (see docs/operator/embedding-model-setup.md).
+embeddings = [
+    "onnxruntime>=1.18.0",
+    "tokenizers>=0.20.0",
+    "numpy>=1.26.0",
+    "huggingface_hub>=0.20.0",
+]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-cov>=5.0",
+    "ruff>=0.8.0",
+    "pre-commit>=3.6.0",
+    "mypy>=1.10",
+    "freezegun>=1.4.0",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests", "job_search/tests"]
+# Marker semantics + Make-target matrix: docs/testing/test-taxonomy.md
+# (Sprint R3.2, #1898). Drift between this list and decorators in tests/
+# is caught by tests/test_marker_registry.py.
+markers = [
+    "live: marks tests that hit real external APIs (Anthropic, Notion, etc.) — opt-in, cost-capped, CI-skipped",
+    "e2e: end-to-end tests that exercise the real dispatch path via fake-claude shim (deselect with -m 'not e2e')",
+    "offline: marks tests that run fully offline with no API keys or network access",
+    "socket: marks tests that bind localhost sockets (aiohttp TestServer, etc.); requires unrestricted local networking — deselect under sandboxed CI with -m 'not socket'",
+    "memory_tier_e2e: end-to-end acceptance harness for the memory-tier-architecture epic (Sprint Mem-11, #1852)",
+    "perf: hot-path performance budget regression tests (Sprint R7.2, #1910); deselected from coverage runs because pytest-cov instrumentation distorts wall-clock budgets. Budgets documented at docs/testing/performance-budgets.md",
+]
+# Warning policy — Sprint R2.4 (#1896). Full policy:
+# docs/testing/warning-policy.md. Each rule below has an entry there
+# explaining the project-code class it protects against and the
+# third-party debt it acknowledges.
+filterwarnings = [
+    # Project-code: orphan coroutines are silent bugs (R2.1, R2.2 surface).
+    "error::RuntimeWarning:.*coroutine.*never awaited",
+    # Project-code (documented debt): TestChecker class-naming collision.
+    # The class in bridge/quality_checkers/test.py is production code, not
+    # a test class, but the Test* prefix tricks pytest into trying to
+    # collect it. Rename slated for the R6.x stale-code sweep; until then
+    # this is documented debt, not a silent regression.
+    "ignore:cannot collect test class 'TestChecker':pytest.PytestCollectionWarning",
+    # Third-party debt: pytest-asyncio's default-fixture-loop-scope
+    # deprecation. Filed upstream; no action on our side.
+    "ignore::pytest.PytestDeprecationWarning:pytest_asyncio.*",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["bridge*", "teams*", "job_search*"]
+
+# ruff config moved to agent/ruff.toml in Sprint 08.02 (#780)
+
+[tool.mypy]
+python_version = "3.13"
+strict = false
+ignore_missing_imports = true
+
+# Sprint S3.1 (#2340) — scoped strict targets.
+# Whole-bridge mypy is advisory and ratcheted via the baseline (see
+# docs/testing/type-checking.md). Specific modules opt INTO strict-equivalent
+# flags below as they reach zero errors. Use granular per-module flags
+# (not `strict = true`) because the strict flag-bundle in an override
+# cascades into transitive imports and inflates the error count across
+# unrelated packages.
+#
+# Add a new override here only after `mypy <module>` with these flags
+# enabled reports clean locally.
+[[tool.mypy.overrides]]
+module = ["bridge.halt"]
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+disallow_untyped_calls = true
+warn_return_any = true
+no_implicit_optional = true
+
+# Sprint S3.2 (#2341) — service-result boundary strict.
+# `bridge.services.result` is the uniform contract between every scheduled
+# service and the bridge (ServiceResult + last_run.json renderers). The two
+# trivial type-arg errors S3.1 surfaced were fixed in this sprint.
+[[tool.mypy.overrides]]
+module = ["bridge.services.result"]
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+disallow_untyped_calls = true
+warn_return_any = true
+no_implicit_optional = true
+
+# Sprint S3.3 (#2342) — DB + memory boundary (scoped subset).
+# `bridge.db.*` covers the SQLite connection/queries facade (migrations.py
+# stays out of strict for now — large DDL surface). `bridge.memory.conversation`
+# is the conversation half of the memory mixin pair; `knowledge.py` stays
+# out (1494 lines, heavy intent/decision/embedding surface — deferred).
+# `bridge.memory_wal` is the higher-level memory-mutation WAL.
+[[tool.mypy.overrides]]
+module = [
+    "bridge.db.__init__",
+    "bridge.db.connection",
+    "bridge.db.queries",
+    "bridge.memory.conversation",
+    "bridge.memory_wal",
+]
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+disallow_untyped_calls = true
+warn_return_any = true
+no_implicit_optional = true
+disallow_any_generics = true
+warn_unused_ignores = true
+check_untyped_defs = true
+
+# Sprint S3.4 (#2343) — backend + auth boundaries.
+# `bridge.backends.__init__`, `._protocol`, `.registry` are the small,
+# operator-facing surfaces of the Codex-1/3 backend abstraction (Protocol,
+# readiness flag, agent_role → backend resolver). `._auth` is the Codex
+# ChatGPT-OAuth holder (Codex-4 / Codex-7-followup). `bridge.token_refresher`
+# is the live Claude Code OAuth refresher.
+# `bridge.backends.claude` and `bridge.backends.codex` stay deferred — each
+# carries a parser-level dict/Any surface in `_parse_stream_line` that needs
+# its own narrowing pass.
+[[tool.mypy.overrides]]
+module = [
+    "bridge.backends.__init__",
+    "bridge.backends._protocol",
+    "bridge.backends.registry",
+    "bridge.backends._auth",
+    "bridge.token_refresher",
+]
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+disallow_untyped_calls = true
+warn_return_any = true
+no_implicit_optional = true
+disallow_any_generics = true
+warn_unused_ignores = true
+check_untyped_defs = true
+
+[tool.coverage.run]
+branch = true
+source = ["bridge", "teams", "job_search"]
+omit = ["*/tests/*", "*/__main__.py"]
+
+[tool.coverage.report]
+show_missing = true
+skip_empty = true

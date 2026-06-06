@@ -1,0 +1,26 @@
+id: scraper-broken
+name: Job Board Scraper Returning Zero Results
+trigger:
+  condition: "components.services.job_search.last_status == error"
+symptoms:
+  - Board returns 0 results 3+ consecutive times
+  - HTML structure may have changed
+  - API endpoint may be blocked
+steps:
+  - id: check_network
+    check: "Can reach common job boards?"
+    command: "curl -s -o /dev/null -w '%{http_code}' --max-time 10 https://remotive.com/api/remote-jobs 2>/dev/null || echo FAIL"
+    on_pass: "Job board API reachable"
+    on_fail: "Network issue or board blocking requests"
+  - id: check_scraper_log
+    check: "What does the last scraper log say?"
+    command: "tail -5 /opt/bumba-harness/logs/job_search.log 2>/dev/null || echo 'No log found'"
+    on_pass: "Log accessible"
+    on_fail: "Cannot read scraper log"
+  - id: check_service_state
+    check: "Last service state?"
+    command: "cat /opt/bumba-harness/data/service_state/job_search-state.json 2>/dev/null || echo FAIL"
+    on_pass: "State file readable"
+    on_fail: "State file missing or corrupt"
+resolution: "Check if board HTML changed. Consider disabling broken boards temporarily."
+escalation: "L1 (logged) — job search is background task"

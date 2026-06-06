@@ -1,0 +1,21 @@
+# Jobs events — job search pipeline events published by the job_search department.
+
+job_search_prepare_timeout:
+  kind: event
+  name: Job Search Prepare Timeout
+  category: "Jobs"
+  description: Fires when the job search PREPARE phase (board scraping + cover letter generation) times out.
+  source_module: job_search.department
+  schema_ref: "dict — timeout_s, phase"
+  event_type: job_search.prepare.timeout
+  access_method: push:event_bus
+
+job_search_execute_timeout:
+  kind: event
+  name: Job Search Execute Timeout
+  category: "Jobs"
+  description: Fires when the job search EXECUTE phase (outreach email dispatch) times out.
+  source_module: job_search.department
+  schema_ref: "dict — timeout_s, phase"
+  event_type: job_search.execute.timeout
+  access_method: push:event_bus

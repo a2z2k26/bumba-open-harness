@@ -1,0 +1,75 @@
+# evidence.toml — per-repo build/test commands for the Sprint 4.2 pre-PR evidence hook.
+#
+# The harness runs these commands before every `gh pr create` call.  If any
+# command exits non-zero the PR is blocked and the operator is notified via the
+# dialogue channel.  Raw output is written to `.harness/evidence/pr-<N>/`.
+#
+# Schema:
+#   [[repos]]
+#   name            = "owner/repo"   # fully-qualified GitHub repo name
+#   commands        = [              # ordered list of argv arrays
+#       ["cmd", "arg1", "arg2"],
+#   ]
+#   timeout_seconds = 300            # per-command wall-clock timeout (default 300s)
+#
+# Rules:
+#   • Commands run in the order listed; a failure in any command blocks the PR.
+#   • Keep commands fast — 60-120s is ideal.  Long builds belong in CI, not here.
+#   • Only add commands that produce deterministic, machine-readable pass/fail
+#     output (exit code 0 = pass).
+
+# ---------------------------------------------------------------------------
+# bumba-open-harness — Python bridge + agent harness
+# ---------------------------------------------------------------------------
+
+[[repos]]
+name = "your-org/bumba-open-harness"
+commands = [
+    ["python", "-m", "pytest", "tests/", "--tb=short", "-q"],
+]
+timeout_seconds = 120
+
+# ---------------------------------------------------------------------------
+# bumba-desktop — native macOS Swift app
+# ---------------------------------------------------------------------------
+
+[[repos]]
+name = "your-org/bumba-desktop"
+commands = [
+    ["swift", "build"],
+    ["swift", "test"],
+]
+timeout_seconds = 300
+
+# ---------------------------------------------------------------------------
+# bumba-agents — zone-based multi-agent system
+# ---------------------------------------------------------------------------
+
+[[repos]]
+name = "your-org/bumba-agents"
+commands = [
+    ["python", "-m", "pytest", "tests/", "--tb=short", "-q"],
+]
+timeout_seconds = 120
+
+# ---------------------------------------------------------------------------
+# bumba-voice — voice pipeline
+# ---------------------------------------------------------------------------
+
+[[repos]]
+name = "your-org/bumba-voice"
+commands = [
+    ["python", "-m", "pytest", "tests/", "--tb=short", "-q"],
+]
+timeout_seconds = 120
+
+# ---------------------------------------------------------------------------
+# bumba-dreamcatcher — standalone product
+# ---------------------------------------------------------------------------
+
+[[repos]]
+name = "your-org/bumba-dreamcatcher"
+commands = [
+    ["python", "-m", "pytest", "tests/", "--tb=short", "-q"],
+]
+timeout_seconds = 120

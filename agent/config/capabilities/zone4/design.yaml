@@ -1,0 +1,35 @@
+department: design
+mode: report_only
+defaults:
+  mcp_servers: []
+  tools:
+    - read_file
+    - search_knowledge
+    - memory_recall
+    - search_design_system
+    - lookup_component
+    - recall_brand_guidelines
+  skills: []
+chief:
+  design-chief:
+    skills:
+      - zero-micromanagement
+      - mental-model
+      - active-listener
+specialists:
+  design-ux-researcher:
+    skills: [mental-model]
+  design-interaction-designer:
+    skills: [mental-model]
+  design-visual-designer:
+    skills: [mental-model]
+  design-ui-designer:
+    skills: [mental-model]
+  design-system-architect:
+    skills: [mental-model]
+  design-accessibility-specialist:
+    tools:
+      - check_wcag_contrast
+    skills: [mental-model]
+  design-prototyper:
+    skills: [mental-model]

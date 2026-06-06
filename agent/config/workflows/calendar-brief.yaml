@@ -1,0 +1,58 @@
+name: calendar-brief
+trigger: schedule
+schedule: "cron:30 7 * * *"  # 07:30 UTC daily — 30 min before daily-briefing
+budget:
+  max_cost_usd: 0.50
+  max_duration_seconds: 120
+# 1.0 milestone box A4 (#1111). Calendar brief runs at 07:30 UTC, just
+# before the daily briefing at 08:00. Today's calendar service
+# (`bridge/services/calendar.py`) runs every 15 minutes — that's tuned
+# for "alert before a meeting starts," which is a different signal than
+# the morning preview. This workflow handles the morning-preview half:
+# what's on the calendar today, what needs prep, what to decline or
+# move because it conflicts with deep work.
+#
+# Single-step strategy invocation — calendar reasoning is strategic
+# (priorities, conflicts, deferral choices), not operational. The
+# meeting-prebrief service (every 10 min, event-driven) handles the
+# 30-min-before-meeting alerts; this workflow handles the daily
+# preview.
+#
+# Cheap budget ($0.50) because it's a single specialist read. Runs once
+# per day so total monthly cost is ~$15.
+steps:
+  - name: read-todays-calendar
+    department: strategy
+    intent: >
+      Pull the operator's calendar for today. Output:
+
+      ## Today
+      For each event: time, title, who's there, and one of:
+        - PREP — operator should review materials before this; name them
+        - DECLINE — conflicts with another event or operator's deep-work
+          window (08:00–11:00 local); recommend declining or moving
+        - ATTEND — proceed as scheduled, no action needed
+        - RESCHEDULE — overlaps an existing high-priority block
+
+      ## Tomorrow's first three
+      Title + time only — for context on whether to push anything from
+      today into tomorrow.
+
+      Skip anything before 06:00 or after 21:00 unless explicitly flagged
+      "after-hours" by the operator. If today's calendar is empty, say so
+      in one line.
+    outputs: [calendar_brief]
+    on_failure: [publish-failure-notice]
+
+  - name: publish-calendar-brief
+    action: publish_discord
+    channel: operator
+    message: "# Calendar — Today\n\n{calendar_brief}"
+
+  - name: publish-failure-notice
+    action: publish_discord
+    channel: operator
+    message: >
+      Calendar brief workflow failed. The legacy
+      `bridge/services/calendar.py` cron is still running for in-day
+      meeting alerts; the morning preview is what's missing. Check logs.

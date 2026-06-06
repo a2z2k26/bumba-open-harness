@@ -1,0 +1,40 @@
+department: strategy
+mode: strict
+defaults:
+  mcp_servers: []
+  tools:
+    - read_file
+    - search_knowledge
+    - memory_recall
+    - search_market_data
+    - analyze_competitor
+    - recall_decision
+    - initiate_handoff
+    - surface
+    - write_artifact
+  skills: []
+chief:
+  strategy-product-chief:
+    tools:
+      - list_specialists
+      - delegate
+      - acknowledge_directive
+    skills:
+      - zero-micromanagement
+      - mental-model
+      - active-listener
+specialists:
+  strategy-product-metrics-analyst:
+    skills: [mental-model]
+  strategy-requirement-engineer:
+    skills: [mental-model]
+  strategy-market-researcher:
+    skills: [mental-model]
+  strategy-user-analyst:
+    skills: [mental-model]
+  strategy-roadmap-strategist:
+    skills: [mental-model]
+  strategy-business-analyst:
+    skills: [mental-model]
+  strategy-competitive-intelligence-analyst:
+    skills: [mental-model]

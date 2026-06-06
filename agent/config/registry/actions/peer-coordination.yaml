@@ -1,0 +1,80 @@
+# Peer Coordination actions — cross-machine peer registry, heartbeat, and
+# direct messaging. Registered via `register_peer_routes()` in
+# `bridge/peer_api.py`; routes only mount when the
+# `peer_coordination_enabled` flag is set (default: disabled).
+#
+# Added P5.5 / #1736 — the gate's positional ast-grep rule shipped in the
+# same PR surfaced these as unmapped. All six were live in source but had
+# no registry catalog entry.
+
+peer_register_post:
+  kind: action
+  name: Register Peer
+  category: "Agents"
+  description: Self-registration entry point for a peer bridge to announce itself to the local agent registry.
+  source_module: bridge.peer_api
+  schema_ref: bridge.peer_registry.PeerRecord
+  method: POST
+  path: /api/peers
+  auth: bearer
+  access_method: rest
+
+peers_list_get:
+  kind: action
+  name: List Peers
+  category: "Agents"
+  description: Returns the current cross-machine peer registry — all known peer bridges and their last-seen heartbeat.
+  source_module: bridge.peer_api
+  schema_ref: "list[dict] — peer_id, host, role, last_heartbeat"
+  method: GET
+  path: /api/peers
+  auth: bearer
+  access_method: rest
+
+peer_get:
+  kind: action
+  name: Get Peer
+  category: "Agents"
+  description: Returns the registry record for a single peer by ID.
+  source_module: bridge.peer_api
+  schema_ref: bridge.peer_registry.PeerRecord
+  method: GET
+  path: /api/peers/{peer_id}
+  auth: bearer
+  access_method: rest
+
+peer_deregister_delete:
+  kind: action
+  name: Deregister Peer
+  category: "Agents"
+  description: Removes a peer from the registry — typically called on graceful shutdown of the peer's bridge.
+  source_module: bridge.peer_api
+  schema_ref: "dict — peer_id, deregistered_at"
+  method: DELETE
+  path: /api/peers/{peer_id}
+  auth: bearer
+  access_method: rest
+
+peer_heartbeat_post:
+  kind: action
+  name: Peer Heartbeat
+  category: "Agents"
+  description: Heartbeat ping from a peer bridge — updates last_heartbeat timestamp and refreshes presence.
+  source_module: bridge.peer_api
+  schema_ref: "dict — peer_id, status, timestamp"
+  method: POST
+  path: /api/peers/{peer_id}/heartbeat
+  auth: bearer
+  access_method: rest
+
+peer_message_post:
+  kind: action
+  name: Send Peer Message
+  category: "Agents"
+  description: Sends a direct message to another peer bridge in the cross-machine coordination mesh.
+  source_module: bridge.peer_api
+  schema_ref: "dict — peer_id, message, delivery_id"
+  method: POST
+  path: /api/peers/{peer_id}/message
+  auth: bearer
+  access_method: rest

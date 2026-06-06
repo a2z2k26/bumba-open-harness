@@ -1,0 +1,219 @@
+team:
+  name: ops
+  zone: 4
+  description: >
+    Operations department. Responsible for infrastructure, deployment,
+    reliability, security operations, and monitoring. Invoked when
+    engineering work needs infrastructure support, deployment planning,
+    incident response, or operational review.
+
+  escalation:
+    from_zone: 3
+    triggers:
+      - "Infrastructure review needed"
+      - "Deployment planning requested"
+      - "Security operations review"
+      - "Incident response needed"
+      - "Monitoring setup requested"
+      - "Database operations needed"
+      - "Network configuration review"
+    complexity_threshold: 6
+    auto_escalate: false
+
+  constraints:
+    cost_limit_usd: 1.50
+    timeout_seconds: 600
+    concurrency_limit: 3
+    # #1645: strict-floor activation 2026-05-12. Chiefs of delegate-
+    # mode teams MUST delegate to ≥1 specialist. Gate 8 in teams._verify
+    # fires `success=False` when employee_results count < this value.
+    expected_min_specialists: 1
+    usage_limits:
+      # 2026-05-21 production smoke: /ops readiness hit PydanticAI's
+      # default 20-request cap. Ops has a 7-specialist roster plus GLM
+      # tool/output retries, so keep more request headroom while the
+      # cost_limit_usd cap remains the spend guardrail.
+      request_limit: 50
+      # 2026-05-21 production smoke: readiness exceeded the 250k cap.
+      # Keep roughly 33 percent headroom above Ops' observed
+      # input_tokens=252552.
+      request_token_limit: 350000
+      response_token_limit: 250000
+    # zone4-warmth.D.01 (#2299) — Ops is high-volume cron-driven; each
+    # task is largely self-contained (deploy health, monitor query). A
+    # short 10-min warm window keeps consecutive cron ticks reusing
+    # context without persisting stale state across operator sessions.
+    warm_idle_timeout_seconds: 600  # 10 minutes
+
+  budget:
+    daily_limit_usd: 4.00
+    alert_thresholds: [0.50, 0.75, 0.90]
+
+  tools:
+    common: [read_file, search_knowledge]
+    department: [check_service_status, tail_log, query_metrics, continue_handoff]
+    per_employee:
+      ops-monitoring-specialist: [query_metrics]
+      ops-sre-engineer: [check_service_status, tail_log]
+
+  # Sprint P2.4 follow-up (#1660) — Ops team flipped to
+  # `deny_by_default` with an empty `allowed_servers` list. The ops
+  # chief + 7 specialists call only in-process pydantic-ai tools
+  # (`check_service_status`, `tail_log`, `query_metrics`,
+  # `continue_handoff`, plus the `common` set). The launchctl / tail
+  # operations in `teams/tools/_ops.py` are direct subprocess calls
+  # (`_run_subprocess`), not MCP-server invocations.
+  # Evidence:
+  #   - Grep across `agent/config/agents/zone4/ops/*.md` (8 files)
+  #     returns no MCP-server references; the matches for
+  #     "GitHub Actions" and "MongoDB" are prose-level platform
+  #     mentions in `ops-devops-specialist.md` /
+  #     `ops-database-admin.md` boilerplate, not tool invocations.
+  #   - `tools.{common,department,per_employee}` enumerates only
+  #     in-process tool names registered in `teams/tools/_ops.py`.
+  #   - `teams/tools/_ops.py` runs `launchctl list`, `tail` via
+  #     `_run_subprocess` directly — no `mcp__*` symbols anywhere
+  #     in the ops tool surface.
+  # Effect: the filtered `.mcp.json` emitted for ops runs is `{}`.
+  # Any future need to reach the `docker` / `cloudflare` /
+  # `digitalocean` MCP servers from an ops specialist surfaces as a
+  # subprocess error, forcing the operator to enumerate the precise
+  # need (which specialist, which workflow) rather than silently
+  # inheriting the full default surface.
+  mcp:
+    mode: deny_by_default
+    allowed_servers: []
+
+  vapi:
+    enabled: true
+    model: gpt-4o-mini
+    voice: onyx
+    greeting: "Ops department. What's the situation?"
+    tools: [check_service_status, tail_log]
+
+  chief:
+    name: ops-chief
+    role: >
+      Orchestrates the Operations department. Assesses infrastructure and
+      operational requests, delegates to appropriate specialists, ensures
+      production stability and security, and coordinates cross-functional
+      operational decisions.
+    # 2026-06-03 #2566: chief on anthropic-oauth (subscription Claude via the
+    # bridge's minted OAuth token), NOT codex. Codex `exec` cannot drive
+    # pydantic-ai tool-calling (delegate/final_result) — it's an autonomous
+    # agent that runs its own tools + returns prose (verified vs codex docs +
+    # issue openai/codex#15451). Chiefs REQUIRE tool-calling, so they run on
+    # anthropic-oauth (native AnthropicModel = full tool support, subscription-
+    # billed, no OpenRouter, no API key). Workers stay codex-exec (prose only).
+    # Mirrors the proven strategy-chief pattern.
+    model: anthropic-oauth:claude-sonnet-4-5
+    adapter: "claude"
+    # 2026-05-20 production smoke: cheap-frontier chiefs need tool/output
+    # validation retry headroom for malformed delegate/final_result calls.
+    retries: 3
+    skills:
+      - zero-micromanagement
+      - mental-model
+      - active-listener
+    expertise: agent/config/expertise/updatable/ops-chief.md
+    expertise_max_lines: 1000
+    system_prompt: agent/config/agents/zone4/ops/ops-chief.md
+    domain:
+      read: ["*"]
+      write:
+        - "agent/config/expertise/ops-chief.md"
+        - "sessions/"
+        - "docs/ops/"
+    thinking: extended
+    max_turns: 30
+    timeout_minutes: 20.0
+
+  workers:
+    - name: ops-cloud-architect
+      role: "Cloud infrastructure design, IaC, cost optimization, multi-region architecture"
+      # #2026-05-18 zone4-model-allocation: architectural decisions deserve frontier-tier
+      model: "codex-exec:"
+      adapter: "codex-exec"
+      skills: [mental-model]
+      expertise: agent/config/expertise/updatable/ops-cloud-architect.md
+      system_prompt: agent/config/agents/zone4/ops/ops-cloud-architect.md
+      domain:
+        read: ["*"]
+        write: ["docs/ops/cloud/", "infrastructure/", "sessions/"]
+
+    - name: ops-devops-specialist
+      role: "CI/CD pipelines, deployment automation, release management, GitOps"
+      model: "codex-exec:"
+      adapter: "codex-exec"
+      skills: [mental-model]
+      expertise: agent/config/expertise/updatable/ops-devops-specialist.md
+      system_prompt: agent/config/agents/zone4/ops/ops-devops-specialist.md
+      domain:
+        read: ["*"]
+        write: ["docs/ops/devops/", ".github/workflows/", "scripts/", "sessions/"]
+
+    - name: ops-sre-engineer
+      role: "Reliability engineering, SLOs, incident response, on-call runbooks, postmortems"
+      # #2026-05-18 zone4-model-allocation: incident-response reasoning
+      model: "codex-exec:"
+      adapter: "codex-exec"
+      skills: [mental-model]
+      expertise: agent/config/expertise/updatable/ops-sre-engineer.md
+      system_prompt: agent/config/agents/zone4/ops/ops-sre-engineer.md
+      domain:
+        read: ["*"]
+        write: ["docs/ops/sre/", "docs/runbooks/", "sessions/"]
+
+    - name: ops-database-admin
+      role: "Database design, migrations, performance tuning, backup strategy, schema review"
+      model: "codex-exec:"
+      adapter: "codex-exec"
+      skills: [mental-model]
+      expertise: agent/config/expertise/updatable/ops-database-admin.md
+      system_prompt: agent/config/agents/zone4/ops/ops-database-admin.md
+      domain:
+        read: ["*"]
+        write: ["docs/ops/database/", "sessions/"]
+        deny_write:
+          - "bridge/database.py"
+
+    - name: ops-monitoring-specialist
+      role: "Observability stack, alerting rules, dashboards, log aggregation, tracing"
+      model: "codex-exec:"
+      adapter: "codex-exec"
+      skills: [mental-model]
+      expertise: agent/config/expertise/updatable/ops-monitoring-specialist.md
+      system_prompt: agent/config/agents/zone4/ops/ops-monitoring-specialist.md
+      domain:
+        read: ["*"]
+        write: ["docs/ops/monitoring/", "sessions/"]
+
+    - name: ops-network-engineer
+      role: "Network design, DNS, load balancing, firewalls, VPN, CDN configuration"
+      # 2026-06-03 #2566 canary: first production seat migrated to codex-exec.
+      # Bare `codex-exec:` (no model suffix) uses codex's authenticated default,
+      # matching the proven codex_e2e_smoke path. If this seat runs clean live,
+      # the remaining 45 openrouter: seats migrate in a follow-up.
+      model: "codex-exec:"
+      adapter: "codex-exec"
+      skills: [mental-model]
+      expertise: agent/config/expertise/updatable/ops-network-engineer.md
+      system_prompt: agent/config/agents/zone4/ops/ops-network-engineer.md
+      domain:
+        read: ["*"]
+        write: ["docs/ops/network/", "sessions/"]
+
+    - name: ops-kubernetes-engineer
+      role: "Container orchestration, Helm charts, cluster management, workload scaling"
+      model: "codex-exec:"
+      adapter: "codex-exec"
+      skills: [mental-model]
+      expertise: agent/config/expertise/updatable/ops-kubernetes-engineer.md
+      system_prompt: agent/config/agents/zone4/ops/ops-kubernetes-engineer.md
+      domain:
+        read: ["*"]
+        write: ["docs/ops/kubernetes/", "infrastructure/k8s/", "sessions/"]
+
+# S04: MCP server allowlist for DEPARTMENT write jail
+# Empty list = inherit bridge default (permissive); expand via operator PR
+mcp_servers: []

@@ -1,0 +1,164 @@
+team:
+  name: qa
+  zone: 4
+  description: >
+    Quality Assurance department. Validates engineering output through
+    testing, security auditing, performance analysis, and code review.
+
+  constraints:
+    cost_limit_usd: 1.50
+    # 2026-05-21 production smoke: /qa completed once at ~519s, then hit the
+    # 600s department timeout after cheap-frontier retry/warm-context fixes.
+    # Match design's 900s ceiling for rich specialist analysis; cost_limit_usd
+    # remains the spend guardrail.
+    timeout_seconds: 900
+    concurrency_limit: 4
+    # #1645: strict-floor activation 2026-05-12. Chiefs of delegate-
+    # mode teams MUST delegate to ≥1 specialist. Gate 8 in teams._verify
+    # fires `success=False` when employee_results count < this value.
+    expected_min_specialists: 1
+    usage_limits:
+      request_limit: 20
+      # 2026-05-20 production smoke: /qa later tripped input_tokens_limit=80,000
+      # at input_tokens=86,690. Match board's proven 250k ceiling across teams.
+      request_token_limit: 250000
+      response_token_limit: 250000
+    # zone4-warmth.D.01 (#2299) — QA reviews tend to clump in 1-2h
+    # sittings; 2h warm idle keeps the audit context warm across that
+    # window without holding it past staleness.
+    warm_idle_timeout_seconds: 7200  # 2 hours
+
+  budget:
+    daily_limit_usd: 5.00
+    alert_thresholds: [0.50, 0.75, 0.90]
+
+  tools:
+    common:
+      - read_file
+      - search_knowledge
+      - memory_recall
+    department:
+      - run_tests
+      - coverage_report
+      - security_scan
+    per_employee: {}
+
+  # Sprint P2.4 follow-up (#1661) — QA team flipped to
+  # `deny_by_default` with an empty `allowed_servers` list. The QA
+  # chief + 4 specialists call only in-process pydantic-ai tools
+  # (`run_tests`, `coverage_report`, `security_scan`, plus the
+  # `common` set). The pytest / bandit invocations in
+  # `teams/tools/_qa.py` are direct subprocess calls (`_run_subprocess`),
+  # not MCP-server invocations.
+  # Evidence:
+  #   - Grep across `agent/config/agents/zone4/qa/*.md` (9 files)
+  #     returns no MCP-server references; the only "GitHub Actions"
+  #     match in `automation-engineer.md` is prose-level boilerplate
+  #     about CI pipeline patterns, not a tool invocation.
+  #   - `tools.{common,department}` enumerates only in-process tool
+  #     names registered in `teams/tools/_qa.py`.
+  #   - `teams/tools/_qa.py` runs `python -m pytest` / `bandit -r`
+  #     via `_run_subprocess` directly — no `mcp__*` symbols anywhere
+  #     in the qa tool surface.
+  # Effect: the filtered `.mcp.json` emitted for qa runs is `{}`. Any
+  # future need to reach the `playwright` / `chrome-devtools` MCP
+  # servers (e.g. for the `automation-engineer` or `performance-tester`
+  # to drive a browser) surfaces as a subprocess error, forcing the
+  # operator to enumerate the precise server set. The original YAML
+  # comment also flagged `semgrep` as a planned MCP server — it is
+  # not present in the canonical `.mcp.json`, so the comment was
+  # aspirational; the new posture matches reality.
+  mcp:
+    mode: deny_by_default
+    allowed_servers: []
+
+  vapi:
+    enabled: true
+    model: gpt-4o-mini
+    voice: shimmer
+    greeting: "QA department here. What would you like me to validate?"
+    tools:
+      - run_tests
+      - security_scan
+      - coverage_report
+
+  chief:
+    name: qa-chief
+    # 2026-06-04 #2566: chief on anthropic-oauth (subscription Claude via the
+    # bridge's minted OAuth token), NOT codex. Codex `exec` cannot drive
+    # pydantic-ai tool-calling (delegate/final_result) — it's an autonomous
+    # agent that runs its own tools + returns prose (verified vs codex docs +
+    # issue openai/codex#15451). Chiefs REQUIRE tool-calling, so they run on
+    # anthropic-oauth (native AnthropicModel = full tool support, subscription-
+    # billed, no OpenRouter, no API key). Workers stay codex-exec (prose only).
+    # Mirrors the proven strategy-chief + ops-chief (#2596) pattern.
+    model: anthropic-oauth:claude-sonnet-4-5
+    adapter: "claude"
+    system_prompt: agent/config/agents/zone4/qa/qa-chief.md
+    # 2026-05-20 production smoke: align GLM chiefs on retry headroom for
+    # malformed delegate/final_result calls.
+    retries: 3
+
+  workers:
+    - name: qa-engineer
+      model: "codex-exec:"
+      adapter: "codex-exec"
+      system_prompt: agent/config/agents/zone4/qa/qa-engineer.md
+      retries: 2
+
+    - name: security-auditor
+      # #2026-05-18 zone4-model-allocation: security analysis is reasoning-heavy
+      model: "codex-exec:"
+      adapter: "codex-exec"
+      # Path post-#2208 §5 rename (security-auditor.md → qa-security-auditor.md)
+      system_prompt: agent/config/agents/zone4/qa/qa-security-auditor.md
+      retries: 2
+
+    - name: performance-tester
+      # #2026-05-18 zone4-model-allocation: perf-debug reasoning
+      model: "codex-exec:"
+      adapter: "codex-exec"
+      system_prompt: agent/config/agents/zone4/qa/qa-performance-tester.md
+      retries: 2
+
+    - name: code-reviewer
+      model: "codex-exec:"
+      adapter: "codex-exec"
+      system_prompt: agent/config/agents/zone4/qa/qa-code-reviewer.md
+      retries: 2
+
+    # P3.1 (#1722) — re-declared from on-disk prompts + expertise (2026-05-12).
+    # 4 orphan specialists existed as well-formed prompts at
+    # `config/agents/zone4/qa/*.md` and matching expertise files at
+    # `config/expertise/updatable/*.md` since the QA team was first
+    # scaffolded, but had been omitted from `workers:`. Re-adding them
+    # reconciles the YAML roster with the on-disk surface implied by the
+    # VAPI receptionist's broad QA greeting and prior product intent.
+    - name: accessibility-tester
+      # #2026-05-18 zone4-model-allocation: a11y standards are pattern-matching + checklist
+      model: "codex-exec:"
+      adapter: "codex-exec"
+      system_prompt: agent/config/agents/zone4/qa/qa-accessibility-tester.md
+      retries: 2
+
+    - name: api-tester
+      model: "codex-exec:"
+      adapter: "codex-exec"
+      system_prompt: agent/config/agents/zone4/qa/qa-api-tester.md
+      retries: 2
+
+    - name: automation-engineer
+      model: "codex-exec:"
+      adapter: "codex-exec"
+      system_prompt: agent/config/agents/zone4/qa/qa-automation-engineer.md
+      retries: 2
+
+    - name: mobile-tester
+      model: "codex-exec:"
+      adapter: "codex-exec"
+      system_prompt: agent/config/agents/zone4/qa/qa-mobile-tester.md
+      retries: 2
+
+# S04: MCP server allowlist for DEPARTMENT write jail
+# Empty list = inherit bridge default (permissive); expand via operator PR
+mcp_servers: []

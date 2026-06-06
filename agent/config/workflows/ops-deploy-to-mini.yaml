@@ -1,0 +1,129 @@
+name: ops.deploy_to_mini
+trigger: explicit
+budget:
+  max_cost_usd: 1.00
+  max_duration_seconds: 1200
+# 1112 Sprint 5o.03 — Zone 4 Ops Layer 2 workflow paired with the
+# ops-devops-specialist output bar
+# (agent/config/agents/zone4/ops/output-bars/ops-devops-specialist.md).
+#
+# Purpose: operator-invoked formal workflow wrapping the existing
+# deploy_helper sequence. Replaces ad-hoc script invocation. Per the
+# bar's "atomic, reversible, audit-trailed" headline:
+#
+#   1. PRE-CHECKS: clean working tree, kernel baseline status, halt-flag
+#      state, current /healthz response (baseline). If any fails → halt.
+#   2. EXECUTE: 4-step deploy per agent/CLAUDE.md "Two-User Model":
+#      pull → kernel-baseline regen → bootout/bootstrap → smoke.
+#      Consumes the deploy_lib.py primitives from #2154 / Sprint 5.00b.
+#   3. POST-CHECKS: /healthz response again (compared to baseline),
+#      kernel-baseline hash verified, FIRST scheduled-service tick
+#      captured within 5 min.
+#   4. AUDIT TRAIL: data/deploys/<sha>.json row with timestamp + actor +
+#      exit codes per step.
+#   5. ROLLBACK PATH: pre-deploy must declare the exact revert sequence.
+#      Rollback section is one command; multi-step recipes fail the bar.
+#
+# Bar invariants (load-bearing):
+#   - ATOMIC: either full 4-step sequence succeeds OR rollback runs to
+#     clean state. No half-deployed runtime EVER.
+#   - REVERSIBLE: rollback declared + tested-ready BEFORE the deploy fires.
+#   - AUDIT-TRAILED: every step's exit code recorded.
+#   - SMOKE IS REAL: actual /healthz response captured, not "I ran the
+#     command". Kernel-baseline hash verified. First scheduled-service
+#     tick observed.
+#   - HALT-RESPECT: if halt flag is set, deploy refuses to proceed. The
+#     deploy is itself an autonomous action subject to operator halt.
+#
+# Operator-gated — never wired into a cron. Operator invokes this via
+# /workflows trigger ops.deploy_to_mini (or equivalent) at deploy time.
+#
+# Flat layout per workflow_registry.py:63 glob.
+steps:
+  - name: pre-flight-checks
+    department: ops
+    intent: >
+      Run all pre-checks before any state mutation:
+        - git working tree is clean
+        - kernel-baseline.json matches expected SHAs
+        - halt flag is NOT set (refuse to proceed if it is)
+        - current /healthz response captured as baseline
+        - operator-authorized actor identified for audit trail
+      Any failure → halt the workflow + report the failure. NEVER proceed
+      past pre-flight on a degraded baseline.
+    outputs: ["preflight_state"]
+
+  - name: declare-rollback
+    department: ops
+    inputs: ["preflight_state"]
+    intent: >
+      Before the deploy fires, declare the EXACT rollback command
+      sequence. For most deploys this is:
+        - `git revert <merge-sha>` on the source clone
+        - kernel-baseline regen
+        - bootout/bootstrap to load the reverted code
+      For deploys with data migrations: include the down-migration OR
+      backup-restore command. Multi-step rollbacks with judgment calls
+      fail the bar — collapse to one transactional command per change-type.
+    outputs: ["rollback_plan"]
+
+  - name: pull-and-regen
+    department: ops
+    inputs: ["preflight_state", "rollback_plan"]
+    intent: >
+      Execute deploy steps 1-2 per agent/CLAUDE.md "Two-User Model"
+      shape: pull main into the runtime tree at /opt/bumba-harness/agent-flat/,
+      then regenerate the kernel baseline to match the new files. Capture
+      exit codes per step. If kernel-baseline regen fails, ABORT before
+      bouncing the daemon (running code mismatched with baseline = halt
+      at startup).
+    outputs: ["pull_result", "regen_result"]
+
+  - name: bounce-daemon
+    department: ops
+    inputs: ["pull_result", "regen_result"]
+    intent: >
+      Execute deploy step 3: launchctl bootout + bootstrap. Capture
+      bootout exit code, sleep briefly, capture bootstrap exit code.
+      If bootstrap fails, daemon is now offline — FIRE ROLLBACK
+      IMMEDIATELY using the declared rollback_plan.
+    outputs: ["bounce_result"]
+
+  - name: post-deploy-smoke
+    department: ops
+    inputs: ["bounce_result"]
+    intent: >
+      Execute deploy step 4: SMOKE evidence.
+        - /healthz response captured (raw JSON, not "looks ok")
+        - kernel-baseline hash verified against runtime files
+        - WAIT + observe at least ONE scheduled-service tick post-deploy
+      Smoke must be REAL — not "I ran the command". If smoke fails,
+      FIRE ROLLBACK using rollback_plan and surface the failure to operator.
+    outputs: ["smoke_result"]
+
+  - name: audit-trail-write
+    department: ops
+    inputs: ["preflight_state", "rollback_plan", "pull_result", "regen_result", "bounce_result", "smoke_result"]
+    intent: >
+      Write the audit-trail row to data/deploys/<commit-sha>.json:
+        - timestamp
+        - actor (operator id)
+        - commit SHA being deployed
+        - prior commit SHA on runtime
+        - per-step exit codes (pull, regen, bootout, bootstrap)
+        - smoke evidence (healthz JSON, baseline match, first-tick capture)
+        - rollback command declared (preserved even on success — future
+          reference)
+      Audit trail is operator-readable and resumable; partial rows are
+      not acceptable.
+    outputs: ["audit_row_path"]
+
+  - name: synthesize-report
+    department: ops
+    inputs: ["preflight_state", "pull_result", "regen_result", "bounce_result", "smoke_result", "audit_row_path"]
+    intent: >
+      Produce docs/ops/<date>-deploy-<commit>.md per the ops-devops-specialist
+      output bar's 5-section template (target / pre-deploy checklist /
+      steps / smoke / rollback path). Plus a Discord summary with
+      deploy status + smoke evidence link.
+    outputs: ["report_path", "discord_summary"]

@@ -1,0 +1,36 @@
+department: board
+mode: report_only
+defaults:
+  mcp_servers: []
+  tools:
+    - search_knowledge
+    - recall_decision
+    - recall_past_decisions
+  skills: []
+chief:
+  board-ceo:
+    skills:
+      - zero-micromanagement
+      - mental-model
+      - active-listener
+      - thinking-modalities
+      - business-validation
+specialists:
+  board-revenue:
+    skills: [mental-model, thinking-modalities]
+  board-compounder:
+    skills: [mental-model, thinking-modalities]
+  board-product-strategist:
+    skills: [mental-model, thinking-modalities]
+  board-technical-architect:
+    skills: [mental-model, thinking-modalities]
+  board-contrarian:
+    skills: [mental-model, thinking-modalities]
+  board-moonshot:
+    skills: [mental-model, thinking-modalities]
+  board-cross-vendor-strategist:
+    skills: [mental-model, thinking-modalities]
+  board-openrouter-generalist:
+    skills: [mental-model, thinking-modalities]
+  board-systems-thinker:
+    skills: [mental-model, thinking-modalities]

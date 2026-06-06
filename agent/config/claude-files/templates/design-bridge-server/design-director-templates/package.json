@@ -1,0 +1,19 @@
+{
+  "name": "design-director-templates",
+  "version": "1.0.0",
+  "description": "This directory contains the master templates for Bumba Design Director - a CLI-based specification generator that integrates with the Bumba Design System.",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "glob": "^13.0.0",
+    "handlebars": "^4.7.8"
+  }
+}

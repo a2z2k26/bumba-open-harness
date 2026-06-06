@@ -1,0 +1,37 @@
+department: ops
+mode: report_only
+defaults:
+  mcp_servers: []
+  tools:
+    - read_file
+    - search_knowledge
+    - check_service_status
+    - tail_log
+    - query_metrics
+    - continue_handoff
+  skills: []
+chief:
+  ops-chief:
+    skills:
+      - zero-micromanagement
+      - mental-model
+      - active-listener
+specialists:
+  ops-cloud-architect:
+    skills: [mental-model]
+  # Code-oriented Ops roles get the LSP-backed code-intelligence tools
+  # (Z4-20/#2446). Infra-only roles (cloud/db/network/k8s/monitoring) do not.
+  ops-devops-specialist:
+    skills: [mental-model]
+    tools: [lsp_find_definition, lsp_find_references, lsp_diagnostics]
+  ops-sre-engineer:
+    skills: [mental-model]
+    tools: [lsp_find_definition, lsp_find_references, lsp_diagnostics]
+  ops-database-admin:
+    skills: [mental-model]
+  ops-monitoring-specialist:
+    skills: [mental-model]
+  ops-network-engineer:
+    skills: [mental-model]
+  ops-kubernetes-engineer:
+    skills: [mental-model]

@@ -1,0 +1,43 @@
+name: service-inventory-drift
+
+# Keeps service plist/config inventory in sync with SERVICE_MAP in
+# agent/bridge/services/runner.py.
+
+on:
+  pull_request:
+    paths:
+      - "agent/bridge/services/runner.py"
+      - "agent/bridge/services/result.py"
+      - "agent/scripts/com.bumba.agent-*.plist"
+      - "agent/config/launchdaemons/com.bumba.agent-*.plist"
+      - "agent/scripts/check_service_inventory_drift.py"
+      - "agent/tests/test_service_inventory_drift.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Service-inventory drift gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    # Skip gate when PR title contains override token (docs-only PRs).
+    if: ${{ github.event_name != 'pull_request' || !contains(github.event.pull_request.title, '[skip service-gate]') }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run service-inventory drift check
+        run: python3 agent/scripts/check_service_inventory_drift.py

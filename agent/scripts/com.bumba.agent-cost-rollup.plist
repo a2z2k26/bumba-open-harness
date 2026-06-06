@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.bumba.agent-cost-rollup</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/opt/bumba-harness/agent-flat/agent/.venv/bin/python</string>
+        <string>/opt/bumba-harness/agent-flat/agent/scripts/cost_rollup.py</string>
+    </array>
+    <key>WorkingDirectory</key>
+    <string>/opt/bumba-harness/agent-flat/agent</string>
+    <key>UserName</key>
+    <string>bumba-agent</string>
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key>
+        <integer>1</integer>
+        <key>Minute</key>
+        <integer>0</integer>
+    </dict>
+    <key>StandardOutPath</key>
+    <string>/opt/bumba-harness/logs/cost-rollup-stdout.log</string>
+    <key>StandardErrorPath</key>
+    <string>/opt/bumba-harness/logs/cost-rollup-stderr.log</string>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/opt/bumba-harness/.local/bin:/opt/bumba-harness/agent-flat/agent/.venv/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+        <key>PYTHONPATH</key>
+        <string>/opt/bumba-harness/agent-flat/agent</string>
+    </dict>
+</dict>
+</plist>

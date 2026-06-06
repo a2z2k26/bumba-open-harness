@@ -1,0 +1,216 @@
+team:
+  name: strategy
+  zone: 4
+  description: >
+    Product Strategy department. Defines product vision, roadmaps, requirements,
+    and market positioning. Invoked when operator needs strategic analysis,
+    product decisions, competitive research, or structured requirement work.
+
+  escalation:
+    from_zone: 3
+    triggers:
+      - "Product strategy review requested"
+      - "Market research needed"
+      - "Requirements clarification needed"
+      - "Roadmap planning requested"
+      - "Competitive analysis needed"
+      - "User research synthesis needed"
+    complexity_threshold: 6
+    auto_escalate: false
+
+  constraints:
+    cost_limit_usd: 1.50
+    timeout_seconds: 600
+    concurrency_limit: 4
+    # #1645: strict-floor activation 2026-05-12. Chiefs of delegate-
+    # mode teams MUST delegate to ≥1 specialist. Gate 8 in teams._verify
+    # fires `success=False` when employee_results count < this value.
+    expected_min_specialists: 1
+    usage_limits:
+      # 2026-05-21 production smoke: OAuth-canary Strategy readiness exhausted
+      # the default 20 request cap. Match Ops' post-smoke 50-request headroom;
+      # cost_limit_usd + timeout remain the runaway guards.
+      request_limit: 50
+      # 2026-05-21 production smoke: readiness exceeded the 250k cap.
+      # Keep roughly 33 percent headroom above Strategy's observed
+      # input_tokens=262897.
+      request_token_limit: 350000
+      response_token_limit: 250000
+    # zone4-warmth.D.01 (#2299) — strategy work spans long thinking windows
+    # (PRDs, roadmaps, multi-day analysis); 4h warm idle matches the
+    # operator-cycle rhythm so resumed asks reuse prior context.
+    warm_idle_timeout_seconds: 14400  # 4 hours
+
+  budget:
+    daily_limit_usd: 5.00
+    alert_thresholds: [0.50, 0.75, 0.90]
+
+  tools:
+    common:
+      - read_file
+      - search_knowledge
+      - memory_recall
+    department:
+      - search_market_data
+      - analyze_competitor
+      - recall_decision
+      - initiate_handoff
+    per_employee:
+      strategy-competitive-intelligence-analyst:
+        - analyze_competitor
+      strategy-product-metrics-analyst:
+        - recall_decision
+
+  # Sprint P2.4 follow-up (#1663) — Strategy team flipped to
+  # `deny_by_default` with an empty `allowed_servers` list. The
+  # strategy-product-chief + 7 specialists call only in-process
+  # pydantic-ai tools (`search_market_data`, `analyze_competitor`,
+  # `recall_decision`, `initiate_handoff`, plus the `common` set).
+  # Evidence:
+  #   - Grep across `agent/config/agents/zone4/strategy/*.md` (8 files)
+  #     returns zero matches for `mcp__`, `@mcp`, "MCP server",
+  #     "brave-search", or "notion".
+  #   - `tools.{common,department,per_employee}` enumerates only
+  #     in-process tool names registered in `teams/tools/_strategy.py`.
+  #   - `teams/tools/_strategy.py` uses `ctx.deps.knowledge_search`
+  #     and `ctx.deps.memory_store.get` only — no `mcp__*` symbols.
+  # Effect: the filtered `.mcp.json` emitted for strategy runs is
+  # `{}`. The original YAML comment flagged `brave-search` + `notion`
+  # as planned MCP servers, but the in-process `search_market_data`
+  # tool already provides the research seam, and `notion` is not in
+  # the canonical `.mcp.json`. Any future need to reach a real
+  # research MCP server surfaces as a subprocess error, forcing the
+  # operator to enumerate the precise server need.
+  mcp:
+    mode: deny_by_default
+    allowed_servers: []
+
+  vapi:
+    enabled: true
+    model: gpt-4o-mini
+    voice: alloy
+    greeting: "Strategy department. What are you trying to decide?"
+    tools:
+      - search_market_data
+      - analyze_competitor
+      - recall_decision
+
+  chief:
+    name: strategy-product-chief
+    role: >
+      Orchestrates the Product Strategy team. Translates operator goals into
+      structured product briefs, delegates research and analysis to specialists,
+      synthesizes findings into actionable recommendations, and presents
+      decisions to the operator.
+    # 2026-05-21 PydanticAI OAuth canary: strategy is the shortest stable
+    # readiness smoke, and flipping the chief guarantees the provider path is
+    # exercised. Specialists stay on OpenRouter; this is one role only.
+    model: anthropic-oauth:claude-sonnet-4-5
+    # 2026-05-21 canary hardening: if Claude OAuth returns HTTP 429, retry the
+    # chief once through the cheap-frontier baseline instead of failing /strategy.
+    fallback_model: "codex-exec:"
+    adapter: "claude"
+    # 2026-05-20 production smoke: cheap-frontier chiefs need tool/output
+    # validation retry headroom for malformed delegate/final_result calls.
+    retries: 3
+    skills:
+      - zero-micromanagement
+      - mental-model
+      - active-listener
+    expertise: agent/config/expertise/updatable/strategy-product-chief.md
+    expertise_max_lines: 1000
+    system_prompt: agent/config/agents/zone4/strategy/strategy-product-chief.md
+    domain:
+      read: ["*"]
+      write:
+        - "agent/config/expertise/strategy-product-chief.md"
+        - "sessions/"
+        - "docs/strategy/"
+    thinking: extended
+    max_turns: 30
+    timeout_minutes: 20.0
+
+  workers:
+    - name: strategy-product-metrics-analyst
+      role: "Product metrics, KPI frameworks, data-driven decision support"
+      # 2026-05-21 Z4-16 OpenAI API canary: the model prefix is the runtime
+      # provider source of truth; adapter remains in the existing allowed set.
+      model: openai:gpt-4o-mini
+      adapter: "claude"
+      skills: [mental-model]
+      expertise: agent/config/expertise/updatable/strategy-product-metrics-analyst.md
+      system_prompt: agent/config/agents/zone4/strategy/strategy-product-metrics-analyst.md
+      domain:
+        read: ["*"]
+        write: ["docs/strategy/metrics/", "sessions/"]
+
+    - name: strategy-requirement-engineer
+      role: "Requirements elicitation, PRD authoring, acceptance criteria, specification review"
+      model: "codex-exec:"
+      adapter: "codex-exec"
+      skills: [mental-model]
+      expertise: agent/config/expertise/updatable/strategy-requirement-engineer.md
+      system_prompt: agent/config/agents/zone4/strategy/strategy-requirement-engineer.md
+      domain:
+        read: ["*"]
+        write: ["docs/strategy/requirements/", "docs/specs/", "sessions/"]
+
+    - name: strategy-market-researcher
+      role: "Market analysis, competitor landscape, trend identification, opportunity sizing"
+      model: "codex-exec:"
+      adapter: "codex-exec"
+      skills: [mental-model]
+      expertise: agent/config/expertise/updatable/strategy-market-researcher.md
+      system_prompt: agent/config/agents/zone4/strategy/strategy-market-researcher.md
+      domain:
+        read: ["*"]
+        write: ["docs/strategy/market/", "sessions/"]
+
+    - name: strategy-user-analyst
+      role: "User research synthesis, persona development, journey mapping, JTBD analysis"
+      model: "codex-exec:"
+      adapter: "codex-exec"
+      skills: [mental-model]
+      expertise: agent/config/expertise/updatable/strategy-user-analyst.md
+      system_prompt: agent/config/agents/zone4/strategy/strategy-user-analyst.md
+      domain:
+        read: ["*"]
+        write: ["docs/strategy/users/", "sessions/"]
+
+    - name: strategy-roadmap-strategist
+      role: "Roadmap planning, prioritization frameworks, milestone design, dependency mapping"
+      model: "codex-exec:"
+      adapter: "codex-exec"
+      skills: [mental-model]
+      expertise: agent/config/expertise/updatable/strategy-roadmap-strategist.md
+      system_prompt: agent/config/agents/zone4/strategy/strategy-roadmap-strategist.md
+      domain:
+        read: ["*"]
+        write: ["docs/strategy/roadmap/", "sessions/"]
+
+    - name: strategy-business-analyst
+      role: "Business case development, ROI analysis, stakeholder mapping, process modeling"
+      model: "codex-exec:"
+      adapter: "codex-exec"
+      skills: [mental-model]
+      expertise: agent/config/expertise/updatable/strategy-business-analyst.md
+      system_prompt: agent/config/agents/zone4/strategy/strategy-business-analyst.md
+      domain:
+        read: ["*"]
+        write: ["docs/strategy/business/", "sessions/"]
+
+    - name: strategy-competitive-intelligence-analyst
+      role: "Competitor tracking, feature gap analysis, positioning assessment, SWOT"
+      # #2026-05-18 zone4-model-allocation: analytical depth over narrative
+      model: "codex-exec:"
+      adapter: "codex-exec"
+      skills: [mental-model]
+      expertise: agent/config/expertise/updatable/strategy-competitive-intelligence-analyst.md
+      system_prompt: agent/config/agents/zone4/strategy/strategy-competitive-intelligence-analyst.md
+      domain:
+        read: ["*"]
+        write: ["docs/strategy/competitive/", "sessions/"]
+
+# S04: MCP server allowlist for DEPARTMENT write jail
+# Empty list = inherit bridge default (permissive); expand via operator PR
+mcp_servers: []

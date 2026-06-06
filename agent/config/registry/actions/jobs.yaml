@@ -1,0 +1,15 @@
+# Job search actions — funnel aggregator and pipeline observability.
+
+job_search_funnel_get:
+  kind: action
+  name: Job Search Funnel Report
+  category: "Jobs"
+  description: Returns per-board/ATS/submit-step funnel-failure aggregation over a configurable time window.
+  source_module: bridge.api_server
+  schema_ref: job_search.funnel.FunnelReport
+  method: GET
+  path: /api/job_search/funnel
+  auth: bearer
+  access_method: rest
+  query_params:
+    window: '"7d" | "30d" | "all" (default: "7d")'

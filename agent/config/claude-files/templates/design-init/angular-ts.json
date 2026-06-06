@@ -1,0 +1,41 @@
+{
+  "name": "angular-ts",
+  "description": "Angular with standalone components and TypeScript - Modern Angular setup",
+  "version": "1.0.0",
+  "framework": "angular",
+  "typescript": true,
+  "outputPath": "src/app/design-system",
+  "autoSync": true,
+  "storybook": true,
+  "features": {
+    "tests": true,
+    "backups": true,
+    "linting": true
+  },
+  "transformerOptions": {
+    "useStyledComponents": false,
+    "useTailwind": false,
+    "useEmotions": false,
+    "generateStories": true,
+    "generateTests": true,
+    "standaloneComponents": true
+  },
+  "additionalDependencies": [
+    "@angular/core",
+    "@storybook/angular",
+    "@storybook/addon-essentials"
+  ],
+  "devDependencies": [
+    "jasmine-core",
+    "karma"
+  ],
+  "scripts": {
+    "storybook": "storybook dev -p 6006",
+    "test": "ng test"
+  },
+  "notes": [
+    "Uses Angular standalone components",
+    "Stories generated with Angular module metadata",
+    "Jasmine and Karma for testing"
+  ]
+}

@@ -1,0 +1,39 @@
+name: example-workflow
+trigger: explicit
+schedule: null  # or "cron:0 8 * * 1" for Monday 08:00 UTC
+budget:
+  max_cost_usd: 2.0
+  max_duration_seconds: 600
+steps:
+  - name: gather-signals
+    department: strategy
+    intent: "Gather weekly metrics and strategic signals"
+    outputs: [signals]
+
+  - name: health-check
+    department: ops
+    intent: "Check service health and summarise incidents"
+    outputs: [health]
+    parallel_with: gather-signals
+
+  - name: synthesize
+    department: board
+    intent: "Synthesize weekly CEO review from {signals} and {health}"
+    inputs: [signals, health]
+    outputs: [digest]
+    on_failure: [cleanup-draft]
+
+  - name: operator-approve
+    gate: operator
+    timeout_seconds: 3600
+    message: "Weekly CEO Review ready. Approve to publish?\n\n{digest}"
+
+  - name: publish
+    action: publish_discord
+    channel: operator
+    message: "{digest}"
+
+  - name: cleanup-draft
+    action: publish_discord
+    channel: operator
+    message: "Workflow failed during synthesis — no digest published."

@@ -1,0 +1,368 @@
+# mypy baseline — Sprint S3.1 (#2340)
+# Format: <path>:<error-code>:<message>
+# Update via: python agent/scripts/check_mypy_baseline.py --update-baseline
+bridge/api/routes_agents.py:attr-defined:"_AgentsRoutesMixin" has no attribute "_bridge"
+bridge/api/routes_chief_sessions.py:attr-defined:"_ChiefSessionsRoutesMixin" has no attribute "_bridge"
+bridge/api/routes_commands.py:attr-defined:"_CommandsRoutesMixin" has no attribute "SAFE_COMMANDS"
+bridge/api/routes_commands.py:attr-defined:"_CommandsRoutesMixin" has no attribute "_bridge"
+bridge/api/routes_cost_trust.py:attr-defined:"_CostTrustRoutesMixin" has no attribute "_bridge"
+bridge/api/routes_events_knowledge.py:attr-defined:"_EventsKnowledgeRoutesMixin" has no attribute "_bridge"
+bridge/api/routes_health.py:attr-defined:"_HealthRoutesMixin" has no attribute "_app_ref"
+bridge/api/routes_health.py:attr-defined:"_HealthRoutesMixin" has no attribute "_bridge"
+bridge/api/routes_health.py:attr-defined:"_HealthRoutesMixin" has no attribute "_start_time"
+bridge/api/routes_hitl.py:attr-defined:"_HitlRoutesMixin" has no attribute "_bridge"
+bridge/api/routes_metrics.py:attr-defined:"_MetricsRoutesMixin" has no attribute "_bridge"
+bridge/api/routes_reviews.py:attr-defined:"_ReviewsRoutesMixin" has no attribute "_bridge"
+bridge/api/routes_services.py:attr-defined:"_ServicesRoutesMixin" has no attribute "_bridge"
+bridge/api/routes_tasks.py:attr-defined:"_TasksRoutesMixin" has no attribute "_bridge"
+bridge/api/routes_vapi_departments.py:attr-defined:"_VapiDepartmentsRoutesMixin" has no attribute "_bridge"
+bridge/api/routes_vapi_departments.py:attr-defined:"_VapiDepartmentsRoutesMixin" has no attribute "_departments"; maybe "_list_departments" or "_get_department"?
+bridge/api/routes_vapi_departments.py:attr-defined:"_VapiDepartmentsRoutesMixin" has no attribute "_handle_vapi_webhook"
+bridge/api/routes_webhooks.py:attr-defined:"_WebhooksRoutesMixin" has no attribute "_bridge"
+bridge/api/routes_webhooks.py:attr-defined:"_WebhooksRoutesMixin" has no attribute "_vapi_client"
+bridge/api/routes_webhooks.py:has-type:Cannot determine type of "_calcom_webhook_handler"
+bridge/api/routes_websocket.py:assignment:Incompatible types in assignment (expression has type "tuple[str, ...]", variable has type "set[str]")
+bridge/api/routes_websocket.py:assignment:Incompatible types in assignment (expression has type "tuple[str, str, str, str, str, str, str, str, str, str, str, str, str, str, str, str, str, str, str, str, str, str, str, str, str, str, str, str, str, str, str, str, str, str, str, str, str, str, str, str, str, str, str, str, str, str, str, str, str, str, str, str, str, str, str]", variable has type "set[str]")
+bridge/api/routes_websocket.py:attr-defined:"_WebSocketRoutesMixin" has no attribute "_api_token"
+bridge/api/routes_websocket.py:attr-defined:"_WebSocketRoutesMixin" has no attribute "_bridge"
+bridge/api/routes_websocket.py:attr-defined:"_WebSocketRoutesMixin" has no attribute "_ws_clients"
+bridge/api/routes_websocket.py:return-value:Incompatible return value type (got "WebSocketResponse", expected "Response")
+bridge/api/routes_workorders.py:attr-defined:"_WorkordersRoutesMixin" has no attribute "_bridge"
+bridge/api/routes_workorders.py:union-attr:Item "None" of "Any | None" has no attribute "dispatch"
+bridge/api_server.py:assignment:Incompatible types in assignment (expression has type "Any | None", base class "_WebhooksRoutesMixin" defined the type as "CalcomWebhookHandler")
+bridge/app.py:arg-type:Argument "db" to "DirectiveRoutes" has incompatible type "Database | None"; expected "Database"
+bridge/app.py:arg-type:Argument 2 to "_deliver_response" of "BridgeApp" has incompatible type "object"; expected "ClaudeResult"
+bridge/app.py:arg-type:Argument 2 to "_handle_processing_error" of "BridgeApp" has incompatible type "object"; expected "ClaudeResult"
+bridge/app.py:arg-type:Argument 2 to "_post_process" of "BridgeApp" has incompatible type "object"; expected "ClaudeResult"
+bridge/app.py:arg-type:Argument 2 to "_record_telemetry" of "BridgeApp" has incompatible type "object"; expected "ClaudeResult"
+bridge/app.py:assignment:Incompatible types in assignment (expression has type "HooksTelemetrySubscriber", variable has type "None")
+bridge/app.py:attr-defined:"BridgeApp" has no attribute "_cost_attributor"
+bridge/app.py:attr-defined:"BridgeApp" has no attribute "_event_bus"; maybe "event_bus"?
+bridge/app.py:attr-defined:"BridgeApp" has no attribute "_invocation_controller"
+bridge/app.py:attr-defined:"BridgeApp" has no attribute "_metrics_aggregator"
+bridge/app.py:attr-defined:"BridgeApp" has no attribute "_shadow_router"
+bridge/app.py:attr-defined:"BridgeApp" has no attribute "_tool_tracker"; maybe "_cost_tracker"?
+bridge/app.py:attr-defined:"None" has no attribute "start"
+bridge/app.py:attr-defined:"object" has no attribute "error_type"
+bridge/app.py:attr-defined:"object" has no attribute "is_error"
+bridge/app.py:attr-defined:"object" has no attribute "record_failure"
+bridge/app.py:attr-defined:"object" has no attribute "record_success"
+bridge/app.py:attr-defined:Module "bridge.branch_protection" has no attribute "BranchProtectionChecker"
+bridge/app.py:union-attr:Item "None" of "BridgeConfig | None" has no attribute "chief_dispatcher_enabled"
+bridge/app.py:union-attr:Item "None" of "BridgeConfig | None" has no attribute "claude_working_dir"
+bridge/app.py:union-attr:Item "None" of "BridgeConfig | None" has no attribute "data_dir"
+bridge/app.py:union-attr:Item "None" of "BridgeConfig | None" has no attribute "operator_discord_id"
+bridge/app.py:union-attr:Item "None" of "BridgeConfig | None" has no attribute "vapi_webhook_url"
+bridge/app.py:union-attr:Item "None" of "BridgeConfig | None" has no attribute "voice_enabled"
+bridge/app.py:union-attr:Item "None" of "ClaudeRunner | None" has no attribute "cleanup_stale"
+bridge/app.py:union-attr:Item "None" of "CommandHandler | None" has no attribute "_halted"
+bridge/app.py:union-attr:Item "None" of "CommandHandler | None" has no attribute "get_agent_prompt"
+bridge/app.py:union-attr:Item "None" of "CommandHandler | None" has no attribute "handle"
+bridge/app.py:union-attr:Item "None" of "CommandHandler | None" has no attribute "is_halted"
+bridge/app.py:union-attr:Item "None" of "CommandHandler | None" has no attribute "record_error"
+bridge/app.py:union-attr:Item "None" of "CommandHandler | None" has no attribute "record_message"
+bridge/app.py:union-attr:Item "None" of "CommandHandler | None" has no attribute "set_app"
+bridge/app.py:union-attr:Item "None" of "CommandHandler | None" has no attribute "set_shadow_router"
+bridge/app.py:union-attr:Item "None" of "DailyLogWriter | None" has no attribute "log_service_completion"
+bridge/app.py:union-attr:Item "None" of "DiscordBot | None" has no attribute "_start_typing"
+bridge/app.py:union-attr:Item "None" of "DiscordBot | None" has no attribute "_stop_typing"
+bridge/app.py:union-attr:Item "None" of "DiscordBot | None" has no attribute "send_alert"
+bridge/app.py:union-attr:Item "None" of "DiscordBot | None" has no attribute "send_message"
+bridge/app.py:union-attr:Item "None" of "DiscordBot | None" has no attribute "start"
+bridge/app.py:union-attr:Item "None" of "Memory | None" has no attribute "extract_and_store_knowledge"
+bridge/app.py:union-attr:Item "None" of "Memory | None" has no attribute "get_session_messages"
+bridge/app.py:union-attr:Item "None" of "Memory | None" has no attribute "process_tags"
+bridge/app.py:union-attr:Item "None" of "Memory | None" has no attribute "store_message"
+bridge/app.py:union-attr:Item "None" of "MessageQueue | None" has no attribute "complete"
+bridge/app.py:union-attr:Item "None" of "MessageQueue | None" has no attribute "dequeue"
+bridge/app.py:union-attr:Item "None" of "MessageQueue | None" has no attribute "enqueue"
+bridge/app.py:union-attr:Item "None" of "MessageQueue | None" has no attribute "fail"
+bridge/app.py:union-attr:Item "None" of "MessageQueue | None" has no attribute "get_position"
+bridge/app.py:union-attr:Item "None" of "MessageQueue | None" has no attribute "get_unsent_responses"
+bridge/app.py:union-attr:Item "None" of "MessageQueue | None" has no attribute "mark_send_failed"
+bridge/app.py:union-attr:Item "None" of "MessageQueue | None" has no attribute "reset_orphaned"
+bridge/app.py:union-attr:Item "None" of "MessageQueue | None" has no attribute "retry"
+bridge/app.py:union-attr:Item "None" of "Path | None" has no attribute "write_text"
+bridge/app.py:union-attr:Item "None" of "SecurityManager | None" has no attribute "check_anomalies"
+bridge/app.py:union-attr:Item "None" of "SecurityManager | None" has no attribute "check_crash_loop"
+bridge/app.py:union-attr:Item "None" of "SecurityManager | None" has no attribute "check_halt_flag"
+bridge/app.py:union-attr:Item "None" of "SecurityManager | None" has no attribute "clear_halt"
+bridge/app.py:union-attr:Item "None" of "SecurityManager | None" has no attribute "log_event"
+bridge/app.py:union-attr:Item "None" of "SecurityManager | None" has no attribute "record_crash_timestamp"
+bridge/app.py:union-attr:Item "None" of "SecurityManager | None" has no attribute "set_halt"
+bridge/app.py:union-attr:Item "None" of "SecurityManager | None" has no attribute "verify_kernel_hashes"
+bridge/app.py:union-attr:Item "None" of "SessionManager | None" has no attribute "check_error_count"
+bridge/app.py:union-attr:Item "None" of "SessionManager | None" has no attribute "check_session_file_size"
+bridge/app.py:union-attr:Item "None" of "SessionManager | None" has no attribute "context_pressure"
+bridge/app.py:union-attr:Item "None" of "SessionManager | None" has no attribute "expire_with_summary"
+bridge/app.py:union-attr:Item "None" of "SessionManager | None" has no attribute "set_claude_session_id"
+bridge/app.py:union-attr:Item "None" of "SessionManager | None" has no attribute "update_session"
+bridge/app.py:union-attr:Item "None" of "Tracer | None" has no attribute "end_span"
+bridge/app_init.py:arg-type:Argument "destinations" to "DualWritePipeline" has incompatible type "dict[str, object]"; expected "dict[str, DestinationProtocol]"
+bridge/app_init.py:assignment:Incompatible types in assignment (expression has type "BridgeApp", variable has type "BridgeAppInit")
+bridge/app_init.py:assignment:Incompatible types in assignment (expression has type "None", variable has type "ChiefDispatcher")
+bridge/app_init.py:assignment:Incompatible types in assignment (expression has type "None", variable has type "DailyLogWriter")
+bridge/app_init.py:assignment:Incompatible types in assignment (expression has type "None", variable has type "DreamNotifier")
+bridge/app_init.py:assignment:Incompatible types in assignment (expression has type "None", variable has type "LocalEmbeddingClient")
+bridge/app_init.py:assignment:Incompatible types in assignment (expression has type "None", variable has type "LocalEmbeddingEngine")
+bridge/app_init.py:assignment:Incompatible types in assignment (expression has type "None", variable has type "PeerRegistrationManager")
+bridge/app_init.py:assignment:Incompatible types in assignment (expression has type "None", variable has type "PeerRegistry")
+bridge/app_init.py:assignment:Incompatible types in assignment (expression has type "None", variable has type "ProactiveScheduler")
+bridge/app_init.py:assignment:Incompatible types in assignment (expression has type "None", variable has type "RecursiveDecomposer")
+bridge/app_init.py:assignment:Incompatible types in assignment (expression has type "None", variable has type "RegistryIndex")
+bridge/app_init.py:assignment:Incompatible types in assignment (expression has type "None", variable has type "RemoteEventBridge")
+bridge/app_init.py:assignment:Incompatible types in assignment (expression has type "None", variable has type "RuleBasedWorkOrderRouter")
+bridge/app_init.py:assignment:Incompatible types in assignment (expression has type "None", variable has type "SQLiteChiefSessionStore")
+bridge/app_init.py:assignment:Incompatible types in assignment (expression has type "None", variable has type "TTSEngine")
+bridge/app_init.py:assignment:Incompatible types in assignment (expression has type "None", variable has type "TickManager")
+bridge/app_init.py:assignment:Incompatible types in assignment (expression has type "None", variable has type "VoiceManager")
+bridge/app_init.py:assignment:Incompatible types in assignment (expression has type "None", variable has type "WorkOrderStore")
+bridge/app_init.py:assignment:Incompatible types in assignment (expression has type "None", variable has type "WorkOrderStreamManager")
+bridge/app_init.py:assignment:Incompatible types in assignment (expression has type "None", variable has type "WorkflowEngine")
+bridge/app_init.py:assignment:Incompatible types in assignment (expression has type "None", variable has type "WorkflowRegistry")
+bridge/app_init.py:attr-defined:"BridgeAppInit" has no attribute "_build_quality_chain"
+bridge/app_init.py:attr-defined:"BridgeAppInit" has no attribute "_config_path"
+bridge/app_init.py:attr-defined:"BridgeAppInit" has no attribute "_handle_command"
+bridge/app_init.py:attr-defined:"BridgeAppInit" has no attribute "_handle_new_message"
+bridge/app_init.py:attr-defined:"BridgeAppInit" has no attribute "_primer_callback"
+bridge/app_init.py:attr-defined:"BridgeAppInit" has no attribute "_refresh_warm_claude"
+bridge/app_init.py:attr-defined:"BridgeAppInit" has no attribute "_shutdown_event"
+bridge/app_init.py:attr-defined:"BridgeAppInit" has no attribute "_validate_workflow_departments"
+bridge/app_init.py:attr-defined:"BridgeAppInit" has no attribute "_wire"
+bridge/app_init.py:attr-defined:"BridgeAppInit" has no attribute "_workflow_department_runner"
+bridge/app_init.py:call-arg:Unexpected keyword argument "tts_url" for "TTSEngine"
+bridge/autonomy.py:attr-defined:"object" has no attribute "invoke"
+bridge/autonomy.py:operator:"object" not callable
+bridge/chief_dispatcher.py:union-attr:Item "None" of "Any | None" has no attribute "trigger"
+bridge/chief_session_store.py:arg-type:Argument "created_at_utc" to "ChiefSession" has incompatible type "datetime | None"; expected "datetime"
+bridge/chief_session_store.py:arg-type:Argument "key" to "max" has incompatible type "Callable[[ChiefSession], datetime | None]"; expected "Callable[[ChiefSession], SupportsDunderLT[Any] | SupportsDunderGT[Any]]"
+bridge/chief_session_store.py:return-value:Incompatible return value type (got "datetime | None", expected "SupportsDunderLT[Any] | SupportsDunderGT[Any]")
+bridge/claude_runner.py:arg-type:Argument 1 to "evaluate_gate" has incompatible type "OperatorInbox | None"; expected "OperatorInbox"
+bridge/claude_runner.py:assignment:Incompatible types in assignment (expression has type "float | None", variable has type "float")
+bridge/claude_runner.py:attr-defined:"object" has no attribute "track"
+bridge/claude_runner.py:call-arg:Unexpected keyword argument "binary" for "build_command" of "BackendProtocol"
+bridge/command_handlers/agents_and_memory.py:attr-defined:"AgentsAndMemoryMixin" has no attribute "_app"
+bridge/command_handlers/agents_and_memory.py:attr-defined:"AgentsAndMemoryMixin" has no attribute "_few_shot_store"
+bridge/command_handlers/agents_and_memory.py:attr-defined:"AgentsAndMemoryMixin" has no attribute "_self_edit"
+bridge/command_handlers/agents_and_memory.py:attr-defined:"AgentsAndMemoryMixin" has no attribute "_temporal_kb"
+bridge/command_handlers/agents_and_memory.py:attr-defined:"AgentsAndMemoryMixin" has no attribute "_tmux_agents"; maybe "_cmd_agents"?
+bridge/command_handlers/agents_and_memory.py:attr-defined:"AgentsAndMemoryMixin" has no attribute "_tracer"
+bridge/command_handlers/board_and_voice.py:attr-defined:"BoardAndVoiceMixin" has no attribute "_app"
+bridge/command_handlers/board_and_voice.py:attr-defined:"BoardAndVoiceMixin" has no attribute "_autonomy"
+bridge/command_handlers/board_and_voice.py:attr-defined:"BoardAndVoiceMixin" has no attribute "_cost_tracker"
+bridge/command_handlers/board_and_voice.py:attr-defined:"BoardAndVoiceMixin" has no attribute "_db"
+bridge/command_handlers/board_and_voice.py:attr-defined:"BoardAndVoiceMixin" has no attribute "_departments"
+bridge/command_handlers/board_and_voice.py:has-type:Cannot determine type of "_agent_router"
+bridge/command_handlers/board_and_voice.py:union-attr:Item "None" of "Any | None" has no attribute "trigger_outbound_call"
+bridge/command_handlers/cost_and_z4.py:attr-defined:"CostAndZ4Mixin" has no attribute "_autonomy"
+bridge/command_handlers/cost_and_z4.py:attr-defined:"CostAndZ4Mixin" has no attribute "_chief_session_store"; maybe "_cmd_chief_sessions"?
+bridge/command_handlers/cost_and_z4.py:attr-defined:"CostAndZ4Mixin" has no attribute "_circuit_registry"
+bridge/command_handlers/cost_and_z4.py:attr-defined:"CostAndZ4Mixin" has no attribute "_cost_attributor"
+bridge/command_handlers/cost_and_z4.py:attr-defined:"CostAndZ4Mixin" has no attribute "_cost_tracker"
+bridge/command_handlers/cost_and_z4.py:attr-defined:"CostAndZ4Mixin" has no attribute "_departments"
+bridge/command_handlers/cost_and_z4.py:attr-defined:"CostAndZ4Mixin" has no attribute "_dispatcher"
+bridge/command_handlers/cost_and_z4.py:attr-defined:"CostAndZ4Mixin" has no attribute "_metrics_aggregator"
+bridge/command_handlers/cost_and_z4.py:attr-defined:"CostAndZ4Mixin" has no attribute "_reflection_store"
+bridge/command_handlers/cost_and_z4.py:attr-defined:"CostAndZ4Mixin" has no attribute "_routing_feedback"
+bridge/command_handlers/departments.py:assignment:Incompatible types in assignment (expression has type "HandoffPacket", target has type "tuple[HandoffDraft, str]")
+bridge/command_handlers/departments.py:attr-defined:"DepartmentsMixin" has no attribute "_app"
+bridge/command_handlers/departments.py:attr-defined:"DepartmentsMixin" has no attribute "_circuit_registry"
+bridge/command_handlers/departments.py:attr-defined:"DepartmentsMixin" has no attribute "_db"
+bridge/command_handlers/departments.py:attr-defined:"DepartmentsMixin" has no attribute "_departments"; maybe "_cmd_departments"?
+bridge/command_handlers/departments.py:attr-defined:"DepartmentsMixin" has no attribute "_memory"
+bridge/command_handlers/jobs_and_factory.py:attr-defined:"JobsAndFactoryMixin" has no attribute "_cost_tracker"
+bridge/command_handlers/jobs_and_factory.py:attr-defined:"JobsAndFactoryMixin" has no attribute "_db"
+bridge/command_handlers/lifecycle.py:attr-defined:"LifecycleMixin" has no attribute "_app"
+bridge/command_handlers/lifecycle.py:attr-defined:"LifecycleMixin" has no attribute "_claude_runner"
+bridge/command_handlers/lifecycle.py:attr-defined:"LifecycleMixin" has no attribute "_cost_tracker"
+bridge/command_handlers/lifecycle.py:attr-defined:"LifecycleMixin" has no attribute "_daily_log"
+bridge/command_handlers/lifecycle.py:attr-defined:"LifecycleMixin" has no attribute "_db"
+bridge/command_handlers/lifecycle.py:attr-defined:"LifecycleMixin" has no attribute "_error_count"
+bridge/command_handlers/lifecycle.py:attr-defined:"LifecycleMixin" has no attribute "_format_uptime"
+bridge/command_handlers/lifecycle.py:attr-defined:"LifecycleMixin" has no attribute "_log_dir"
+bridge/command_handlers/lifecycle.py:attr-defined:"LifecycleMixin" has no attribute "_mcp_monitor"
+bridge/command_handlers/lifecycle.py:attr-defined:"LifecycleMixin" has no attribute "_message_count"; maybe "_safe_count"?
+bridge/command_handlers/lifecycle.py:attr-defined:"LifecycleMixin" has no attribute "_queue"
+bridge/command_handlers/lifecycle.py:attr-defined:"LifecycleMixin" has no attribute "_rate_limit_count"
+bridge/command_handlers/lifecycle.py:attr-defined:"LifecycleMixin" has no attribute "_runbook_engine"
+bridge/command_handlers/lifecycle.py:attr-defined:"LifecycleMixin" has no attribute "_security"
+bridge/command_handlers/lifecycle.py:attr-defined:"LifecycleMixin" has no attribute "_self_edit"
+bridge/command_handlers/lifecycle.py:attr-defined:"LifecycleMixin" has no attribute "_session_mgr"
+bridge/command_handlers/lifecycle.py:attr-defined:"LifecycleMixin" has no attribute "_shutdown_callback"
+bridge/command_handlers/lifecycle.py:attr-defined:"LifecycleMixin" has no attribute "_start_time"
+bridge/command_handlers/lifecycle.py:attr-defined:"LifecycleMixin" has no attribute "_warm_claude"
+bridge/command_handlers/skills_and_hooks.py:attr-defined:"SkillsAndHooksMixin" has no attribute "_app"
+bridge/command_handlers/skills_and_hooks.py:attr-defined:"SkillsAndHooksMixin" has no attribute "_dispatcher"
+bridge/command_handlers/skills_and_hooks.py:attr-defined:"SkillsAndHooksMixin" has no attribute "_metrics"
+bridge/command_handlers/skills_and_hooks.py:attr-defined:"SkillsAndHooksMixin" has no attribute "_proactive_scheduler"
+bridge/command_handlers/skills_and_hooks.py:attr-defined:"SkillsAndHooksMixin" has no attribute "_project_registry"
+bridge/command_handlers/skills_and_hooks.py:attr-defined:"SkillsAndHooksMixin" has no attribute "_routing_brain"
+bridge/command_handlers/skills_and_hooks.py:attr-defined:"SkillsAndHooksMixin" has no attribute "_self_verifier"
+bridge/command_handlers/skills_and_hooks.py:attr-defined:"SkillsAndHooksMixin" has no attribute "_session_hooks"
+bridge/command_handlers/skills_and_hooks.py:attr-defined:"SkillsAndHooksMixin" has no attribute "_skill_evolution"
+bridge/command_handlers/skills_and_hooks.py:attr-defined:"SkillsAndHooksMixin" has no attribute "_tick_manager"
+bridge/command_handlers/skills_and_hooks.py:attr-defined:"SkillsAndHooksMixin" has no attribute "_workflow_engine"
+bridge/command_handlers/skills_and_hooks.py:attr-defined:"SkillsAndHooksMixin" has no attribute "_workflow_registry"
+bridge/command_handlers/wiki.py:attr-defined:"WikiMixin" has no attribute "_app"
+bridge/command_handlers/wiki.py:attr-defined:"WikiMixin" has no attribute "_shadow_router"
+bridge/command_handlers/wiki.py:attr-defined:"WikiMixin" has no attribute "_temporal_kb"
+bridge/command_handlers/wiki.py:attr-defined:"WikiMixin" has no attribute "_wiki_repo"
+bridge/command_handlers/wiki.py:attr-defined:"def query(query_text: str, *, notes: Iterable[IngestNote], hybrid_searcher: object | None = ..., strategy: Literal['index_first', 'index_only', 'hybrid_only'] = ..., k: int = ..., fallthrough_threshold: int = ..., min_score: float = ..., now: datetime | None = ...) -> Coroutine[Any, Any, QueryResponse]" has no attribute "query"
+bridge/commands.py:assignment:Incompatible types in assignment (expression has type "None", variable has type "AgentRouter")
+bridge/consolidation.py:attr-defined:"object" has no attribute "run"
+bridge/daily_log.py:attr-defined:"object" has no attribute "data_dir"
+bridge/departments.py:attr-defined:"object" has no attribute "increment"
+bridge/deploy_manifest.py:attr-defined:"Sequence[str]" has no attribute "append"
+bridge/diagnosis.py:arg-type:Argument 1 to "float" has incompatible type "dict[Any, Any] | Any"; expected "str | Buffer | SupportsFloat | SupportsIndex"
+bridge/discord_bot.py:arg-type:Argument 1 to "TaskQueue" has incompatible type "object"; expected "Database"
+bridge/discord_bot.py:arg-type:Argument 1 to "format_response" has incompatible type "str | None"; expected "str"
+bridge/discord_bot.py:arg-type:Argument 1 to "len" has incompatible type "str | None"; expected "Sized"
+bridge/discord_bot.py:arg-type:Argument 2 to "_build_status_embed" of "DiscordBot" has incompatible type "str | None"; expected "str"
+bridge/discord_bot.py:method-assign:Cannot assign to a method
+bridge/discord_bot.py:union-attr:Item "None" of "str | None" has no attribute "encode"
+bridge/discord_bot.py:var-annotated:Need type annotation for "button"
+bridge/dispatch_metrics.py:misc:Incompatible types in "await" (actual type "T", expected type "Awaitable[Any]")
+bridge/dispatcher.py:arg-type:Argument "tmux_mgr" to "TmuxExecutor" has incompatible type "object"; expected "TmuxAgentManager | None"
+bridge/dispatcher.py:arg-type:Argument 1 to "get" of "dict" has incompatible type "Environment | None"; expected "Environment"
+bridge/dispatcher.py:arg-type:Argument 1 to "get_route" of "Dispatcher" has incompatible type "Environment | None"; expected "Environment"
+bridge/dispatcher.py:attr-defined:"object" has no attribute "publish"
+bridge/dream_notifier.py:union-attr:Item "CategoryChannel" of "VoiceChannel | StageChannel | ForumChannel | TextChannel | CategoryChannel | Thread | PrivateChannel" has no attribute "fetch_message"
+bridge/dream_notifier.py:union-attr:Item "CategoryChannel" of "VoiceChannel | StageChannel | ForumChannel | TextChannel | CategoryChannel | Thread | PrivateChannel" has no attribute "history"
+bridge/dream_notifier.py:union-attr:Item "CategoryChannel" of "VoiceChannel | StageChannel | ForumChannel | TextChannel | CategoryChannel | Thread | PrivateChannel" has no attribute "send"
+bridge/dream_notifier.py:union-attr:Item "ForumChannel" of "VoiceChannel | StageChannel | ForumChannel | TextChannel | CategoryChannel | Thread | PrivateChannel" has no attribute "fetch_message"
+bridge/dream_notifier.py:union-attr:Item "ForumChannel" of "VoiceChannel | StageChannel | ForumChannel | TextChannel | CategoryChannel | Thread | PrivateChannel" has no attribute "history"
+bridge/dream_notifier.py:union-attr:Item "ForumChannel" of "VoiceChannel | StageChannel | ForumChannel | TextChannel | CategoryChannel | Thread | PrivateChannel" has no attribute "send"
+bridge/dream_notifier.py:union-attr:Item "PrivateChannel" of "VoiceChannel | StageChannel | ForumChannel | TextChannel | CategoryChannel | Thread | PrivateChannel" has no attribute "fetch_message"
+bridge/dream_notifier.py:union-attr:Item "PrivateChannel" of "VoiceChannel | StageChannel | ForumChannel | TextChannel | CategoryChannel | Thread | PrivateChannel" has no attribute "history"
+bridge/dream_notifier.py:union-attr:Item "PrivateChannel" of "VoiceChannel | StageChannel | ForumChannel | TextChannel | CategoryChannel | Thread | PrivateChannel" has no attribute "send"
+bridge/environment_selector.py:union-attr:Item "None" of "dict[str, str] | None" has no attribute "get"
+bridge/event_bus.py:misc:"None" not callable
+bridge/event_bus.py:operator:Unsupported operand types for > ("float" and "None")
+bridge/executors/tmux.py:call-arg:Unexpected keyword argument "reuse_session" for "spawn_agent" of "TmuxAgentManager"
+bridge/few_shot.py:attr-defined:"object" has no attribute "increment"
+bridge/few_shot.py:var-annotated:Need type annotation for "metadata" (hint: "metadata: dict[<type>, <type>] = ...")
+bridge/few_shot.py:var-annotated:Need type annotation for "tools" (hint: "tools: list[<type>] = ...")
+bridge/heartbeat.py:arg-type:Argument 1 to "post" of "ClientSession" has incompatible type "str | None"; expected "str | URL"
+bridge/heartbeat.py:operator:Unsupported left operand type for + ("None")
+bridge/invocation_pipeline.py:arg-type:Argument "session_id" to "MessageContext" has incompatible type "str | Any | None"; expected "str"
+bridge/invocation_pipeline.py:arg-type:Argument 2 to "assemble_context" of "KnowledgeMixin" has incompatible type "str | Any | None"; expected "str"
+bridge/invocation_pipeline.py:arg-type:Argument 2 to "record_session_start" of "ProjectRegistry" has incompatible type "str | Any | None"; expected "str"
+bridge/invocation_pipeline.py:attr-defined:"None" has no attribute "dispatch"
+bridge/invocation_pipeline.py:union-attr:Item "None" of "Memory | None" has no attribute "assemble_context"
+bridge/invocation_pipeline.py:union-attr:Item "None" of "Memory | None" has no attribute "cleanup_context_file"
+bridge/invocation_pipeline.py:union-attr:Item "None" of "Memory | None" has no attribute "search_conversations"
+bridge/invocation_pipeline.py:union-attr:Item "None" of "Memory | None" has no attribute "write_context_file"
+bridge/invocation_pipeline.py:union-attr:Item "None" of "SessionManager | None" has no attribute "context_pressure"
+bridge/invocation_pipeline.py:union-attr:Item "None" of "SessionManager | None" has no attribute "create_session"
+bridge/invocation_pipeline.py:union-attr:Item "None" of "SessionManager | None" has no attribute "get_resume_id"
+bridge/invocation_pipeline.py:union-attr:Item "None" of "SessionManager | None" has no attribute "resolve_session"
+bridge/invocation_pipeline.py:union-attr:Item "None" of "WarmClaudeProcess | None" has no attribute "send_message"
+bridge/lifecycle_manager.py:call-overload:No overload variant of "get" of "dict" matches argument types "str", "int"
+bridge/lifecycle_manager.py:dict-item:Unpacked dict entry 0 has incompatible type "WorkOrderExecution | dict[Any, Any]"; expected "SupportsKeysAndGetItem[Any, Any]"
+bridge/lifecycle_manager.py:union-attr:Item "WorkOrderExecution" of "WorkOrderExecution | dict[Never, Never]" has no attribute "get"
+bridge/memory/knowledge.py:arg-type:Argument 1 to "_classify_for_write" of "KnowledgeMixin" has incompatible type "Any | None"; expected "str"
+bridge/memory/knowledge.py:arg-type:Argument 2 to "_classify_for_write" of "KnowledgeMixin" has incompatible type "Any | None"; expected "str"
+bridge/memory/knowledge.py:attr-defined:"KnowledgeMixin" has no attribute "_config"
+bridge/memory/knowledge.py:attr-defined:"KnowledgeMixin" has no attribute "_db"
+bridge/memory/knowledge.py:attr-defined:"KnowledgeMixin" has no attribute "_embedding_client"
+bridge/memory/knowledge.py:attr-defined:"KnowledgeMixin" has no attribute "_hybrid_search"; maybe "_hybrid_search_branch"?
+bridge/memory/knowledge.py:attr-defined:"KnowledgeMixin" has no attribute "_metrics"
+bridge/memory/knowledge.py:attr-defined:"KnowledgeMixin" has no attribute "_pending_tasks"
+bridge/memory/knowledge.py:attr-defined:"KnowledgeMixin" has no attribute "_wal"; maybe "wal"?
+bridge/memory/knowledge.py:attr-defined:"KnowledgeMixin" has no attribute "get_recent_messages"
+bridge/memory/knowledge.py:attr-defined:"KnowledgeMixin" has no attribute "search_conversations"
+bridge/metrics.py:var-annotated:Need type annotation for "tags" (hint: "tags: dict[<type>, <type>] = ...")
+bridge/model_router.py:arg-type:Argument "model" to "RoutingDecision" has incompatible type "object"; expected "str"
+bridge/model_router.py:attr-defined:"object" has no attribute "check_access"
+bridge/model_router.py:attr-defined:"object" has no attribute "increment"
+bridge/model_router.py:operator:Unsupported operand types for < ("float" and "object")
+bridge/observability/api_routes.py:var-annotated:Need type annotation for "results" (hint: "results: list[<type>] = ...")
+bridge/observability/tool_tracker.py:assignment:Incompatible types in assignment (expression has type "dict[Any, Any]", target has type "str")
+bridge/observability/tool_tracker.py:assignment:Incompatible types in assignment (expression has type "list[dict[Any, Any] | Any]", target has type "str")
+bridge/primer_writer.py:attr-defined:Module "bridge.daily_log" has no attribute "append_line"
+bridge/proactive_scheduler.py:misc:Incompatible types in "await" (actual type "Future[Any] | None", expected type "Awaitable[Any]")
+bridge/proactive_scheduler.py:return-value:Incompatible return value type (got "Callable[[WorkItem], Coroutine[Any, Any, Any]]", expected "Callable[[WorkItem], Future[Any] | None]")
+bridge/project_registry.py:assignment:Incompatible types in assignment (expression has type "list[str]", target has type "str")
+bridge/quality_gate.py:assignment:Incompatible types in assignment (expression has type "int | None", variable has type "int")
+bridge/reflection.py:attr-defined:"object" has no attribute "increment"
+bridge/second_brain/query.py:no-redef:Name "hybrid_results" already defined on line 537
+bridge/self_edit_memory.py:attr-defined:"object" has no attribute "increment"
+bridge/self_healing.py:name-defined:Name "ClaudeResult" is not defined
+bridge/services/base.py:arg-type:Argument 1 to "format_completion_line" has incompatible type "object"; expected "ServiceResult"
+bridge/services/briefing.py:arg-type:Argument 1 to "append" of "list" has incompatible type "tuple[str, list[Booking]]"; expected "tuple[str, list[dict[Any, Any]]]"
+bridge/services/briefing.py:assignment:Incompatible types in assignment (expression has type "list[dict[Any, Any]]", variable has type "list[Booking]")
+bridge/services/briefing.py:name-defined:Name "ServiceResult" is not defined
+bridge/services/calendar.py:arg-type:Argument 1 to "_detect_conflicts" of "CalendarService" has incompatible type "list[CalendarEvent]"; expected "list[dict[Any, Any]]"
+bridge/services/calendar.py:assignment:Incompatible types in assignment (expression has type "dict[Any, Any]", variable has type "Booking")
+bridge/services/calendar.py:misc:List comprehension has incompatible type List[CalendarEvent]; expected List[dict[Any, Any]]
+bridge/services/calendar.py:name-defined:Name "ServiceResult" is not defined
+bridge/services/checkin.py:name-defined:Name "ServiceResult" is not defined
+bridge/services/consolidation_service.py:name-defined:Name "ServiceResult" is not defined
+bridge/services/email.py:arg-type:Argument 1 to "_categorize" of "EmailService" has incompatible type "EmailMessage"; expected "dict[Any, Any]"
+bridge/services/email.py:misc:Generator has incompatible item type "int"; expected "bool"
+bridge/services/email.py:name-defined:Name "ServiceResult" is not defined
+bridge/services/gmail_interface.py:return-value:Incompatible return value type (got "str | None", expected "str")
+bridge/services/inbox_nurture.py:name-defined:Name "ServiceResult" is not defined
+bridge/services/knowledge_review.py:name-defined:Name "ServiceResult" is not defined
+bridge/services/meeting_prebrief.py:name-defined:Name "ServiceResult" is not defined
+bridge/services/project_pulse.py:name-defined:Name "ServiceResult" is not defined
+bridge/services/retro.py:name-defined:Name "ServiceResult" is not defined
+bridge/services/runner.py:arg-type:Argument 1 to "DreamAgent" has incompatible type "object"; expected "BridgeConfig"
+bridge/services/runner.py:attr-defined:"object" has no attribute "briefing_delivery_hour"
+bridge/services/runner.py:attr-defined:"object" has no attribute "briefing_delivery_minute"
+bridge/services/runner.py:attr-defined:"object" has no attribute "briefing_enabled"
+bridge/services/runner.py:attr-defined:"object" has no attribute "checkin_active_hours_end"
+bridge/services/runner.py:attr-defined:"object" has no attribute "checkin_active_hours_start"
+bridge/services/runner.py:attr-defined:"object" has no attribute "checkin_enabled"
+bridge/services/runner.py:attr-defined:"object" has no attribute "checkin_minimum_gap"
+bridge/services/runner.py:attr-defined:"object" has no attribute "checkin_quiet_after_message"
+bridge/services/runner.py:attr-defined:"object" has no attribute "run"
+bridge/services/runner.py:attr-defined:"object" has no attribute "set_config"
+bridge/services/runner.py:attr-defined:"object" has no attribute "set_dream_agent"
+bridge/services/session_capture.py:arg-type:Argument 1 to "add" of "set" has incompatible type "object"; expected "str"
+bridge/services/session_capture.py:misc:Assignment to variable "e" outside except: block
+bridge/services/session_capture.py:misc:Trying to read deleted variable "e"
+bridge/services/subscription_tracker.py:name-defined:Name "ServiceResult" is not defined
+bridge/services/weekly_review.py:name-defined:Name "ServiceResult" is not defined
+bridge/skill_evolution.py:var-annotated:Need type annotation for "approach" (hint: "approach: list[<type>] = ...")
+bridge/skill_evolution.py:var-annotated:Need type annotation for "fp" (hint: "fp: dict[<type>, <type>] = ...")
+bridge/skill_journey.py:name-defined:Name "SkillStore" is not defined
+bridge/synthesis_strategies.py:dict-item:Dict entry 1 has incompatible type "SynthesisMode": "StructuredMerge"; expected "SynthesisMode": "SynthesisStrategy"
+bridge/task_pipeline.py:assignment:Incompatible types in assignment (expression has type "int | None", variable has type "int")
+bridge/temporal_knowledge.py:arg-type:Argument "tier" to "VersionedEntry" has incompatible type "str"; expected "Literal['L0', 'L1', 'L2', 'L3', 'L4'] | None"
+bridge/temporal_knowledge.py:attr-defined:"object" has no attribute "increment"
+bridge/tmux_pool.py:union-attr:Item "None" of "object | None" has no attribute "spawn_agent"
+bridge/token_cost.py:assignment:Incompatible default for parameter "month" (default has type "None", parameter has type "int")
+bridge/token_cost.py:assignment:Incompatible default for parameter "year" (default has type "None", parameter has type "int")
+bridge/token_cost.py:var-annotated:Need type annotation for "costs" (hint: "costs: dict[<type>, <type>] = ...")
+bridge/tool_isolation.py:attr-defined:"object" has no attribute "tools_for_agent"
+bridge/tool_shed.py:arg-type:Argument 2 has incompatible type "list[ToolConfig | SkillCandidate]"; expected "list[ToolConfig]"
+bridge/tool_shed.py:assignment:Incompatible types in assignment (expression has type "list[ToolConfig]", variable has type "list[ToolConfig | SkillCandidate]")
+bridge/tool_shed.py:return-value:Incompatible return value type (got "list[ToolConfig]", expected "list[ToolConfig | SkillCandidate]")
+bridge/voice_manager.py:assignment:Incompatible types in assignment (expression has type "type[object]", variable has type "type[AudioSource]")
+bridge/voice_manager.py:func-returns-value:"clear" of "MutableMapping" does not return a value (it only ever returns None)
+bridge/voice_manager.py:func-returns-value:"clear" of "MutableSequence" does not return a value (it only ever returns None)
+bridge/voice_manager.py:misc:Cannot assign multiple types to name "_AudioSourceBase" without an explicit "type[...]" annotation
+bridge/warm_chief.py:attr-defined:"object" has no attribute "publish"
+bridge/webhook_deliverer.py:assignment:Incompatible types in assignment (expression has type "None", variable has type Module)
+bridge/workflow_engine.py:misc:Cannot infer type of lambda
+bridge/workflow_registry.py:valid-type:Function "bridge.workflow_registry.WorkflowRegistry.list" is not valid as a type
+bridge/workorder_parking.py:arg-type:Argument 1 to "create_task" has incompatible type "Awaitable[None]"; expected "Coroutine[Any, Any, Never]"
+config/workflows/_schema.py:arg-type:Argument 1 to "add" of "set" has incompatible type "Any | None"; expected "str"
+job_search/agent.py:arg-type:Argument 1 to "extend" of "list" has incompatible type "list[JobListing] | BaseException"; expected "Iterable[JobListing]"
+job_search/agent.py:arg-type:Argument 1 to "len" has incompatible type "list[JobListing] | BaseException"; expected "Sized"
+job_search/approval.py:name-defined:Name "SnapshotMismatch" is not defined
+job_search/approval.py:union-attr:Item "None" of "list[str] | None" has no attribute "append"
+job_search/boards/ashby_jobs.py:arg-type:Argument 2 to "_parse" of "AshbyJobsBoard" has incompatible type "Any | None"; expected "str"
+job_search/boards/greenhouse_jobs.py:arg-type:Argument 2 to "_parse" of "GreenhouseBoard" has incompatible type "Any | None"; expected "str"
+job_search/boards/lever_jobs.py:arg-type:Argument 2 to "_parse" of "LeverBoard" has incompatible type "Any | None"; expected "str"
+job_search/preflight.py:return-value:Incompatible return value type (got "int | None", expected "int")
+teams/_factory.py:arg-type:Argument 3 to "get_or_build" of "AgentCache" has incompatible type "Callable[[], Agent[BridgeDeps, TeamOutput]]"; expected "Callable[[], Agent[BridgeDeps, str]]"
+teams/_factory.py:return-value:Incompatible return value type (got "Agent[BridgeDeps, str]", expected "Agent[BridgeDeps, TeamOutput]")
+teams/_team.py:arg-type:Argument "deps" to "run" of "DepartmentTeam" has incompatible type "BridgeDeps | None"; expected "BridgeDeps"
+teams/_tool_registry.py:dict-item:Dict entry 2 has incompatible type "str": "None"; expected "str": "Callable[..., Any]"
+teams/tools/_job_search.py:arg-type:Argument "board" to "JobListing" has incompatible type "Any | None"; expected "str"
+teams/tools/_job_search.py:arg-type:Argument "compensation" to "JobListing" has incompatible type "Any | None"; expected "str"
+teams/tools/_job_search.py:arg-type:Argument "location" to "JobListing" has incompatible type "Any | None"; expected "str"
+teams/tools/_job_search.py:arg-type:Argument 1 to "score_and_deduplicate" has incompatible type "RunContext[BridgeDeps]"; expected "RunContext[None]"
+teams/tools/_job_search.py:arg-type:Argument 1 to "scrape_boards" has incompatible type "RunContext[BridgeDeps]"; expected "RunContext[None]"

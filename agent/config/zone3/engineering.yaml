@@ -1,0 +1,149 @@
+team:
+  name: engineering
+  zone: 3
+  execution: claude-p
+  description: >
+    Claude Code engineering team for implementation, code review, architecture,
+    APIs, data, DevOps, test discipline, and performance work.
+  chief:
+    name: engineering-chief
+    model: claude-code:max
+    prompt: agent/config/claude-files/agents/engineering-chief.md
+    max_parallel_specialists: 3
+  constraints:
+    timeout_seconds: 1800
+    max_parallel_specialists: 3
+    require_worktree: true
+    require_local_ci: true
+    escalation_thresholds:
+      delegate_at_complexity: 3
+      chief_at_complexity: 6
+      zone4_at_complexity: 8
+  tools:
+    common:
+      - read_file
+      - search_files
+      - run_tests
+      - local_ci
+      - write_artifact
+    mcp_allowed_servers:
+      - github
+      - bumba-memory
+  specialists:
+    - name: engineering-backend-architect
+      model: claude-code:sonnet
+      prompt: agent/config/claude-files/agents/engineering-backend-architect.md
+      when_to_call: backend architecture, service boundaries, async Python, persistence, and API implementation
+      write_scopes:
+        - agent/bridge/
+        - agent/teams/
+        - agent/tests/
+        - docs/architecture/
+      allowed_mcp_servers:
+        - github
+        - bumba-memory
+        - mongodb
+    - name: engineering-frontend-developer
+      model: claude-code:sonnet
+      prompt: agent/config/claude-files/agents/engineering-frontend-developer.md
+      when_to_call: frontend implementation, UI state, accessibility, browser validation, and client-side integration
+      write_scopes:
+        - frontend/
+        - web/
+        - agent/tests/
+        - docs/
+      allowed_mcp_servers:
+        - github
+        - bumba-memory
+        - shadcn
+    - name: engineering-api-engineer
+      model: claude-code:sonnet
+      prompt: agent/config/claude-files/agents/engineering-api-engineer.md
+      when_to_call: REST, GraphQL, OpenAPI, webhook, auth-boundary, and external API work
+      write_scopes:
+        - agent/bridge/
+        - agent/tests/
+        - docs/api/
+      allowed_mcp_servers:
+        - github
+        - bumba-memory
+    - name: engineering-code-reviewer
+      model: claude-code:sonnet
+      prompt: agent/config/claude-files/agents/engineering-code-reviewer.md
+      when_to_call: pre-merge review, bug-risk analysis, maintainability review, and code quality assessment
+      write_scopes:
+        - docs/audits/
+        - agent/tests/
+      allowed_mcp_servers:
+        - github
+        - bumba-memory
+    - name: engineering-database-specialist
+      model: claude-code:sonnet
+      prompt: agent/config/claude-files/agents/engineering-database-specialist.md
+      when_to_call: schema design, migrations, transaction semantics, query tuning, and persistence correctness
+      write_scopes:
+        - agent/bridge/
+        - agent/scripts/
+        - agent/tests/
+        - docs/database/
+      allowed_mcp_servers:
+        - github
+        - bumba-memory
+        - mongodb
+    - name: engineering-devops-engineer
+      model: claude-code:sonnet
+      prompt: agent/config/claude-files/agents/engineering-devops-engineer.md
+      when_to_call: CI, local validation, launchd, deployment scripts, and operational automation
+      write_scopes:
+        - .github/
+        - scripts/
+        - agent/scripts/
+        - agent/tests/
+        - docs/ops/
+      allowed_mcp_servers:
+        - github
+        - bumba-memory
+        - digitalocean
+    - name: engineering-performance-engineer
+      model: claude-code:sonnet
+      prompt: agent/config/claude-files/agents/engineering-performance-engineer.md
+      when_to_call: profiling, performance regression analysis, load testing, and hot-path optimization
+      write_scopes:
+        - agent/bridge/
+        - agent/tests/
+        - docs/performance/
+      allowed_mcp_servers:
+        - github
+        - bumba-memory
+    - name: engineering-tdd-orchestrator
+      model: claude-code:sonnet
+      prompt: agent/config/claude-files/agents/engineering-tdd-orchestrator.md
+      when_to_call: TDD planning, red-green-refactor enforcement, test design, and multi-agent test coordination
+      write_scopes:
+        - agent/tests/
+        - docs/testing/
+      allowed_mcp_servers:
+        - github
+        - bumba-memory
+    - name: engineering-architect-reviewer
+      model: claude-code:opus
+      prompt: agent/config/claude-files/agents/engineering-architect-reviewer.md
+      when_to_call: architecture drift, boundary review, ADRs, and high-impact design validation
+      write_scopes:
+        - docs/architecture/
+        - docs/audits/
+      allowed_mcp_servers:
+        - github
+        - bumba-memory
+    - name: engineering-refactoring-specialist
+      model: claude-code:sonnet
+      prompt: agent/config/claude-files/agents/engineering-refactoring-specialist.md
+      when_to_call: safe refactoring, dead-code removal, duplication reduction, and behavior-preserving cleanup
+      write_scopes:
+        - agent/bridge/
+        - agent/teams/
+        - agent/tests/
+        - docs/
+      allowed_mcp_servers:
+        - github
+        - bumba-memory

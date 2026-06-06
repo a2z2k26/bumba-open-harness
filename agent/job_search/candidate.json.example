@@ -1,0 +1,11 @@
+{
+  "name": "Your Name",
+  "email": "",
+  "phone": "",
+  "resume_url": "",
+  "portfolio_url": "https://portfolio.example.com",
+  "linkedin_url": "",
+  "github_url": "",
+  "years_experience": 0,
+  "skills": ["Python", "TypeScript", "React"]
+}

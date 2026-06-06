@@ -1,0 +1,131 @@
+name: strategy.competitive_landscape
+trigger: explicit
+schedule: null
+budget:
+  max_cost_usd: 1.5
+  max_duration_seconds: 900
+# Sprint 5s.04 (#2185). Competitive-landscape report on a named market,
+# operator-triggered (the market to study is the input). Paired with
+# the strategy-competitive-intelligence-analyst output bar:
+#
+#   - NAMED competitors only (no "the leading players in the space"
+#     hand-waving — every claim is anchored to a specific company)
+#   - honest differentiation matrix (where the operator's product wins,
+#     where it loses, where it ties — call ties out as ties)
+#   - calibrated threat assessment (severity AND time-horizon, not a
+#     single "they're scary" label)
+#   - counter-moves ranked by leverage, not by ease
+#
+# Single-specialist workflow plus a packaging step — competitive
+# analysis doesn't benefit from cross-departmental synthesis; the
+# value is in the rigour of one analyst, not in consensus across
+# departments. Budget $1.50 because one specialist + one packaging
+# call is bounded; web research is the cost driver.
+steps:
+  - name: scope-the-market
+    department: strategy
+    intent: >
+      The operator has named a market or product category to analyse
+      (passed in as the workflow input). Before research starts, fix
+      the scope:
+
+      ## Market definition
+      One sentence on what the market is and what's explicitly out of
+      scope. If the operator named something fuzzy ("AI tools"), narrow
+      to the specific segment that's actually relevant.
+
+      ## Inclusion criteria
+      What makes a company count as a competitor here? Direct
+      substitute, adjacent threat, or future entrant? Be explicit —
+      this controls who shows up in the matrix.
+
+      ## Operator's product position
+      One paragraph on where the operator's product sits in this market
+      today. If the operator does not yet have a product in this
+      market, say so and frame the analysis as "what would we be up
+      against if we entered."
+
+      Skip any heading that does not apply — do not pad.
+    outputs: [market_scope]
+    on_failure: [publish-failure-notice]
+
+  - name: enumerate-and-analyse
+    department: strategy
+    intent: >
+      Produce the competitive analysis per the
+      strategy-competitive-intelligence-analyst output bar. Use the
+      market scope below as ground truth.
+
+      ## Named competitors
+      Four to ten companies. For each:
+      - Name + one-line positioning
+      - Where they're strong (concrete capabilities, not adjectives)
+      - Where they're weak (concrete gaps, not "could be better")
+      - Pricing model + observed pricing tier when public
+
+      No "the leading players" — every line names a specific company.
+      If the market has fewer than four real competitors, list what's
+      there and say so explicitly.
+
+      ## Differentiation matrix
+      Capability rows × competitor columns. Cells: WIN / LOSE / TIE
+      from the operator's product perspective. Ties are ties — do not
+      euphemise them as wins. Six to twelve capability rows; pick the
+      ones that actually drive purchase decisions, not the easy ones.
+
+      ## Threats — calibrated
+      For each competitor that warrants it:
+      - severity: HIGH / MEDIUM / LOW
+      - time-horizon: NOW / 6-12 MONTHS / 12-24 MONTHS
+      - the specific move that would realise the threat
+      Do not over-list — calibrate. Three to six entries is usually
+      right; ten is noise.
+
+      ## Counter-moves — ranked by leverage
+      Three to five actions the operator could take, ordered by
+      expected leverage (impact ÷ effort). Each entry: action,
+      expected impact, rough effort estimate, what would have to be
+      true for this to work.
+
+      Market scope:
+      {market_scope}
+    inputs: [market_scope]
+    outputs: [competitive_report]
+    on_failure: [publish-failure-notice]
+
+  - name: package-report
+    department: strategy
+    intent: >
+      Assemble the final report as a single Markdown document ready to
+      deliver:
+
+      # Competitive landscape: <market name>
+      _Authored <YYYY-MM-DD> via strategy.competitive_landscape workflow_
+
+      ## Market scope
+      {market_scope}
+
+      ## Analysis
+      {competitive_report}
+
+      Do not re-write either input — concatenate cleanly. If there is
+      tension between the two (e.g. the analysis identified a
+      competitor that falls outside the declared scope), surface it at
+      the top of the document under a one-line "Scope reconciliation"
+      note rather than silently widening the scope.
+    inputs: [market_scope, competitive_report]
+    outputs: [final_report]
+    on_failure: [publish-failure-notice]
+
+  - name: publish-report
+    action: publish_discord
+    channel: operator
+    message: "# Competitive landscape ready\n\n{final_report}"
+
+  - name: publish-failure-notice
+    action: publish_discord
+    channel: operator
+    message: >
+      strategy.competitive_landscape workflow failed before producing
+      a final report. Partial outputs (market_scope, competitive_report
+      if reached) are preserved in the workflow context for re-run.

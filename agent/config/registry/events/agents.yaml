@@ -1,0 +1,53 @@
+# Agents events — department lifecycle, delegation, and multi-agent coordination.
+
+department_task_started:
+  kind: event
+  name: Department Task Started
+  category: "Agents"
+  description: Fires when a Zone 4 department accepts and begins processing a delegated task.
+  source_module: bridge.delegation
+  schema_ref: "dict — department, task_id, chief"
+  event_type: department.task.started
+  access_method: push:event_bus
+
+department_task_completed:
+  kind: event
+  name: Department Task Completed
+  category: "Agents"
+  description: Fires when a Zone 4 department finishes a delegated task with a synthesis result.
+  source_module: bridge.delegation
+  schema_ref: "dict — department, task_id, result_summary"
+  event_type: department.task.completed
+  access_method: push:event_bus
+
+department_task_failed:
+  kind: event
+  name: Department Task Failed
+  category: "Agents"
+  description: Fires when a Zone 4 department task terminates with an error.
+  source_module: bridge.delegation
+  schema_ref: "dict — department, task_id, error"
+  event_type: department.task.failed
+  access_method: push:event_bus
+
+department_delegation_started:
+  kind: event
+  name: Department Delegation Started
+  category: "Agents"
+  description: Fires when the chief begins delegating a task to a specialist agent.
+  source_module: bridge.delegation
+  schema_ref: "dict — chief, specialist, task_description"
+  event_type: department.delegation.started
+  access_method: push:event_bus
+
+# ── P5.5 / #1736 backfill ───────────────────────────────────────────────────
+
+agent_spawned:
+  kind: event
+  name: Agent Spawned
+  category: "Agents"
+  description: Fires when the tmux agent manager spawns a new long-running background agent. Carries the agent_id and the first 200 chars of the task description.
+  source_module: bridge.tmux_agents
+  schema_ref: "dict — agent_id, task"
+  event_type: agent.spawned
+  access_method: push:event_bus

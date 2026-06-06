@@ -1,0 +1,27 @@
+# Synthesizer — multi-agent output synthesis configuration
+
+synthesis:
+  default_mode: concatenate
+
+  # For when LLM synthesis ships
+  llm_synthesis_model: "claude-haiku-4-5"
+
+  structured_merge:
+    default_merge_key: "findings"
+
+  skill_overrides:
+    code-reviewer:
+      mode: structured_merge
+      merge_key: findings
+    security-auditor:
+      mode: structured_merge
+      merge_key: findings
+    research:
+      mode: concatenate
+    backend-architect:
+      mode: concatenate
+    frontend-developer:
+      mode: concatenate
+
+  warn_on_incomplete: true
+  warn_on_context_complete: true

@@ -1,0 +1,41 @@
+{
+  "name": "vue-composition",
+  "description": "Vue 3 with Composition API and TypeScript - Modern Vue setup",
+  "version": "1.0.0",
+  "framework": "vue",
+  "typescript": true,
+  "outputPath": "src/design-system",
+  "autoSync": true,
+  "storybook": true,
+  "features": {
+    "tests": true,
+    "backups": true,
+    "linting": true
+  },
+  "transformerOptions": {
+    "useStyledComponents": false,
+    "useTailwind": false,
+    "useEmotions": false,
+    "generateStories": true,
+    "generateTests": true,
+    "compositionApi": true
+  },
+  "additionalDependencies": [
+    "vue",
+    "@storybook/vue3",
+    "@storybook/addon-essentials"
+  ],
+  "devDependencies": [
+    "@vue/test-utils",
+    "vitest"
+  ],
+  "scripts": {
+    "storybook": "storybook dev -p 6006",
+    "test": "vitest"
+  },
+  "notes": [
+    "Uses Vue 3 Composition API",
+    "Storybook stories generated in script setup format",
+    "Vitest for testing"
+  ]
+}

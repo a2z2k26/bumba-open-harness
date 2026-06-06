@@ -1,0 +1,30 @@
+{
+  "name": "react-ts-minimal",
+  "description": "React with TypeScript - Minimal setup without additional libraries",
+  "version": "1.0.0",
+  "framework": "react",
+  "typescript": true,
+  "outputPath": "src/design-system",
+  "autoSync": false,
+  "storybook": false,
+  "features": {
+    "tests": false,
+    "backups": false,
+    "linting": false
+  },
+  "transformerOptions": {
+    "useStyledComponents": false,
+    "useTailwind": false,
+    "useEmotions": false,
+    "generateStories": false,
+    "generateTests": false
+  },
+  "additionalDependencies": [],
+  "devDependencies": [],
+  "scripts": {},
+  "notes": [
+    "Minimal configuration - no additional dependencies",
+    "Design tokens exported as TypeScript constants",
+    "Good starting point for custom setups"
+  ]
+}

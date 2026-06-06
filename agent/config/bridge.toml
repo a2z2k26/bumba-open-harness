@@ -1,0 +1,555 @@
+[bridge]
+# Data directory for SQLite, PID files, heartbeat
+data_dir = "/opt/bumba-harness/data"
+
+# Log directory
+log_dir = "/opt/bumba-harness/logs"
+
+# Heartbeat interval (seconds)
+heartbeat_interval = 60
+
+[discord]
+# Discord guild (server) ID for instant slash-command sync
+# guild_id = ""
+
+# Voice channel ID for auto-join (optional — if unset, follows operator to any channel)
+# voice_channel_id = ""
+
+# Human-facing response latency: ACK every accepted message immediately, then
+# post durable progress notices if Claude stays quiet.
+# Set first_response_sla_seconds = 0 to disable progress notices.
+first_response_sla_seconds = 30
+progress_interval_seconds = 120
+
+[claude]
+# Default timeout: no stdout for this many seconds = timeout
+# Raised from 300→600 on 2026-05-09: research-heavy prompts (parallel web fetches)
+# can go silent for >300s while Claude synthesizes results, triggering false timeouts.
+timeout = 600
+
+# Hard timeout: total elapsed time before warning operator
+# Must strictly exceed `timeout` (validator: claude_hard_timeout > claude_timeout).
+# 2026-05-09: bumped 600→900 in lockstep with timeout 300→600 to keep the
+# soft/hard window real (soft fires first on stalled stdout; hard escalates).
+hard_timeout = 900
+
+# Absolute timeout: total elapsed time before killing subprocess
+absolute_timeout = 1800
+
+# Maximum agentic turns per invocation
+max_turns = 25
+
+# Output format (stream-json preferred for streaming, json as fallback)
+output_format = "stream-json"
+
+# Working directory for Claude Code (post-D6-bis canonical path)
+working_dir = "/opt/bumba-harness/agent-flat/agent"
+
+# Maximum retry attempts for a single message
+max_retries = 3
+
+# Claude Code binary path (auto-detected from PATH if not set)
+# binary = "/opt/bumba-harness/.local/bin/claude"
+
+# Sprint D8.1 / P1.4 — narrow warm-process MCP set to drop spawn time from
+# 30-120s to 3-8s. Empty/unset = warm process inherits all MCPs from .mcp.json
+# (slow). Set to a path to the narrow 4-server config (bumba-memory, github,
+# notion, brave-search); cold-path one-shot ClaudeRunner still uses the full
+# .mcp.json. Relative paths resolve against the agent root (e.g.
+# /opt/bumba-harness/agent-flat/agent). P1.4: enabled by default to make
+# narrowing the production default. Missing-file behaviour is fail-closed —
+# spawn() returns False rather than silently inheriting .mcp.json. To disable
+# narrowing in a dev override, set warm_mcp_config = "".
+warm_mcp_config = "config/warm-core-mcp.json"
+
+# Warm per-message timeout. Warm Claude is a latency optimization, so a hung
+# warm subprocess should fast-fail to one-shot rather than consume 300s first.
+warm_response_timeout_seconds = 60
+
+# Backend routing policy (Codex-3, #1837). Maps agent roles to backend
+# implementations registered in bridge.backends. Dormant until
+# `backends_enabled` flips; defaults route everything to "claude" so the
+# legacy ClaudeRunner code path is unchanged at flag-off. The TOML loader
+# only flattens one section level deep, so the per-specialist overrides
+# table lives as a flat `specialists_overrides` dict, not a nested
+# `[backends.specialists.overrides]` header.
+#
+# [backends]
+# enabled = false
+# main = "claude"
+# chiefs_default = "claude"
+# specialists_default = "claude"
+# specialists_overrides = { "code-reviewer" = "codex", "qa-security-auditor" = "claude" }
+
+[session]
+# Idle timeout before expiring a session (seconds)
+idle_timeout = 1800   # 30 minutes
+
+# Maximum session file size before forced expiry (bytes)
+max_file_size = 31457280  # 30MB
+
+# Maximum consecutive errors before forced session expiry
+max_errors = 3
+
+# Maximum messages per session before context pressure reaches 1.0
+max_messages = 40
+
+# Maximum session duration in seconds before context pressure reaches 1.0
+max_duration = 7200   # 2 hours
+
+[memory]
+# Number of recent conversation messages to include in context
+context_window = 20
+
+# Maximum tokens for context injection (approximate)
+max_context_tokens = 4000
+
+# Number of previous session summaries to include
+summary_count = 3
+
+# Plan-03 Sprint 03.10 (#1000): memory v2 disclosure layering. Activated 2026-05-XX
+# per soak-strategy ship-and-watch (1-3d production-watch instead of 14d A/B).
+v2_disclosure_enabled = true
+
+[security]
+# Disallowed tools (passed to --disallowedTools)
+disallowed_tools = [
+    "Bash(sudo *)",
+    "Bash(launchctl *)",
+    "Bash(security *)",
+    "Bash(defaults *)",
+    "Bash(dscl *)",
+    "Bash(diskutil *)",
+    "Bash(rm -rf /)",
+    "Bash(rm -rf /*)",
+    "Bash(chmod 777 *)",
+    "Bash(chown *)",
+    "Bash(brew install *)",
+    "Bash(brew uninstall *)",
+    "Bash(pip install *)",
+    "Bash(npm install -g *)",
+    # Post-D6-bis (2026-05-09): runtime moved to /opt/bumba-harness/agent-flat/
+    # The Edit/Write blocks below now match the post-D6-bis canonical paths.
+    # Pre-D6-bis legacy paths are kept as belt-and-suspenders during the
+    # archive-not-yet-deleted soak window (until 2026-05-16; see #1490).
+    "Edit(/opt/bumba-harness/agent-flat/agent/bridge/*)",
+    "Write(/opt/bumba-harness/agent-flat/agent/bridge/*)",
+    "Edit(/opt/bumba-harness/agent-flat/agent/config/*)",
+    "Write(/opt/bumba-harness/agent-flat/agent/config/*)",
+    "Edit(/opt/bumba-harness/agent-flat/agent/tests/*)",
+    "Write(/opt/bumba-harness/agent-flat/agent/tests/*)",
+    "Edit(/opt/bumba-harness/agent/bridge/*)",
+    "Write(/opt/bumba-harness/agent/bridge/*)",
+    "Edit(/opt/bumba-harness/agent/config/*)",
+    "Write(/opt/bumba-harness/agent/config/*)",
+    "Edit(/opt/bumba-harness/agent/tests/*)",
+    "Write(/opt/bumba-harness/agent/tests/*)",
+]
+
+# Anomaly detection thresholds
+tool_failure_threshold = 5          # failures of same tool in window
+tool_failure_window = 600           # window in seconds (10 min)
+crash_loop_threshold = 5            # crashes in window
+crash_loop_window = 600             # window in seconds (10 min)
+db_size_warn = 524288000            # 500MB
+db_size_alert = 1073741824          # 1GB
+
+[voice]
+# Set enabled = true and add both vapi_api_key and vapi_webhook_secret to
+# .secrets to activate VAPI voice. vapi_api_key is outbound bridge->VAPI API
+# auth; vapi_webhook_secret is inbound VAPI->bridge X-VAPI-SECRET auth.
+#
+# Public default is OFF. A deployment that turns voice on must seed both
+# secrets first; the bridge fails closed if voice is enabled without them.
+enabled = false
+
+# Whisper.cpp STT container URL
+stt_url = "http://127.0.0.1:8880"
+
+# Kokoro ONNX TTS container URL
+tts_url = "http://127.0.0.1:7888"
+
+# TTS voice (Kokoro voice ID)
+tts_voice = "af_sky"
+
+[vapi]
+# VAPI voice assistant configuration (D1.7a scaffold — dormant until voice.enabled = true)
+# Set voice.enabled = true, add vapi_api_key/vapi_webhook_secret to .secrets,
+# and verify the live VAPI dashboard webhook URL/server secret before activating.
+phone_number_id = ""
+assistant_id_receptionist = ""
+webhook_url = ""
+
+[api]
+# REST API server for Mission Control dashboard
+enabled = true
+port = 8200
+# Bind to localhost by default (P2.1 / audit C8). The bridge runs on a
+# single host (Mac mini); the dashboard reaches it over SSH tunnel or
+# tailscale rather than a raw LAN socket. To re-enable LAN bind for a
+# multi-host operator, set host = "0.0.0.0" here AND ensure the API
+# token rotation policy + firewall posture are in place first.
+host = "127.0.0.1"
+# API token is loaded from .secrets file (api_token=...)
+# CORS origin allowlist (P2.2 / audit C9). Empty list = no
+# Access-Control-Allow-Origin header on any response (safe default — the API
+# is reached same-origin via SSH tunnel or tailscale per P2.1 / audit C8).
+# Add explicit origins like ["http://localhost:5173", "https://dash.example.com"]
+# only when a browser-side dashboard needs cross-origin access.
+cors_allowed_origins = []
+
+[rate_limit]
+# Initial backoff delay (seconds)
+initial_backoff = 30
+
+# Maximum backoff delay (seconds)
+max_backoff = 1800
+
+# Backoff multiplier
+multiplier = 2.0
+
+# Jitter range (0.0 to 1.0)
+jitter = 0.5
+
+[few_shot]
+# A/B bypass flag for few-shot injection (#23)
+# Set to false to disable injection without removing the store
+enabled = true
+
+[proactive]
+# Tick-based proactive mode (disabled by default)
+enabled = false
+# Interval between ticks when idle (seconds)
+tick_interval = 300
+# Maximum ticks per hour (cost guard)
+max_ticks_per_hour = 12
+# Sleep duration when agent requests SLEEP with no unit (seconds)
+default_sleep_seconds = 300
+
+[consolidation]
+# Deep memory consolidation pipeline (disabled by default)
+enabled = false
+# Minimum entries before consolidation runs
+min_entries = 10
+# Maximum age of entries to consolidate (days)
+max_age_days = 30
+# Lock timeout — stale lock cleared after this many seconds
+lock_timeout = 3600
+# Dream agent model for consolidation
+dream_model = "claude-haiku-4-5-20251001"
+
+[daily_log]
+# Append-only daily log in data/logs/YYYY/MM/YYYY-MM-DD.md
+enabled = true
+# Categories that get logged automatically
+auto_categories = ["session", "service", "error", "alert"]
+
+[remote_halt]
+# Remote kill switch — polls URL for {"halt": true} (disabled by default)
+enabled = false
+# URL to poll (empty = disabled)
+url = ""
+# Poll interval (seconds)
+check_interval = 300
+# Request timeout (seconds)
+timeout = 5
+
+[output_channels]
+# Sprint 4.8 — Phase 4B dialogue-first communication.
+# Classifies every agent output chunk into dialogue / milestone / trace
+# and routes each to a distinct destination. See agent/bridge/output_router.py.
+#
+# Modes:
+#   autonomous — trace output hidden from terminal/Discord, written only to disk
+#   supervised — trace output shown in terminal for debugging
+#
+# Default is "autonomous" because the bumba-agent runs unattended on a Mac mini
+# and the operator does not want tool-level narration in Discord. Switch to
+# "supervised" only during interactive debugging sessions.
+mode = "autonomous"
+
+[output_channels.autonomous]
+dialogue = ["terminal", "discord"]
+milestone = ["terminal", "discord"]
+trace = ["disk_log"]
+
+[output_channels.supervised]
+dialogue = ["terminal", "discord"]
+milestone = ["terminal", "discord"]
+trace = ["terminal"]
+
+[verification]
+# Generator-critic output verification (disabled by default)
+# Advisory only — FAIL adds a prefix but never blocks delivery
+enabled = false
+
+# P2.5 follow-up (#1664) — verification policy level when the SelfVerifier
+# is wired into the ResponseEvaluator. Three valid values:
+#   "off"   — verifier skipped entirely
+#   "warn"  — advisory; failures appended to issues but verdict untouched
+#             (pre-P2.5 behaviour and the default — preserves back-compat)
+#   "block" — failures force verdict = "fail" so the existing fail-event
+#             plumbing in app.py fires (publishes response.evaluator.fail
+#             on the event bus; Mission Control listens to it)
+# Override at runtime by setting the BUMBA_VERIFICATION_POLICY env var.
+# Unrecognised values fall back to "warn" with a startup warning.
+policy = "warn"
+
+[dispatcher]
+# Zone 3 keystone — Dispatcher routing.
+# Activated 2026-05-XX per Z3-S10b (#574) flag-flip execute sprint.
+# Routes messages through the WorkOrder Dispatcher before direct Claude invocation.
+# Fallthrough invariant: if dispatch_result.handled is False, direct invocation still runs.
+# D-R2 (#1932): gated behind intent classifier — only Zone 4 intents with
+# confidence >= min_dispatch_confidence enter the dispatcher.
+#
+# Disabled 2026-05-15 (D-R1, #1931): SubagentExecutor was causing 10-minute
+# latency on every conversational turn (subagent hung 600s before returning
+# handled=False, then warm process answered in 2-9s). Voice routing — the
+# original motivation for the dispatcher — was removed in PR #1773. D-R2
+# (#1932) and D-R3 (#1933) materially mitigated the cascade (intent gating
+# + 120s timeout), but the operator-decision is to keep the dispatcher
+# fully disabled until D-R2's gate has soaked in production. Re-enable
+# only after the dispatcher-re-envision epic confirms the gate fires
+# correctly under live load. See epic: dispatcher-re-envision.
+enabled = false
+
+# e2b_executor_enabled: first activation gate for the E2B executor.
+# Default false keeps E2B unroutable. Setting true also requires
+# e2b_api_key in /opt/bumba-harness/data/.secrets, and E2B still reports
+# stub until the sandbox lifecycle implementation ships.
+#
+# 2026-06-03: ported from a live runtime hand-patch (drift reconcile). E2B was
+# brought operable on the runtime 2026-06-02 (see project_e2b_operability) and
+# this flag flipped live; committing it to source so deploys preserve it.
+e2b_executor_enabled = true
+
+# executor_timeout_seconds: ceiling for SubagentExecutor WorkOrder execution.
+# Applied as min(executor_timeout_seconds, wo.constraints.timeout_ms / 1000)
+# at the dispatch site — config provides a hard ceiling, the per-WorkOrder
+# constraint can be lower but not higher. Reduced from the 600s effective
+# value (from WorkOrderConstraints.timeout_ms default) in D-R3 (#1933) after
+# D-R1 (#1931) surfaced the 10-minute latency cascade on conversational
+# messages. 120s is the appropriate ceiling for a genuine Zone 4 WorkOrder.
+executor_timeout_seconds = 120
+
+# min_dispatch_confidence: operator override for the D-R2 gate threshold
+# (default mirrors bridge.intent_classifier.DISPATCHER_MIN_CONFIDENCE = 0.8).
+# Raise to make the gate stricter (fewer messages reach the dispatcher);
+# lower with care to widen dispatcher entry.
+min_dispatch_confidence = 0.8
+
+[z4_observability]
+# Zone 4 tool call tracking — logs every pydantic-ai tool call to JSONL files
+# with secret redaction. Writes to {data_dir}/z4-sessions/.
+# Enable when ready to observe department tool activity in production.
+tool_tracker_enabled = true
+
+[board]
+# Plan-04 Sprint 04.07 (#1008): Board of Directors v2 activation.
+# Activated 2026-05-XX per soak-strategy ship-and-watch (1-3d production-watch
+# instead of 7d probabilistic shadow). v2_enabled flips on anonymization +
+# parse contract; cross_vendor_enabled flips on OpenRouter cross-vendor routing.
+# Both default off in BridgeConfig; flipping together per the spec's intent.
+v2_enabled = true
+cross_vendor_enabled = true
+
+[chief_dispatcher]
+# Z4-S63 (#1407): chief-dispatcher activation. Was false until 2026-05-09.
+# Activates the durable ChiefSession lifecycle (state machine + dispatcher +
+# circuit breaker + retry). When false, the dispatcher stack stands up at
+# startup but is dormant — no WorkOrder routing, no session rows created.
+enabled = true
+default_department = "strategy"
+# zone4-warmth.D.01 (#2299): 14400s = 4 hours. Per-team overrides live in
+# each `agent/config/teams/<team>.yaml` under `constraints.warm_idle_timeout_seconds`.
+idle_timeout_seconds = 14400
+retry_max_attempts = 3
+retry_initial_backoff_seconds = 5.0
+retry_max_backoff_seconds = 300.0
+retry_backoff_multiplier = 2.0
+
+[identity]
+# Wire SOUL+OPERATOR+RULES into Memory.assemble_context (Sprint 17 / issue #637)
+# Safe-rollout default: false. Flip to true after 1-week soak confirms no regressions.
+inject_identity = false
+identity_max_bytes = 24576
+
+# Peer coordination — enable to self-register this bridge in the peer registry
+# so other agents and dashboards can discover it. Default: false.
+#
+# Schema ownership: bridge PeerRegistry state is intentionally bridge-owned
+# until the sibling bumba-memory-mcp peers table can round-trip PeerRecord
+# without loss. See docs/architecture/peer-registry-ownership.md.
+#
+# Note: cross-machine merge_queue operations are SCAFFOLDING ONLY (per Q2).
+# Enabling this flag exposes /api/merge-queue but real git operations are
+# stubbed — they never execute. See bridge/merge_queue.py for details.
+#
+# [peer]
+# coordination_enabled = false
+
+# Behavioural drift telemetry — writes one MetricsRecord per session-end.
+# Default: false. Output: data/bridge-metrics.jsonl (rotated by Sprint 07.01).
+# [telemetry]
+# drift_enabled = false
+
+# Structured JSON logging — emits one JSON line per log record.
+# Enable for machine parseable logs; disable for human readable plain text.
+# Default: false.
+# [logging]
+# json_enabled = false
+
+# Slash-command tier gating (#1071 Part 2). Tier 1 (operator essentials)
+# and Tier 2 (Z4 operational + per-department dispatch) are always live.
+# Tier 3 (power-user / scaffolded) is OFF by default — the operator
+# opts in per command, or sets `all = true` to enable every Tier 3
+# command at once. Disabled commands return a friendly hint instead
+# of "Unknown command". See agent/CLAUDE.md → Operator Commands for
+# the full Tier 3 catalogue.
+#
+# [commands]
+# all = false              # turn every Tier 3 command on/off
+# spawn = true             # individual opt-in
+# trace = true
+# events = true
+
+# Context pressure hard-stop — Sprint E1.1 (issue #1233).
+# When true, the runner fires capture_checkpoint() + [HANDOFF:session_id]
+# instead of the soft-hint advisory when pressure crosses compact_now.
+# Default: false (opt-in). Flip to true once E1.2 capsule schema is wired.
+#
+# [context_pressure]
+# hard_stop_enabled = false
+
+# Memory-Tier Architecture (Sprint Mem-1, issue #1842; epic shipped Mem-1..Mem-9).
+# Default-off; full pipeline wired across Mem-1..Mem-9 (capture-side classifier
+# in Mem-3, dual-write fan-out in Mem-4, tier-aware recall in Mem-5/Mem-6,
+# tier-aware consolidation in Mem-7, metric registry in Mem-9).
+# Three tiers ship at default: PREFERENCE | DECISION | CONTEXT (operator
+# decision Q1). Override per-tier by uncommenting the block below; missing
+# keys fall back to bridge.memory_tiers defaults.
+#
+# Flag-flip is daemon-bounce only (live-flip not supported in v1). Run the
+# pre-flip checklist in docs/operator/memory-tiers-runbook.md before flipping.
+#
+# Omit `ttl_seconds` for "no expiry" — TOML has no null literal; the loader
+# treats omission as None.
+#
+[memory_tiers]
+enabled = true                     # Activated 2026-06-01 (#2533) — real onnx
+#                                  # embeddings (#2560) + backfill applied; daemon
+#                                  # healthy with dual-write pipeline wired.
+#                                  # Master switch. Daemon-bounce required.
+#                                  # Runbook: docs/operator/memory-tiers-runbook.md
+# context_window_tokens = 4000     # Mem-6 (#1847) — token budget for tier-aware
+#                                  # context assembly (Branch 0 of search_knowledge).
+#                                  # Larger budget = more memory entries per
+#                                  # Claude call; smaller = leaner prompts.
+#                                  # Unset uses the module default (4000).
+#
+# [memory_tiers.policies.preference]
+# destinations = ["sqlite", "second_brain", "vector"]
+# retrieval_weight = 1.0
+# promotion_access_threshold = 0    # top tier — never promotes (Mem-7 #1848)
+# # demotion_inactivity_seconds omitted = curated content, never demotes (Mem-7)
+# # ttl_seconds omitted = no expiry
+#
+# [memory_tiers.policies.decision]
+# destinations = ["sqlite", "vector"]
+# retrieval_weight = 0.7
+# promotion_access_threshold = 20         # DECISION → PREFERENCE at 20 lifetime accesses (Mem-7 #1848)
+# demotion_inactivity_seconds = 2592000   # 30-day inactivity demotes to CONTEXT (Mem-7 #1848)
+# ttl_seconds = 2592000                   # 30 days
+#
+# [memory_tiers.policies.context]
+# destinations = ["sqlite"]
+# retrieval_weight = 0.4
+# promotion_access_threshold = 5    # CONTEXT → DECISION at 5 lifetime accesses (Mem-7 #1848)
+# # demotion_inactivity_seconds omitted = bottom tier, no demote target (Mem-7)
+# ttl_seconds = 86400              # 24 hours
+#
+# # Per-tier retrieval weight applied to RRF score post-fusion (Mem-5).
+# # Defaults come from TierPolicy.retrieval_weight; this knob overrides them.
+# # Higher = preferred when merging results across tiers in the context window.
+# [memory_tiers.tier_weights]
+# preference = 1.0
+# decision = 0.7
+# context = 0.4
+#
+# # Sprint Mem-8 (#1849) — fail-loud strict-mode filter. When true,
+# # hybrid_search.search_tiered logs a WARNING if any NULL/empty-tier
+# # rows exist in the knowledge table (they would otherwise be silently
+# # skipped by the per-tier WHERE clause). Default false. Set true AFTER
+# # the backfill script (agent/scripts/backfill_memory_tiers.py) has
+# # run if you want operator-audible signal on any straggler row.
+# strict_tier_required = false
+
+
+# ── [experiment_loop] ─────────────────────────────────────────────
+#
+# Sprint audit-2026-05-15.F.03 (#2017) — production-enable.
+#
+# Closes #987. The 7-day shadow-soak acceptance criterion was waived
+# by operator decision on 2026-05-16: personal/portfolio project,
+# 7-day bar deemed excessive given the 21 audit-remediation sprints
+# (Phase A-E) that shipped before this flip. See #2016 and #2017
+# closure comments for the full rationale.
+#
+# Default (in BridgeConfig dataclass) is "shadow"; this override
+# flips the runtime to "production". For the override to take effect
+# the launchdaemon plist must NOT pass `--mode shadow` on the CLI —
+# this PR removes the explicit `--mode shadow` from
+# com.bumba.agent-experiment.plist so config-level wins.
+#
+# Valid values: "proposal_only" | "shadow" | "production".
+# `_validate(config)` fails closed on any other value.
+[experiment_loop]
+mode = "production"
+
+# ── [handoff] ─────────────────────────────────────────────────────
+#
+# Sprint 1112.1.01 (#2138) — cross-harness operator-mediated handoff
+# protocol scaffold. Both fields below are commented out; the defaults
+# in ``BridgeConfig`` (``harness_id = "local-1"``, ``peer_harness_ids = ()``)
+# apply until the operator opts in.
+#
+# ``harness_id`` — name of *this* harness. Valid values today:
+#   "local-1" | "mini-1" | "mini-2" | "laptop"
+#
+# ``peer_harness_ids`` — allowlist of peer harnesses that may *send* a
+# handoff to this one. Empty means no peer is trusted. The composer +
+# peer-listener that consult this field land in sprints 1.02/1.03; the
+# field exists now so the data-model types in ``bridge.handoff`` have a
+# runtime-resolvable home.
+#
+# [handoff]
+# harness_id = "local-1"
+# peer_harness_ids = []
+
+# ── [factory] ─────────────────────────────────────────────────────
+#
+# Dark Factory orchestrator — production enablement (#2538/#2539/#2540).
+#
+# The 14-day shadow-soak acceptance criterion (#2538/#2539) was WAIVED
+# by operator decision on 2026-06-02: personal/portfolio project, and
+# the orchestrator's blast radius is bounded — a produce cycle
+# terminates at a DRAFT PR routed to `factory:needs-review` /
+# `factory:needs-human` and never merges to main (the operator merges,
+# per the never-merge-to-main rule). Direct production enablement +
+# in-production monitoring replaces the shadow soak. This is the same
+# waiver pattern used for [experiment_loop] (#2017) above.
+#
+# `orchestrator_enabled = true` drives the full internal pipeline
+# (implement → validate → synthesize → route). The orchestrator wires
+# its implement/validate/synthesize callables unconditionally in
+# __init__; the sibling `factory.{triage,implement,validate}_enabled`
+# flags gate the STANDALONE single-step services, not this loop, so
+# they stay default-False. Decision tracked in #2540.
+#
+# Default (BridgeConfig dataclass `factory_orchestrator_enabled`) is
+# False; this override flips the runtime on. The LaunchDaemon
+# `com.bumba.agent-factory-orchestrator` ticks every 4h (StartInterval
+# 14400, RunAtLoad false).
+[factory]
+orchestrator_enabled = true

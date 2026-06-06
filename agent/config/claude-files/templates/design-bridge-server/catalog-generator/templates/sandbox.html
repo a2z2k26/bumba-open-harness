@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Component Sandbox - BUMBA Design System</title>
+    <link rel="stylesheet" href="../catalog.css">
+    <link rel="stylesheet" href="sandbox.css">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="https://unpkg.com/monaco-editor@latest/min/vs/loader.js"></script>
+</head>
+<body class="bumba-dark-theme sandbox-mode">
+    <div class="sandbox-container">
+        <!-- Header -->
+        <header class="sandbox-header">
+            <div class="sandbox-title">
+                <i data-lucide="flask"></i>
+                <h1>Component Sandbox</h1>
+                <select id="componentSelector" class="component-selector">
+                    <option value="">Select Component...</option>
+                    <option value="button">Button</option>
+                    <option value="card">Card</option>
+                    <option value="input">Input</option>
+                    <option value="modal">Modal</option>
+                    <option value="custom">Custom Component</option>
+                </select>
+            </div>
+            <div class="sandbox-actions">
+                <button class="btn-icon" onclick="toggleView('code')" title="Code View">
+                    <i data-lucide="code"></i>
+                </button>
+                <button class="btn-icon" onclick="toggleView('design')" title="Design View">
+                    <i data-lucide="palette"></i>
+                </button>
+                <button class="btn-icon active" onclick="toggleView('split')" title="Split View">
+                    <i data-lucide="columns"></i>
+                </button>
+                <div class="separator"></div>
+                <button class="btn-icon" onclick="saveComponent()" title="Save Component">
+                    <i data-lucide="save"></i>
+                </button>
+                <button class="btn-icon" onclick="exportComponent()" title="Export">
+                    <i data-lucide="download"></i>
+                </button>
+                <button class="btn-icon" onclick="shareComponent()" title="Share">
+                    <i data-lucide="share-2"></i>
+                </button>
+                <button class="btn-close" onclick="closeSandbox()">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="sandbox-main" id="sandboxMain">
+            <!-- Left Panel: Code Editor -->
+            <div class="sandbox-panel code-panel" id="codePanel">
+                <div class="panel-header">
+                    <h2>Component Code</h2>
+                    <div class="code-tabs">
+                        <button class="tab-btn active" onclick="switchTab('jsx')">JSX</button>
+                        <button class="tab-btn" onclick="switchTab('css')">CSS</button>
+                        <button class="tab-btn" onclick="switchTab('props')">Props</button>
+                        <button class="tab-btn" onclick="switchTab('tests')">Tests</button>
+                    </div>
+                </div>
+                <div class="code-editor" id="codeEditor"></div>
+                <div class="code-actions">
+                    <button onclick="formatCode()"><i data-lucide="align-left"></i> Format</button>
+                    <button onclick="validateCode()"><i data-lucide="check"></i> Validate</button>
+                    <button onclick="runCode()"><i data-lucide="play"></i> Run</button>
+                </div>
+            </div>
+
+            <!-- Right Panel: Preview -->
+            <div class="sandbox-panel preview-panel" id="previewPanel">
+                <div class="panel-header">
+                    <h2>Live Preview</h2>
+                    <div class="preview-controls">
+                        <button class="device-btn" onclick="setDevice('desktop')" title="Desktop">
+                            <i data-lucide="monitor"></i>
+                        </button>
+                        <button class="device-btn" onclick="setDevice('tablet')" title="Tablet">
+                            <i data-lucide="tablet"></i>
+                        </button>
+                        <button class="device-btn" onclick="setDevice('mobile')" title="Mobile">
+                            <i data-lucide="smartphone"></i>
+                        </button>
+                        <div class="separator"></div>
+                        <button onclick="toggleTheme()" title="Toggle Theme">
+                            <i data-lucide="moon"></i>
+                        </button>
+                        <button onclick="refreshPreview()" title="Refresh">
+                            <i data-lucide="refresh-cw"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="preview-frame" id="previewFrame">
+                    <iframe src="about:blank" id="previewIframe"></iframe>
+                </div>
+                <div class="preview-info">
+                    <div class="info-item">
+                        <i data-lucide="cpu"></i>
+                        <span>Render: <strong id="renderTime">0ms</strong></span>
+                    </div>
+                    <div class="info-item">
+                        <i data-lucide="package"></i>
+                        <span>Size: <strong id="bundleSize">0kb</strong></span>
+                    </div>
+                    <div class="info-item">
+                        <i data-lucide="zap"></i>
+                        <span>Performance: <strong id="perfScore">100</strong></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Panel: Properties -->
+        <div class="sandbox-properties" id="propertiesPanel">
+            <div class="properties-tabs">
+                <button class="prop-tab active" onclick="showPropTab('props')">
+                    <i data-lucide="settings"></i> Properties
+                </button>
+                <button class="prop-tab" onclick="showPropTab('variants')">
+                    <i data-lucide="layers"></i> Variants
+                </button>
+                <button class="prop-tab" onclick="showPropTab('states')">
+                    <i data-lucide="toggle-left"></i> States
+                </button>
+                <button class="prop-tab" onclick="showPropTab('a11y')">
+                    <i data-lucide="accessibility"></i> Accessibility
+                </button>
+                <button class="prop-tab" onclick="showPropTab('ai')">
+                    <i data-lucide="bot"></i> AI Suggestions
+                </button>
+            </div>
+
+            <div class="properties-content" id="propertiesContent">
+                <!-- Properties Tab -->
+                <div class="prop-content active" id="propsTab">
+                    <div class="prop-grid">
+                        <div class="prop-item">
+                            <label>Variant</label>
+                            <select>
+                                <option>Primary</option>
+                                <option>Secondary</option>
+                                <option>Outline</option>
+                                <option>Ghost</option>
+                            </select>
+                        </div>
+                        <div class="prop-item">
+                            <label>Size</label>
+                            <select>
+                                <option>Small</option>
+                                <option>Medium</option>
+                                <option>Large</option>
+                            </select>
+                        </div>
+                        <div class="prop-item">
+                            <label>Disabled</label>
+                            <input type="checkbox">
+                        </div>
+                        <div class="prop-item">
+                            <label>Loading</label>
+                            <input type="checkbox">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI Suggestions Tab -->
+                <div class="prop-content" id="aiTab" style="display: none;">
+                    <div class="ai-suggestions">
+                        <div class="suggestion-item">
+                            <i data-lucide="lightbulb"></i>
+                            <div class="suggestion-content">
+                                <h4>Add hover animation</h4>
+                                <p>Improve user experience with smooth transitions</p>
+                                <button onclick="applySuggestion('hover')">Apply</button>
+                            </div>
+                        </div>
+                        <div class="suggestion-item">
+                            <i data-lucide="shield"></i>
+                            <div class="suggestion-content">
+                                <h4>Improve accessibility</h4>
+                                <p>Add ARIA labels and keyboard navigation</p>
+                                <button onclick="applySuggestion('a11y')">Apply</button>
+                            </div>
+                        </div>
+                        <div class="suggestion-item">
+                            <i data-lucide="zap"></i>
+                            <div class="suggestion-content">
+                                <h4>Optimize performance</h4>
+                                <p>Use React.memo to prevent unnecessary re-renders</p>
+                                <button onclick="applySuggestion('perf')">Apply</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Monaco Editor
+        require.config({ paths: { 'vs': 'https://unpkg.com/monaco-editor@latest/min/vs' }});
+
+        require(['vs/editor/editor.main'], function() {
+            window.editor = monaco.editor.create(document.getElementById('codeEditor'), {
+                value: `// Button Component
+import React from 'react';
+import './Button.css';
+
+export const Button = ({
+  variant = 'primary',
+  size = 'medium',
+  children,
+  onClick,
+  disabled = false,
+  loading = false,
+  ...props
+}) => {
+  const className = \`
+    btn
+    btn-\${variant}
+    btn-\${size}
+    \${disabled ? 'btn-disabled' : ''}
+    \${loading ? 'btn-loading' : ''}
+  \`.trim();
+
+  return (
+    <button
+      className={className}
+      onClick={onClick}
+      disabled={disabled || loading}
+      {...props}
+    >
+      {loading && <span className="btn-spinner" />}
+      {children}
+    </button>
+  );
+};
+
+export default Button;`,
+                language: 'javascript',
+                theme: 'vs-dark',
+                automaticLayout: true,
+                minimap: { enabled: false },
+                fontSize: 14,
+                lineNumbers: 'on',
+                roundedSelection: false,
+                scrollBeyondLastLine: false,
+                readOnly: false,
+                cursorStyle: 'line'
+            });
+
+            // Auto-update preview on code change
+            editor.onDidChangeModelContent(() => {
+                clearTimeout(window.updateTimeout);
+                window.updateTimeout = setTimeout(updatePreview, 500);
+            });
+        });
+
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // Sandbox functions
+        function toggleView(view) {
+            const codePanel = document.getElementById('codePanel');
+            const previewPanel = document.getElementById('previewPanel');
+
+            // Remove all view classes
+            document.querySelectorAll('.btn-icon').forEach(btn => btn.classList.remove('active'));
+            event.target.closest('.btn-icon').classList.add('active');
+
+            switch(view) {
+                case 'code':
+                    codePanel.style.display = 'flex';
+                    previewPanel.style.display = 'none';
+                    break;
+                case 'design':
+                    codePanel.style.display = 'none';
+                    previewPanel.style.display = 'flex';
+                    break;
+                case 'split':
+                    codePanel.style.display = 'flex';
+                    previewPanel.style.display = 'flex';
+                    break;
+            }
+        }
+
+        function updatePreview() {
+            const iframe = document.getElementById('previewIframe');
+            const code = window.editor.getValue();
+
+            // Simple preview update (in real implementation, would compile React)
+            const html = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <style>
+                        body {
+                            font-family: system-ui, -apple-system, sans-serif;
+                            padding: 2rem;
+                            background: #0a0a0a;
+                            color: #fff;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            min-height: 100vh;
+                            margin: 0;
+                        }
+                        .btn {
+                            padding: 0.75rem 1.5rem;
+                            border-radius: 0.5rem;
+                            border: none;
+                            font-weight: 500;
+                            cursor: pointer;
+                            transition: all 0.2s;
+                        }
+                        .btn-primary {
+                            background: #00AA00;
+                            color: white;
+                        }
+                        .btn-primary:hover {
+                            background: #008800;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <button class="btn btn-primary">Sample Button</button>
+                </body>
+                </html>
+            `;
+
+            iframe.srcdoc = html;
+
+            // Update metrics
+            document.getElementById('renderTime').textContent = Math.floor(Math.random() * 10) + 'ms';
+            document.getElementById('bundleSize').textContent = Math.floor(Math.random() * 50) + 'kb';
+            document.getElementById('perfScore').textContent = Math.floor(Math.random() * 20 + 80);
+        }
+
+        function closeSandbox() {
+            if (confirm('Close sandbox? Any unsaved changes will be lost.')) {
+                window.location.href = 'index.html';
+            }
+        }
+
+        function saveComponent() {
+            const code = window.editor.getValue();
+            const componentName = document.getElementById('componentSelector').value || 'component';
+
+            // Save to localStorage (in real implementation, would save to catalog)
+            localStorage.setItem(`bumba-component-${componentName}`, code);
+
+            alert('Component saved successfully!');
+        }
+
+        function showPropTab(tab) {
+            // Hide all tabs
+            document.querySelectorAll('.prop-content').forEach(content => {
+                content.style.display = 'none';
+            });
+            document.querySelectorAll('.prop-tab').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Show selected tab
+            document.getElementById(`${tab}Tab`).style.display = 'block';
+            event.target.closest('.prop-tab').classList.add('active');
+        }
+
+        // Initialize preview
+        setTimeout(updatePreview, 1000);
+    </script>
+</body>
+</html>

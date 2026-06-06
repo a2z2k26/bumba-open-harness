@@ -1,0 +1,45 @@
+{
+  "name": "react-native",
+  "description": "React Native with TypeScript - Mobile app development setup",
+  "version": "1.0.0",
+  "framework": "react-native",
+  "typescript": true,
+  "outputPath": "src/design-system",
+  "autoSync": true,
+  "storybook": true,
+  "features": {
+    "tests": true,
+    "backups": true,
+    "linting": true
+  },
+  "transformerOptions": {
+    "useStyledComponents": true,
+    "useTailwind": false,
+    "useEmotions": false,
+    "generateStories": true,
+    "generateTests": true,
+    "nativewind": false
+  },
+  "additionalDependencies": [
+    "react-native",
+    "styled-components",
+    "@storybook/react-native",
+    "react-native-svg"
+  ],
+  "devDependencies": [
+    "@testing-library/react-native",
+    "jest"
+  ],
+  "scripts": {
+    "storybook": "storybook dev",
+    "test": "jest",
+    "ios": "react-native run-ios",
+    "android": "react-native run-android"
+  },
+  "notes": [
+    "React Native components with TypeScript",
+    "Styled Components for styling",
+    "Storybook for React Native",
+    "Jest for testing"
+  ]
+}

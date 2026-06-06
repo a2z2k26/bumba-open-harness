@@ -1,0 +1,20 @@
+# Self-serve roster registry event — RR.3 (#2593).
+#
+# The operator can register/unregister a runtime specialist into a department
+# roster without a YAML edit or redeploy (RosterRegistryStore, RR.1; overlay
+# merge, RR.2; REST surface, RR.3). On a successful registration the REST
+# handler publishes this event best-effort on the EventBus.
+
+z4_roster_specialist_registered:
+  kind: event
+  name: Zone 4 Roster Specialist Registered
+  category: "Agents"
+  description: >-
+    Fires when the operator registers a runtime specialist into a department
+    roster via POST /api/roster/register (or the /register-specialist command,
+    RR.4). Published best-effort after RosterRegistryStore.register succeeds.
+    Payload: department, name, agent_ref, registered_by.
+  source_module: bridge.api.routes_roster
+  schema_ref: "dict — department, name, agent_ref, registered_by"
+  event_type: z4.roster.specialist_registered
+  access_method: push:event_bus

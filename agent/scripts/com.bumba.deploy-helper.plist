@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.bumba.deploy-helper</string>
+    <key>UserName</key>
+    <string>bumba</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/opt/bumba-harness/agent-flat/agent/.venv/bin/python3</string>
+        <string>/opt/bumba-harness/agent-flat/agent/scripts/deploy_helper.py</string>
+    </array>
+    <key>WorkingDirectory</key>
+    <string>/opt/bumba-harness/agent-flat/agent</string>
+    <key>KeepAlive</key>
+    <true/>
+    <key>ThrottleInterval</key>
+    <integer>30</integer>
+    <key>StandardOutPath</key>
+    <string>/opt/bumba-harness/logs/deploy-helper.log</string>
+    <key>StandardErrorPath</key>
+    <string>/opt/bumba-harness/logs/deploy-helper.log</string>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/opt/bumba-harness/.local/bin:/opt/bumba-harness/agent-flat/agent/.venv/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    </dict>
+</dict>
+</plist>

@@ -1,0 +1,43 @@
+name: write-destination-guard
+
+on:
+  pull_request:
+    branches: ["**"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  guard:
+    name: Check for root shadow-tree writes
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    if: ${{ github.event_name == 'pull_request' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check changed paths
+        run: |
+          set -euo pipefail
+          ADDED_OR_MODIFIED=$(git diff --name-only --diff-filter=AM origin/main...HEAD)
+
+          FORBIDDEN=$(echo "$ADDED_OR_MODIFIED" | grep -E '^(bridge|teams|tests|job_search|config|data)/' || true)
+          ROOT_FILES=$(echo "$ADDED_OR_MODIFIED" | grep -E '^(pyproject\.toml|uv\.lock)$' || true)
+
+          if [ -n "$FORBIDDEN" ] || [ -n "$ROOT_FILES" ]; then
+            echo "ERROR: canonical Python source lives under agent/."
+            echo ""
+            if [ -n "$FORBIDDEN" ]; then
+              echo "$FORBIDDEN" | sed 's/^/forbidden directory: /'
+            fi
+            if [ -n "$ROOT_FILES" ]; then
+              echo "$ROOT_FILES" | sed 's/^/forbidden root file: /'
+            fi
+            exit 1
+          fi
+
+          echo "OK: no root shadow-tree writes detected."

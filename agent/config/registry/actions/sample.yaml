@@ -1,0 +1,14 @@
+# FIXTURE ONLY — sample entry for loader tests and CI health smoke.
+# Not a real entry. Real entries land in E2.5.
+# E2.6 gate exempts files matching sample*.yaml.
+api_cost_get:
+  kind: action
+  name: Get Cost Summary
+  category: "Cost & Resources"
+  description: "Returns daily and weekly cost breakdown by model."
+  source_module: bridge.api_server
+  schema_ref: CostSummaryResponse
+  method: GET
+  path: /api/cost
+  auth: bearer
+  access_method: rest

@@ -1,0 +1,114 @@
+name: job_search.submit_via_workday
+trigger: explicit
+budget:
+  max_cost_usd: 3.50
+  max_duration_seconds: 2400
+# 1112 Sprint 5j.08 — Zone 4 job-search Layer 2 workflow for Workday ATS
+# submission. Workday is the most complex ATS family per Sitting 3 brief:
+# multi-step form pagination + draft-save semantics. Higher budget than
+# Greenhouse/Lever to absorb retry on pagination boundary failures.
+#
+# Architecture (per merged ADRs #2156, #2158, #2159 + impl #2160):
+# Claude computer-use + CloakBrowser stealth + bumba-browser UID sandbox
+# + .secrets-backed credential vault.
+#
+# DEPENDS ON #2157 — that PR adds "job_search" to the DepartmentStep
+# literal in agent/config/workflows/_schema.py. This YAML will fail to
+# load until that schema extension lands on main.
+#
+# Workday quirks (per memory + ATS knowledge):
+#   - Multi-page form: personal info → work history → education → questions
+#   - Draft-save between pages — must verify draft saved before clicking Next
+#   - Some employers configure custom screening questions per req
+#   - Application receipt email comes from noreply@myworkday.com
+#
+# Flat layout per workflow_registry.py:63 glob.
+steps:
+  - name: authenticate-credentials
+    department: job_search
+    intent: >
+      Resolve credential REFERENCE (ats_workday_<account>) and authenticate
+      to Workday. Some employers require account creation per-employer;
+      handle both flows. On failure HALT.
+    outputs: ["auth_session"]
+
+  - name: navigate-to-listing
+    department: job_search
+    inputs: ["auth_session"]
+    intent: >
+      Navigate to the Workday job listing via CloakBrowser. Workday URLs
+      typically look like `<employer>.wd5.myworkdayjobs.com/...`. Verify
+      listing still open. Capture initial page state.
+    outputs: ["listing_state"]
+
+  - name: prepare-application-bundle
+    department: job_search
+    inputs: ["listing_state"]
+    intent: >
+      Load prepared bundle. Workday forms are multi-page so the bundle
+      should pre-stage answers for: personal info page, work history page,
+      education page, voluntary disclosures page, employer-specific
+      screening questions page. Missing required-field values for any
+      page → HALT before starting (avoid mid-flow abort which leaves
+      drafts in inconsistent state).
+    outputs: ["application_bundle"]
+
+  - name: fill-form-paginated
+    department: job_search
+    inputs: ["listing_state", "application_bundle"]
+    intent: >
+      Walk the multi-page form. For EACH page: fill required fields per
+      agent/job_search/ats/workday.py mapping, verify draft-save status
+      indicator, click Next. If draft-save fails verification: retry once;
+      second failure → HALT (do not advance to next page without saved
+      draft). Capture per-page screenshot for debugging.
+    outputs: ["form_filled_state"]
+
+  - name: capture-pre-submit-screenshot
+    department: job_search
+    inputs: ["form_filled_state"]
+    intent: >
+      Capture the final review page (Workday shows a summary before
+      Submit). Save to pre-submit.png.
+    outputs: ["pre_submit_screenshot_path"]
+
+  - name: submit-application
+    department: job_search
+    inputs: ["form_filled_state"]
+    intent: >
+      Click Submit on the review page. Capture post-submit state. On
+      captcha → escalate via Playwright fallback (#2165), HALT if still
+      failing. NEVER record submitted without page confirmation.
+    outputs: ["post_submit_state"]
+
+  - name: capture-post-submit-screenshot
+    department: job_search
+    inputs: ["post_submit_state"]
+    intent: >
+      Capture confirmation page screenshot.
+    outputs: ["post_submit_screenshot_path"]
+
+  - name: poll-receipt-email
+    department: job_search
+    inputs: ["post_submit_state"]
+    intent: >
+      Poll Gmail for Workday application-received email (10min timeout).
+      Sender: noreply@myworkday.com or <employer>@myworkday.com.
+    outputs: ["receipt_evidence"]
+
+  - name: update-notion
+    department: job_search
+    inputs: ["pre_submit_screenshot_path", "post_submit_screenshot_path", "receipt_evidence"]
+    intent: >
+      Update Notion row to submitted with ATS family=workday + verification
+      artifact set.
+    outputs: ["notion_row_id"]
+
+  - name: synthesize-summary
+    department: job_search
+    inputs: ["receipt_evidence", "notion_row_id"]
+    intent: >
+      Discord summary: company/role, timestamp, 3/3 artifacts, Notion link.
+      Flag if Workday's per-employer screening questions required manual
+      adaptation (operator feedback signal for the application_bundle prep).
+    outputs: ["discord_summary"]

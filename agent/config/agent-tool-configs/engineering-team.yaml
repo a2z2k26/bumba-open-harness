@@ -1,0 +1,212 @@
+# Zone 3 Core Engineering Team — AgentToolConfig registrations
+#
+# These agents are registered in the bridge's AgentToolRegistry
+# and can be invoked as agent-tools by the Chief Engineer.
+
+agents:
+  - name: engineering-backend-architect
+    description: System architecture, multi-language backend design
+    system_prompt: "See agent/config/claude-files/agents/engineering-backend-architect.md"
+    trust_domain: engineering
+    trust_min_score: 0.0
+    timeout_seconds: 600
+    max_tokens: 100000
+    allowed_mcp_servers:
+      - github
+      - bumba-memory
+      - mongodb
+    input_schema:
+      type: object
+      properties:
+        task:
+          type: string
+          description: "The engineering task to perform"
+        context:
+          type: string
+          description: "Project context and relevant file paths"
+      required:
+        - task
+
+  - name: engineering-frontend-developer
+    description: UI implementation, React/Vue/Angular, accessibility
+    system_prompt: "See agent/config/claude-files/agents/engineering-frontend-developer.md"
+    trust_domain: engineering
+    trust_min_score: 0.0
+    timeout_seconds: 600
+    max_tokens: 100000
+    allowed_mcp_servers:
+      - github
+      - bumba-memory
+      - shadcn
+    input_schema:
+      type: object
+      properties:
+        task:
+          type: string
+        context:
+          type: string
+      required:
+        - task
+
+  - name: engineering-api-engineer
+    description: REST/GraphQL API design, OpenAPI, security
+    system_prompt: "See agent/config/claude-files/agents/engineering-api-engineer.md"
+    trust_domain: engineering
+    trust_min_score: 0.0
+    timeout_seconds: 600
+    max_tokens: 100000
+    allowed_mcp_servers:
+      - github
+      - bumba-memory
+    input_schema:
+      type: object
+      properties:
+        task:
+          type: string
+        context:
+          type: string
+      required:
+        - task
+
+  - name: engineering-performance-engineer
+    description: Profiling, load testing, optimization
+    system_prompt: "See agent/config/claude-files/agents/engineering-performance-engineer.md"
+    trust_domain: engineering
+    trust_min_score: 0.0
+    timeout_seconds: 600
+    max_tokens: 100000
+    allowed_mcp_servers:
+      - github
+      - bumba-memory
+    input_schema:
+      type: object
+      properties:
+        task:
+          type: string
+        context:
+          type: string
+      required:
+        - task
+
+  - name: engineering-devops-engineer
+    description: Basic CI/CD and infra (escalates complex work to Zone 4)
+    system_prompt: "See agent/config/claude-files/agents/engineering-devops-engineer.md"
+    trust_domain: engineering
+    trust_min_score: 0.0
+    timeout_seconds: 600
+    max_tokens: 100000
+    allowed_mcp_servers:
+      - github
+      - bumba-memory
+      - cloudflare
+      - digitalocean
+    input_schema:
+      type: object
+      properties:
+        task:
+          type: string
+        context:
+          type: string
+      required:
+        - task
+
+  - name: engineering-database-specialist
+    description: Schema design, query optimization, migrations
+    system_prompt: "See agent/config/claude-files/agents/engineering-database-specialist.md"
+    trust_domain: engineering
+    trust_min_score: 0.0
+    timeout_seconds: 600
+    max_tokens: 100000
+    allowed_mcp_servers:
+      - github
+      - bumba-memory
+      - mongodb
+    input_schema:
+      type: object
+      properties:
+        task:
+          type: string
+        context:
+          type: string
+      required:
+        - task
+
+  - name: engineering-code-reviewer
+    description: Standard code review (escalates deep audits to Zone 4)
+    system_prompt: "See agent/config/claude-files/agents/engineering-code-reviewer.md"
+    trust_domain: engineering
+    trust_min_score: 0.0
+    timeout_seconds: 300
+    max_tokens: 50000
+    allowed_mcp_servers:
+      - github
+      - bumba-memory
+    input_schema:
+      type: object
+      properties:
+        task:
+          type: string
+        context:
+          type: string
+      required:
+        - task
+
+  - name: engineering-tdd-orchestrator
+    description: TDD enforcement, red-green-refactor, multi-agent TDD coordination
+    system_prompt: "See agent/config/claude-files/agents/engineering-tdd-orchestrator.md"
+    trust_domain: engineering
+    trust_min_score: 0.0
+    timeout_seconds: 600
+    max_tokens: 100000
+    allowed_mcp_servers:
+      - github
+      - bumba-memory
+    input_schema:
+      type: object
+      properties:
+        task:
+          type: string
+        context:
+          type: string
+      required:
+        - task
+
+  - name: engineering-architect-reviewer
+    description: Architecture compliance, ADRs, DDD/clean architecture validation
+    system_prompt: "See agent/config/claude-files/agents/engineering-architect-reviewer.md"
+    trust_domain: engineering
+    trust_min_score: 0.0
+    timeout_seconds: 300
+    max_tokens: 50000
+    allowed_mcp_servers:
+      - github
+      - bumba-memory
+    input_schema:
+      type: object
+      properties:
+        task:
+          type: string
+        context:
+          type: string
+      required:
+        - task
+
+  - name: engineering-refactoring-specialist
+    description: Safe test-driven refactoring, code smell detection, behavior preservation
+    system_prompt: "See agent/config/claude-files/agents/engineering-refactoring-specialist.md"
+    trust_domain: engineering
+    trust_min_score: 0.0
+    timeout_seconds: 600
+    max_tokens: 100000
+    allowed_mcp_servers:
+      - github
+      - bumba-memory
+    input_schema:
+      type: object
+      properties:
+        task:
+          type: string
+        context:
+          type: string
+      required:
+        - task

@@ -1,0 +1,146 @@
+# Skill-allocation manifest schema (informal JSON-Schema-style description).
+#
+# This document is the contract the loader in agent/bridge/skill_allocator.py
+# expects from the runtime manifest. The runtime manifest itself is
+# operator-approved (Sprint 4.02). The draft sits at
+# agent/config/skill-allocation/proposed-allocations.yaml.
+#
+# The manifest is NOT strict YAML — each `<group-name>` node mixes a
+# bullet-list of skill names with an `allocation:` mapping at the same
+# level. The loader uses a custom pre-parser (_normalize_manifest_text)
+# to bucket the bullet list under a synthetic `_skills:` key before
+# handing off to yaml.safe_load.
+#
+# ---------------------------------------------------------------------
+# Top-level shape
+# ---------------------------------------------------------------------
+$schema: "informal"
+type: object
+required: [categories]
+properties:
+  categories:
+    type: array
+    description: List of skill categories. 15 categories in proposed-allocations.yaml.
+    items: { $ref: "#/definitions/Category" }
+
+definitions:
+
+  Category:
+    type: object
+    required: [id, name, approved, skills]
+    properties:
+      id:
+        type: integer
+        description: 1-based category id, stable within a manifest version.
+      name:
+        type: string
+        description: Human-readable category label.
+      approved:
+        type: string
+        format: date
+        description: Date the operator signed off on this category's allocations.
+      note:
+        type: string
+        description: Optional category-level note.
+      skills:
+        type: object
+        description: |
+          Map of group-name → Group. Group names are snake_case slugs that
+          identify logical bundles of skills sharing the same allocation rules.
+        additionalProperties: { $ref: "#/definitions/Group" }
+
+  Group:
+    description: |
+      One group inside a category. Format is intentionally NOT strict YAML:
+      the bullet items immediately after the group header are skill names,
+      followed by an `allocation:` key at the same indent. The loader's
+      pre-parser converts this into a strict-YAML mapping under
+      `_skills:`. Example as it appears on disk:
+
+          python_stack:
+            - python-patterns
+            - python-testing
+            allocation:
+              - zone: 3
+                department: engineering
+                agents: [engineering-backend-architect]
+
+      becomes after pre-parse:
+
+          python_stack:
+            _skills:
+              - python-patterns
+              - python-testing
+            allocation:
+              - zone: 3
+                department: engineering
+                agents: [engineering-backend-architect]
+    type: object
+    required: [allocation]
+    properties:
+      _skills:
+        type: array
+        items: { type: string }
+        description: Skill names. Synthesized by the pre-parser from the bullet list.
+      allocation:
+        type: array
+        items: { $ref: "#/definitions/Allocation" }
+        description: Ordered list of allocation rules for the skills in this group.
+
+  Allocation:
+    type: object
+    required: [zone]
+    properties:
+      zone:
+        type: integer
+        enum: [3, 4]
+        description: |
+          3 = engineering (Zone 3 — code-execution agents).
+          4 = autonomous departments (Zone 4 — chiefs + specialists).
+      department:
+        type: string
+        nullable: true
+        enum:
+          - engineering   # zone 3 only
+          - board
+          - design
+          - qa
+          - ops
+          - job_search
+          - strategy
+        description: |
+          The department this rule applies to. null/omitted ⇒ universal
+          across departments in this zone.
+      role:
+        type: string
+        nullable: true
+        enum: [chief, specialist]
+        description: |
+          Narrow to a single role within the department. null/omitted ⇒
+          universal across roles.
+      agents:
+        type: array
+        items: { type: string }
+        description: |
+          Narrow to specific named agents. Empty/omitted ⇒ universal
+          across agents within the matched role. When set, an unspecified
+          `agent_name` at query time does NOT match (default-deny).
+      note:
+        type: string
+        description: Free-form note. Surfaced as `AllocationRule.note`.
+
+# ---------------------------------------------------------------------
+# Allocator semantics (mirrors agent/bridge/skill_allocator.py)
+# ---------------------------------------------------------------------
+#
+# allowed_skills(zone, department, role, agent_name) → set[str]
+#
+# A rule R matches a query Q iff ALL of:
+#   - R.zone == Q.zone                                       (strict)
+#   - R.department is None OR R.department == Q.department   (cascade)
+#   - R.role is None       OR R.role == Q.role               (cascade)
+#   - R.agents == ()       OR Q.agent_name in R.agents       (cascade)
+#
+# Empty SkillAllocator (rules=[]) returns set() for every query.
+# This is the security posture: default-deny. New skills are dormant
+# until explicitly allocated.

@@ -1,0 +1,59 @@
+name: design.component_spec_to_implementation
+trigger: explicit
+budget:
+  max_cost_usd: 2.50
+  max_duration_seconds: 900
+steps:
+  - name: gather-component-brief
+    department: design
+    intent: >-
+      Have design-system-architect intake the component request: capture the
+      component name, intended use cases, states required (default, hover,
+      focus, active, disabled, error), variants (size, emphasis, type), and
+      target surface (web, mobile, both). Confirm scope before spec authoring.
+    outputs: [component_brief]
+
+  - name: author-component-spec
+    department: design
+    intent: >-
+      Have design-system-architect produce a formal component spec from
+      {component_brief}: anatomy (named parts), tokens consumed (color,
+      typography, spacing, radius, shadow), states with token references,
+      variants matrix, accessibility requirements (ARIA role, keyboard
+      contract, focus behavior), and dependencies on other components.
+      Output a machine-readable JSON spec plus a human-readable summary.
+    inputs: [component_brief]
+    outputs: [component_spec]
+
+  - name: implement-in-figma
+    department: design
+    intent: >-
+      Have design-ui-designer implement {component_spec} as a Figma component:
+      build the master component with all variants, wire token references via
+      Figma variables (no hardcoded colors/sizes), set up auto-layout for
+      every state, and document the component in the design-system page with
+      usage examples and dont/do guidance.
+    inputs: [component_spec]
+    outputs: [figma_implementation]
+
+  - name: validate-interaction
+    department: design
+    intent: >-
+      Have design-prototyper validate {figma_implementation} matches the
+      interaction contract in {component_spec}: build a prototype that
+      exercises every state and variant, verify keyboard-equivalent flows
+      where applicable, and confirm transitions feel right under real timing.
+      Report any spec deviations and recommended fixes.
+    inputs: [component_spec, figma_implementation]
+    outputs: [validation_report]
+
+  - name: synthesize-handoff-package
+    department: design
+    intent: >-
+      Have design-chief synthesize the {component_spec}, {figma_implementation},
+      and {validation_report} into a handoff package ready for engineering
+      pickup: Figma URL, spec JSON, validation pass/fail, and a Discord-
+      readable summary noting any open issues that must be addressed before
+      code implementation begins.
+    inputs: [component_spec, figma_implementation, validation_report]
+    outputs: [handoff_package]

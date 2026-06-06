@@ -1,0 +1,27 @@
+department: job_search
+mode: report_only
+defaults:
+  mcp_servers: []
+  tools:
+    - read_file
+    - search_knowledge
+    - scrape_boards
+    - score_and_deduplicate
+    - generate_cover_letter
+    - stage_listing_to_notion
+    - get_approved_listings
+    - update_notion_status
+    - send_discord_alert
+  skills: []
+chief:
+  job-search-chief:
+    skills:
+      - zero-micromanagement
+      - active-listener
+specialists:
+  acquire-and-prepare-specialist: {}
+  outreach-execute-specialist: {}
+  browser-use-specialist:
+    mcp_servers:
+      - playwright
+  email-verification-specialist: {}

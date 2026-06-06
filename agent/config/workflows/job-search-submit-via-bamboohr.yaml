@@ -1,0 +1,93 @@
+name: job_search.submit_via_bamboohr
+trigger: explicit
+budget:
+  max_cost_usd: 2.50
+  max_duration_seconds: 1800
+# 1112 Sprint 5j.10 — Zone 4 job-search Layer 2 workflow for BambooHR ATS.
+# Last of the 5-ATS-family coverage from Sitting 3 brief.
+#
+# Architecture: Claude computer-use + CloakBrowser + bumba-browser
+# sandbox + .secrets vault (#2156/#2158/#2159/#2160).
+#
+# DEPENDS ON #2157 schema extension.
+#
+# BambooHR quirks:
+#   - URL pattern: <employer>.bamboohr.com/careers/...
+#   - Per-employer customization is significant; field set varies
+#   - Confirmation email from system@bamboohr.com
+#
+# Flat layout per workflow_registry.py:63 glob.
+steps:
+  - name: authenticate-credentials
+    department: job_search
+    intent: >
+      Resolve ats_bamboohr_<account> credential reference. Authenticate
+      to <employer>.bamboohr.com. HALT on failure.
+    outputs: ["auth_session"]
+
+  - name: navigate-to-listing
+    department: job_search
+    inputs: ["auth_session"]
+    intent: >
+      Navigate via CloakBrowser. Verify listing open.
+    outputs: ["listing_state"]
+
+  - name: prepare-application-bundle
+    department: job_search
+    inputs: ["listing_state"]
+    intent: >
+      Load prepared bundle. BambooHR field sets vary per employer — be
+      tolerant of additional required fields per the specific listing.
+      Missing required fields → HALT.
+    outputs: ["application_bundle"]
+
+  - name: fill-form
+    department: job_search
+    inputs: ["listing_state", "application_bundle"]
+    intent: >
+      Fill the BambooHR form. Adapt to per-employer customizations as
+      surfaced. humanize=True.
+    outputs: ["form_filled_state"]
+
+  - name: capture-pre-submit-screenshot
+    department: job_search
+    inputs: ["form_filled_state"]
+    intent: >
+      Capture filled-form screenshot.
+    outputs: ["pre_submit_screenshot_path"]
+
+  - name: submit-application
+    department: job_search
+    inputs: ["form_filled_state"]
+    intent: >
+      Click submit. Capture post-submit. On captcha → Playwright fallback (#2165).
+    outputs: ["post_submit_state"]
+
+  - name: capture-post-submit-screenshot
+    department: job_search
+    inputs: ["post_submit_state"]
+    intent: >
+      Capture confirmation screenshot.
+    outputs: ["post_submit_screenshot_path"]
+
+  - name: poll-receipt-email
+    department: job_search
+    inputs: ["post_submit_state"]
+    intent: >
+      Poll Gmail for system@bamboohr.com confirmation (10min timeout).
+    outputs: ["receipt_evidence"]
+
+  - name: update-notion
+    department: job_search
+    inputs: ["pre_submit_screenshot_path", "post_submit_screenshot_path", "receipt_evidence"]
+    intent: >
+      Update Notion row submitted; ATS family=bamboohr.
+    outputs: ["notion_row_id"]
+
+  - name: synthesize-summary
+    department: job_search
+    inputs: ["receipt_evidence", "notion_row_id"]
+    intent: >
+      Discord summary. Flag per-employer customizations encountered for
+      future bundle-prep tuning.
+    outputs: ["discord_summary"]

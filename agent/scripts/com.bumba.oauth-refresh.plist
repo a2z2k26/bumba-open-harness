@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.bumba.oauth-refresh</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>/opt/bumba-harness/agent-flat/agent/scripts/refresh-oauth-token.sh</string>
+    </array>
+
+    <key>StartInterval</key>
+    <integer>14400</integer>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>StandardOutPath</key>
+    <string>/opt/bumba-harness/logs/token-refresh-stdout.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/opt/bumba-harness/logs/token-refresh-stderr.log</string>
+</dict>
+</plist>

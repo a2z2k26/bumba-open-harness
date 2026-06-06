@@ -1,0 +1,38 @@
+{
+  "name": "react-ts-tailwind",
+  "description": "React with TypeScript and Tailwind CSS - Utility-first CSS framework setup",
+  "version": "1.0.0",
+  "framework": "react",
+  "typescript": true,
+  "outputPath": "src/design-system",
+  "autoSync": true,
+  "storybook": false,
+  "features": {
+    "tests": false,
+    "backups": true,
+    "linting": true
+  },
+  "transformerOptions": {
+    "useStyledComponents": false,
+    "useTailwind": true,
+    "useEmotions": false,
+    "generateStories": false,
+    "generateTests": false
+  },
+  "additionalDependencies": [
+    "tailwindcss",
+    "postcss",
+    "autoprefixer"
+  ],
+  "devDependencies": [
+    "@tailwindcss/forms",
+    "@tailwindcss/typography"
+  ],
+  "scripts": {
+    "build:css": "tailwindcss -i ./src/input.css -o ./dist/output.css"
+  },
+  "notes": [
+    "Tailwind CSS configuration required",
+    "Design tokens will be exported as Tailwind theme extensions"
+  ]
+}

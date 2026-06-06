@@ -1,0 +1,48 @@
+name: coverage
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install deps
+        run: |
+          # Match test-offline.yml pattern: prefer the [dev] extra (which includes
+          # pytest-asyncio, pytest-cov, ruff, etc.); fall back to a minimal pin
+          # set if the editable install fails.
+          pip install -e "agent/[dev]" \
+            || pip install pytest pytest-asyncio pytest-cov aiosqlite "discord.py>=2.4.0" "keyring>=25.0.0" "pydantic-ai[anthropic]>=1.78,<2.0"
+      - name: Run pytest with coverage
+        run: |
+          cd agent
+          # Deselect wall-clock-bound performance tests under coverage —
+          # pytest-cov instrumentation adds 10-30% overhead which pushes
+          # tight time budgets (e.g. test_pipeline_1000_rows_under_2s, 2s)
+          # over the cliff. These tests still run in test-offline.yml
+          # without coverage instrumentation, where the budgets are fair.
+          # Threshold should stay in sync with the root Makefile coverage target.
+          python3 -m pytest tests/ job_search/tests/ -m "not live and not perf" \
+            --deselect tests/test_integration_performance.py \
+            --cov=bridge --cov=teams --cov=job_search \
+            --cov-report=xml --cov-report=term-missing \
+            --cov-fail-under=80
+      - name: Upload coverage artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-xml
+          path: agent/coverage.xml
+          retention-days: 1

@@ -1,0 +1,60 @@
+# agent/config/tool-risk-classifications.yaml
+# Tool risk tiers for permission gating.
+# Tiers: safe (auto-allow), standard (allow with logging),
+#        elevated (audit trail + confirmation in autonomous mode),
+#        critical (require operator approval in autonomous mode)
+
+tiers:
+  safe:
+    description: "Read-only operations, no side effects"
+    tools:
+      - Read
+      - Glob
+      - Grep
+      - LS
+      - WebSearch
+      - ToolSearch
+      - TaskGet
+      - TaskList
+      - NotebookRead
+
+  standard:
+    description: "Write operations within project scope"
+    tools:
+      - Edit
+      - Write
+      - NotebookEdit
+      - WebFetch
+      - TodoWrite
+      - TaskCreate
+      - TaskUpdate
+      - SendMessage
+      - EnterPlanMode
+      - ExitPlanMode
+      - Skill
+
+  elevated:
+    description: "Operations with broader impact — subagent spawning, infrastructure reads"
+    tools:
+      - Bash  # further filtered by command patterns in tool_isolation
+      - Agent
+      - EnterWorktree
+      - ExitWorktree
+      - "mcp__github__*"
+      - "mcp__mongodb__*"
+      - "mcp__bumba-memory__*"
+      - "mcp__playwright__*"
+      - "mcp__notion__*"
+
+  critical:
+    description: "Infrastructure mutation, deployment, destructive operations"
+    tools:
+      - "mcp__cloudflare__*"
+      - "mcp__digitalocean__*"
+      - "mcp__docker-gateway__*"
+      - RemoteTrigger
+      - CronCreate
+      - CronDelete
+
+# Default tier for tools not listed above
+default_tier: standard

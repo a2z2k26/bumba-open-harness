@@ -1,0 +1,179 @@
+team:
+  name: job_search
+  zone: 4
+  description: >
+    Job-search internal-service team — runs against itself on a daily PREPARE
+    cron (08:00) + 2hr EXECUTE cron (10:00-20:00). Not operator-facing in the
+    conversational sense; operator interaction is via Notion staging + Discord
+    run reports. Promotes auditability: every cron run writes a conversation
+    log at data/teams/job_search/conversations/<run_id>.jsonl.
+
+  constraints:
+    cost_limit_usd: 14.00
+    timeout_seconds: 3600
+    concurrency_limit: 1
+    # #1645: strict-floor activation 2026-05-12. Chiefs of delegate-
+    # mode teams MUST delegate to ≥1 specialist. Gate 8 in teams._verify
+    # fires `success=False` when employee_results count < this value.
+    expected_min_specialists: 1
+    usage_limits:
+      request_limit: 200
+      request_token_limit: 250000
+      response_token_limit: 250000
+    # zone4-warmth.D.01 (#2299) — Job-search runs cron-driven scrapes;
+    # 10-min warm idle covers back-to-back retry attempts but doesn't
+    # hold listings context across operator-cycle boundaries.
+    warm_idle_timeout_seconds: 600  # 10 minutes
+
+  budget:
+    daily_limit_usd: 15.00
+    alert_thresholds: [0.50, 0.75, 0.90]
+
+  tools:
+    common:
+      - read_file
+      - search_knowledge
+    department:
+      - scrape_boards
+      - score_and_deduplicate
+      - generate_cover_letter
+      - stage_listing_to_notion
+      - get_approved_listings
+      - update_notion_status
+      - send_discord_alert
+    per_employee:
+      acquire-and-prepare-specialist: []   # populated in D5.3
+      outreach-execute-specialist: []       # populated in D5.4
+      browser-use-specialist: []            # populated in D5.5
+      email-verification-specialist: []     # populated in D5.6
+
+  # Sprint P2.4 follow-up (#1659) — Job-search team flipped to
+  # `deny_by_default` with an explicit `allowed_servers: [playwright]`
+  # enumeration. The `browser-use-specialist` is the only specialist
+  # in any team that invokes MCP server tools directly; it drives the
+  # `playwright` MCP server for vision-loop ATS form submissions.
+  # Evidence:
+  #   - `agent/teams/job_search/_specialists.py` lines 410, 423-428
+  #     literally lists the MCP tools the specialist uses:
+  #       `mcp__playwright__navigate`
+  #       `mcp__playwright__screenshot`
+  #       `mcp__playwright__click`
+  #       `mcp__playwright__fill`
+  #       `mcp__playwright__select_option`
+  #       `mcp__playwright__set_browser_context`
+  #     The prompt explicitly says "Use ONLY these Playwright MCP
+  #     tools — do NOT use Bash or playwright-cli commands".
+  #   - `agent/config/agents/zone4/job_search/*.md` (5 files) contain
+  #     no other MCP-server names; the chief + acquire-and-prepare +
+  #     outreach-execute + email-verification specialists do not
+  #     invoke any MCP server (acquire-and-prepare scrapes via
+  #     in-process scrapers in `agent/job_search/boards/`; the
+  #     outreach-execute path goes through in-process `gws` CLI
+  #     wrappers via the EXECUTE cron, not MCP).
+  #   - Notion access is via in-process tool names
+  #     (`stage_listing_to_notion`, `get_approved_listings`,
+  #     `update_notion_status`) — these resolve through pydantic-ai
+  #     tool functions, not the (template-only) `notion` MCP server.
+  # The `browser-use` MCP server named in the original YAML comment
+  # ships only in `.mcp.json.template`, not the canonical config, so
+  # it is intentionally not on the allowlist; if/when it lands in
+  # canonical for a real browser-driving rollout, add it here.
+  # Effect: the filtered `.mcp.json` emitted for job-search runs
+  # contains `playwright` (when the canonical config provides it) and
+  # nothing else. Any future need surfaces as a subprocess error.
+  mcp:
+    mode: deny_by_default
+    allowed_servers:
+      - playwright
+
+  vapi:
+    enabled: false
+
+  chief:
+    name: job-search-chief
+    role: >
+      Receive PREPARE / EXECUTE cron triggers, route work to the four specialists,
+      synthesize per-run reports, and surface blockers (cost-cap fires, captcha,
+      auth-wall) upward via Discord alert.
+    # 2026-06-04 #2566: chief on anthropic-oauth (subscription Claude via the
+    # bridge's minted OAuth token), NOT codex. Codex `exec` cannot drive
+    # pydantic-ai tool-calling (delegate/final_result) — it's an autonomous
+    # agent that runs its own tools + returns prose (verified vs codex docs +
+    # issue openai/codex#15451). Chiefs REQUIRE tool-calling, so they run on
+    # anthropic-oauth (native AnthropicModel = full tool support, subscription-
+    # billed, no OpenRouter, no API key). Workers stay codex-exec (prose only).
+    # Mirrors the proven strategy-chief + ops-chief (#2596) pattern.
+    model: anthropic-oauth:claude-sonnet-4-5
+    adapter: "claude"
+    # 2026-05-20 production smoke: cheap-frontier chiefs need tool/output
+    # validation retry headroom for malformed delegate/final_result calls.
+    retries: 3
+    skills:
+      - zero-micromanagement
+      - active-listener
+    expertise: agent/config/expertise/updatable/job-search-chief.md
+    expertise_max_lines: 500
+    system_prompt: agent/config/agents/zone4/job_search/job-search-chief.md
+    domain:
+      read:
+        - "config/job-search/**"
+        - "job_search/**"
+      write:
+        - "sessions/"
+        - "data/teams/job_search/"
+    thinking: basic
+    max_turns: 30
+    timeout_minutes: 60.0
+
+  workers:
+    - name: acquire-and-prepare-specialist
+      role: "Scrapes boards, deduplicates, scores listings, generates cover letters, stages to Notion"
+      model: "codex-exec:"
+      adapter: "codex-exec"
+      system_prompt: agent/config/agents/zone4/job_search/acquire-and-prepare-specialist.md
+      domain:
+        read:
+          - "config/job-search/**"
+          - "job_search/**"
+        write:
+          - "sessions/"
+
+    - name: outreach-execute-specialist
+      role: "Reads Notion-approved listings, executes application submissions, updates status"
+      model: "codex-exec:"
+      adapter: "codex-exec"
+      system_prompt: agent/config/agents/zone4/job_search/outreach-execute-specialist.md
+      domain:
+        read:
+          - "config/job-search/**"
+          - "job_search/**"
+        write:
+          - "sessions/"
+
+    - name: browser-use-specialist
+      role: "Handles browser automation for ATS submissions and Cloudflare-walled boards"
+      model: "codex-exec:"
+      adapter: "codex-exec"
+      system_prompt: agent/config/agents/zone4/job_search/browser-use-specialist.md
+      domain:
+        read:
+          - "config/job-search/**"
+          - "job_search/**"
+        write:
+          - "sessions/"
+
+    - name: email-verification-specialist
+      role: "Verifies outreach email deliverability and surfaces bounce risk before send"
+      model: "codex-exec:"
+      adapter: "codex-exec"
+      system_prompt: agent/config/agents/zone4/job_search/email-verification-specialist.md
+      domain:
+        read:
+          - "config/job-search/**"
+          - "job_search/**"
+        write:
+          - "sessions/"
+
+# S04: MCP server allowlist for DEPARTMENT write jail
+# Empty list = inherit bridge default (permissive); expand via operator PR
+mcp_servers: []

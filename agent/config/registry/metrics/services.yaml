@@ -1,0 +1,143 @@
+# Services metrics — pulled from /healthz health check components rather than the
+# /api/metrics/{name} counter endpoint. Each component key is accessible in the
+# healthz response JSON at components.<key>.status.
+
+health_discord:
+  kind: metric
+  name: Discord Component Health
+  category: "Services"
+  description: Discord bot connection health — status (up/degraded/down) and latency_ms.
+  source_module: bridge.health
+  schema_ref: "dict — status, latency_ms, connected"
+  metric_name: health.discord
+  access_method: "pull:/healthz"
+
+health_claude:
+  kind: metric
+  name: Claude Runner Health
+  category: "Services"
+  description: Claude Code subprocess runner health — status and last_invocation timestamp.
+  source_module: bridge.health
+  schema_ref: "dict — status, last_invocation"
+  metric_name: health.claude
+  access_method: "pull:/healthz"
+
+health_database:
+  kind: metric
+  name: Database Health
+  category: "Services"
+  description: SQLite database integrity and size — status, size_mb, wal_size_mb, knowledge_count.
+  source_module: bridge.health
+  schema_ref: "dict — status, size_mb, wal_size_mb, knowledge_count, integrity"
+  metric_name: health.database
+  access_method: "pull:/healthz"
+
+health_memory:
+  kind: metric
+  name: Memory Search Health
+  category: "Services"
+  description: Memory store FTS5 search functional check — status, search_functional.
+  source_module: bridge.health
+  schema_ref: "dict — status, search_functional"
+  metric_name: health.memory
+  access_method: "pull:/healthz"
+
+health_token:
+  kind: metric
+  name: OAuth Token Health
+  category: "Services"
+  description: Claude OAuth token expiry status — status, expires_in_seconds.
+  source_module: bridge.health
+  schema_ref: "dict — status, expires_in_seconds"
+  metric_name: health.token
+  access_method: "pull:/healthz"
+
+health_services:
+  kind: metric
+  name: LaunchDaemon Services Health
+  category: "Services"
+  description: Aggregate health of all registered LaunchDaemon services.
+  source_module: bridge.health
+  schema_ref: "dict — status, services"
+  metric_name: health.services
+  access_method: "pull:/healthz"
+
+health_knowledge_freshness:
+  kind: metric
+  name: Knowledge Freshness
+  category: "Services"
+  description: Age of the most recent knowledge entry — status, latest_entry_age_days.
+  source_module: bridge.health
+  schema_ref: "dict — status, latest_entry_age_days"
+  metric_name: health.knowledge_freshness
+  access_method: "pull:/healthz"
+
+health_daily_log:
+  kind: metric
+  name: Daily Log Health
+  category: "Services"
+  description: Daily log file presence and recency check.
+  source_module: bridge.health
+  schema_ref: "dict — status, size_bytes, path"
+  metric_name: health.daily_log
+  access_method: "pull:/healthz"
+
+health_consolidation_lock:
+  kind: metric
+  name: Consolidation Lock Health
+  category: "Services"
+  description: Whether the deep consolidation PID lock is healthy or stale.
+  source_module: bridge.health
+  schema_ref: "dict — status, locked, lock_age_s"
+  metric_name: health.consolidation_lock
+  access_method: "pull:/healthz"
+
+health_tick_loop:
+  kind: metric
+  name: Tick Loop Health
+  category: "Services"
+  description: Proactive tick loop last-fire recency — status, last_tick_age_s.
+  source_module: bridge.health
+  schema_ref: "dict — status, last_tick_age_s"
+  metric_name: health.tick_loop
+  access_method: "pull:/healthz"
+
+health_embedding_backend:
+  kind: metric
+  name: Embedding Backend Health
+  category: "Services"
+  description: Local embedding backend type and operational status (ONNX/CoreML/hash).
+  source_module: bridge.health
+  schema_ref: "dict — status, backend"
+  metric_name: health.embedding_backend
+  access_method: "pull:/healthz"
+
+health_memory_file:
+  kind: metric
+  name: Memory File Health
+  category: "Memory"
+  description: MEMORY.md append-only writer health — status, size_bytes, line_count.
+  source_module: bridge.health
+  schema_ref: "dict — status, size_bytes, line_count"
+  metric_name: health.memory_file
+  access_method: "pull:/healthz"
+
+health_primer:
+  kind: metric
+  name: Primer Health
+  category: "Services"
+  description: Session primer writer operational health.
+  source_module: bridge.health
+  schema_ref: "dict — status"
+  metric_name: health.primer
+  access_method: "pull:/healthz"
+
+health_experiment_loop:
+  kind: metric
+  name: Experiment Loop Health
+  category: "Services"
+  description: Autonomous experiment loop process health — status, pid, last_experiment_at.
+  source_module: bridge.health
+  schema_ref: "dict — status, pid, last_experiment_at"
+  metric_name: health.experiment_loop
+  access_method: "pull:/healthz"

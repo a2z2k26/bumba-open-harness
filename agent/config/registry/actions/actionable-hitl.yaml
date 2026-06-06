@@ -1,0 +1,197 @@
+# Actionable/HITL actions — escalation, HITL queue, commands dispatch, events/knowledge.
+
+escalation_list_get:
+  kind: action
+  name: List Escalation Alerts
+  category: "Actionable/HITL"
+  description: Returns active escalation alerts waiting for operator acknowledgement.
+  source_module: bridge.api_server
+  schema_ref: bridge.escalation.EscalationAlert
+  method: GET
+  path: /api/escalation
+  auth: bearer
+  access_method: rest
+
+escalation_acknowledge_post:
+  kind: action
+  name: Acknowledge Escalation Alert
+  category: "Actionable/HITL"
+  description: Acknowledges an active escalation alert, clearing it from the active queue.
+  source_module: bridge.api_server
+  schema_ref: "dict — alert_id, acknowledged_at"
+  method: POST
+  path: /api/escalation/acknowledge
+  auth: bearer
+  access_method: rest
+
+escalation_defer_post:
+  kind: action
+  name: Defer Escalation Alert
+  category: "Actionable/HITL"
+  description: Defers an escalation alert for a given duration without acknowledging it.
+  source_module: bridge.api_server
+  schema_ref: "dict — alert_id, defer_until"
+  method: POST
+  path: /api/escalation/defer
+  auth: bearer
+  access_method: rest
+
+hitl_pending_get:
+  kind: action
+  name: List Pending HITL Approvals
+  category: "Actionable/HITL"
+  description: Returns all Human-in-the-Loop task queue items awaiting operator response.
+  source_module: bridge.api_server
+  schema_ref: bridge.task_queue.HITLTask
+  method: GET
+  path: /api/hitl/pending
+  auth: bearer
+  access_method: rest
+
+hitl_respond_post:
+  kind: action
+  name: Respond to HITL Item
+  category: "Actionable/HITL"
+  description: Submits an operator response to a pending HITL queue item.
+  source_module: bridge.api_server
+  schema_ref: "dict — task_id, response, approved"
+  method: POST
+  path: /api/hitl/{task_id}/respond
+  auth: bearer
+  access_method: rest
+
+commands_list_get:
+  kind: action
+  name: List Commands
+  category: "Actionable/HITL"
+  description: Returns all available operator slash commands with their descriptions.
+  source_module: bridge.api_server
+  schema_ref: "list[dict] — name, description, usage"
+  method: GET
+  path: /api/commands
+  auth: bearer
+  access_method: rest
+
+commands_dispatch_post:
+  kind: action
+  name: Dispatch Command
+  category: "Actionable/HITL"
+  description: Dispatches an operator command programmatically (same as slash command via Discord).
+  source_module: bridge.api_server
+  schema_ref: "dict — command, args, result"
+  method: POST
+  path: /api/commands
+  auth: bearer
+  access_method: rest
+
+events_get:
+  kind: action
+  name: Recent Events
+  category: "Actionable/HITL"
+  description: Returns recent events from the EventBus journal.
+  source_module: bridge.api_server
+  schema_ref: "list[dict] — event_type, payload, timestamp"
+  method: GET
+  path: /api/events
+  auth: bearer
+  access_method: rest
+
+events_remote_status_get:
+  kind: action
+  name: Remote Event Transport Status
+  category: "Actionable/HITL"
+  description: >-
+    Reports the RemoteEventBridge transport mode and a remote_delivery
+    flag so operators can distinguish local-log events from real
+    cross-machine MCP transport. Returns transport_mode="none" with
+    bridge_wired=false when peer coordination is disabled.
+  source_module: bridge.api.routes_events_knowledge
+  schema_ref: "dict — transport_mode, remote_delivery, bridge_wired"
+  method: GET
+  path: /api/events/remote-status
+  auth: bearer
+  access_method: rest
+
+reviews_list_get:
+  kind: action
+  name: List Quality Reviews
+  category: "Actionable/HITL"
+  description: Returns all quality gate reviews and their approval state.
+  source_module: bridge.api_server
+  schema_ref: bridge.quality_gate.QualityReview
+  method: GET
+  path: /api/reviews
+  auth: bearer
+  access_method: rest
+
+reviews_create_post:
+  kind: action
+  name: Request Quality Review
+  category: "Actionable/HITL"
+  description: Creates a new quality gate review request for a given artifact.
+  source_module: bridge.api_server
+  schema_ref: bridge.quality_gate.QualityReview
+  method: POST
+  path: /api/reviews
+  auth: bearer
+  access_method: rest
+
+reviews_decide_post:
+  kind: action
+  name: Submit Review Decision
+  category: "Actionable/HITL"
+  description: Submits an approve/reject decision for a quality gate review.
+  source_module: bridge.api_server
+  schema_ref: "dict — review_id, decision, note"
+  method: POST
+  path: /api/reviews/{review_id}/decide
+  auth: bearer
+  access_method: rest
+
+directives_list_get:
+  kind: action
+  name: List Directives
+  category: "Actionable/HITL"
+  description: Lists Phase 5 operator-to-agent directives filterable by status.
+  source_module: bridge.api.directives_routes
+  schema_ref: bridge.directive_store.Directive
+  method: GET
+  path: /api/directives
+  auth: bearer
+  access_method: rest
+
+directive_tree_get:
+  kind: action
+  name: Get Directive Tree
+  category: "Actionable/HITL"
+  description: Returns a directive plus its child tasks and correlated surfaces. P5.5 / #1736 aligned `path` placeholder to source (`{directive_id}` not `{id}`).
+  source_module: bridge.api.directives_routes
+  schema_ref: "dict — directive, tasks, surfaces"
+  method: GET
+  path: /api/directives/{directive_id}/tree
+  auth: bearer
+  access_method: rest
+
+surfaces_list_get:
+  kind: action
+  name: List Surfaces
+  category: "Actionable/HITL"
+  description: Returns surface entries filterable by unread status, direction, and kind.
+  source_module: bridge.api.directives_routes
+  schema_ref: bridge.surface_store.Surface
+  method: GET
+  path: /api/surfaces
+  auth: bearer
+  access_method: rest
+
+surface_ack_post:
+  kind: action
+  name: Acknowledge Surface
+  category: "Actionable/HITL"
+  description: Acknowledges a surface entry, marking it as read by the operator. P5.5 / #1736 aligned `path` placeholder to source (`{surface_id}` not `{id}`).
+  source_module: bridge.api.directives_routes
+  schema_ref: "dict — surface_id, acknowledged_at"
+  method: POST
+  path: /api/surfaces/{surface_id}/ack
+  auth: bearer
+  access_method: rest

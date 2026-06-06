@@ -1,0 +1,190 @@
+{
+  "version": "1.0",
+  "databases": {
+    "tasks": {
+      "name": "Tasks Master",
+      "properties": {
+        "Task ID": {
+          "type": "title"
+        },
+        "Status": {
+          "type": "select",
+          "options": [
+            { "name": "backlog", "color": "gray" },
+            { "name": "ready", "color": "blue" },
+            { "name": "in_progress", "color": "yellow" },
+            { "name": "review", "color": "purple" },
+            { "name": "completed", "color": "green" }
+          ]
+        },
+        "Sprint ID": {
+          "type": "relation",
+          "database": "sprints",
+          "single_property": true
+        },
+        "Epic Name": {
+          "type": "relation",
+          "database": "epics",
+          "single_property": true
+        },
+        "Priority": {
+          "type": "number",
+          "format": "number"
+        },
+        "GitHub Issue": {
+          "type": "url"
+        },
+        "Started At": {
+          "type": "date"
+        },
+        "Completed At": {
+          "type": "date"
+        },
+        "Dependencies": {
+          "type": "relation",
+          "database": "tasks",
+          "single_property": false,
+          "description": "Tasks that this task depends on (self-relation)"
+        }
+      },
+      "views": {
+        "kanban": {
+          "type": "board",
+          "group_by": "Status",
+          "sort": [
+            { "property": "Priority", "direction": "descending" }
+          ]
+        },
+        "ready_queue": {
+          "type": "table",
+          "filter": {
+            "and": [
+              { "property": "Status", "select": { "equals": "ready" } }
+            ]
+          },
+          "sort": [
+            { "property": "Priority", "direction": "descending" }
+          ]
+        }
+      }
+    },
+    "epics": {
+      "name": "Epics Master",
+      "properties": {
+        "Epic Name": {
+          "type": "title"
+        },
+        "Status": {
+          "type": "select",
+          "options": [
+            { "name": "planning", "color": "gray" },
+            { "name": "in_progress", "color": "yellow" },
+            { "name": "on_hold", "color": "orange" },
+            { "name": "completed", "color": "green" }
+          ]
+        },
+        "GitHub Repo": {
+          "type": "url"
+        },
+        "Created At": {
+          "type": "date"
+        }
+      },
+      "views": {
+        "all_epics": {
+          "type": "table",
+          "sort": [
+            { "property": "Created At", "direction": "descending" }
+          ]
+        }
+      }
+    },
+    "sprints": {
+      "name": "Sprints Master",
+      "properties": {
+        "Sprint ID": {
+          "type": "title"
+        },
+        "Status": {
+          "type": "select",
+          "options": [
+            { "name": "planned", "color": "gray" },
+            { "name": "active", "color": "green" },
+            { "name": "completed", "color": "blue" }
+          ]
+        },
+        "Epic": {
+          "type": "relation",
+          "database": "epics",
+          "single_property": true
+        },
+        "Start Date": {
+          "type": "date"
+        },
+        "End Date": {
+          "type": "date"
+        }
+      },
+      "views": {
+        "all_sprints": {
+          "type": "table",
+          "sort": [
+            { "property": "Start Date", "direction": "descending" }
+          ]
+        },
+        "active_sprints": {
+          "type": "table",
+          "filter": {
+            "and": [
+              { "property": "Status", "select": { "equals": "active" } }
+            ]
+          },
+          "sort": [
+            { "property": "Start Date", "direction": "ascending" }
+          ]
+        }
+      }
+    },
+    "projects": {
+      "name": "Projects Master",
+      "properties": {
+        "Project Name": {
+          "type": "title"
+        },
+        "GitHub Repo": {
+          "type": "url"
+        },
+        "Start Date": {
+          "type": "date"
+        },
+        "Status": {
+          "type": "select",
+          "options": [
+            { "name": "ready", "color": "gray" },
+            { "name": "active", "color": "green" },
+            { "name": "complete", "color": "blue" }
+          ]
+        }
+      },
+      "views": {
+        "all_projects": {
+          "type": "table",
+          "sort": [
+            { "property": "Start Date", "direction": "descending" }
+          ]
+        },
+        "active_projects": {
+          "type": "table",
+          "filter": {
+            "and": [
+              { "property": "Status", "select": { "equals": "active" } }
+            ]
+          },
+          "sort": [
+            { "property": "Start Date", "direction": "descending" }
+          ]
+        }
+      }
+    }
+  }
+}

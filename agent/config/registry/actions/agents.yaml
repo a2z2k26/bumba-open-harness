@@ -1,0 +1,121 @@
+# Agents actions — agent management, session management, multi-agent spawn/kill.
+
+agents_list_get:
+  kind: action
+  name: List Agents
+  category: "Agents"
+  description: Returns all known agent instances and their current lifecycle state.
+  source_module: bridge.api_server
+  schema_ref: "list[dict] — agent_id, state, spawned_at"
+  method: GET
+  path: /api/agents
+  auth: bearer
+  access_method: rest
+
+agent_get:
+  kind: action
+  name: Get Agent by ID
+  category: "Agents"
+  description: Returns detailed state for a single agent by its ID.
+  source_module: bridge.api_server
+  schema_ref: "dict — agent_id, state, history"
+  method: GET
+  path: /api/agents/{agent_id}
+  auth: bearer
+  access_method: rest
+
+agent_spawn_post:
+  kind: action
+  name: Spawn Agent
+  category: "Agents"
+  description: Spawns a new background agent subprocess with the given config.
+  source_module: bridge.api_server
+  schema_ref: "dict — agent_id, state"
+  method: POST
+  path: /api/agents/spawn
+  auth: bearer
+  access_method: rest
+
+agent_kill_post:
+  kind: action
+  name: Kill Agent
+  category: "Agents"
+  description: Terminates a running agent subprocess by ID.
+  source_module: bridge.api_server
+  schema_ref: "dict — agent_id, killed"
+  method: POST
+  path: /api/agents/{agent_id}/kill
+  auth: bearer
+  access_method: rest
+
+sessions_list_get:
+  kind: action
+  name: List Sessions
+  category: "Agents"
+  description: Returns all active Claude session IDs and their metadata.
+  source_module: bridge.api_server
+  schema_ref: "list[dict] — session_id, created_at, idle_for_s"
+  method: GET
+  path: /api/sessions
+  auth: bearer
+  access_method: rest
+
+sessions_reset_post:
+  kind: action
+  name: Reset Session
+  category: "Agents"
+  description: Resets the current Claude session, forcing a new session on next invocation.
+  source_module: bridge.api_server
+  schema_ref: "dict — reset, new_session_id"
+  method: POST
+  path: /api/sessions/reset
+  auth: bearer
+  access_method: rest
+
+ws_events:
+  kind: action
+  name: WebSocket Event Stream
+  category: "Agents"
+  description: Streams all EventBus events to connected WebSocket clients in real time. Registered via aiohttp `add_get` (HTTP GET upgrade handshake) — P5.5 / #1736 aligned `method` to the HTTP verb the gate sees.
+  source_module: bridge.api.routes_websocket
+  schema_ref: bridge.event_bus.Event
+  method: GET
+  path: /ws/events
+  auth: bearer
+  access_method: ws
+
+departments_list_get:
+  kind: action
+  name: List Departments
+  category: "Agents"
+  description: Lists Zone 4 departments registered in DepartmentRegistry (VAPI-facing).
+  source_module: bridge.api_server
+  schema_ref: "list[dict] — name, description, keywords"
+  method: GET
+  path: /api/v1/departments
+  auth: bearer
+  access_method: rest
+
+department_get:
+  kind: action
+  name: Get Department
+  category: "Agents"
+  description: Returns metadata for a specific Zone 4 department.
+  source_module: bridge.api_server
+  schema_ref: "dict — name, description, specialists, routing_keywords"
+  method: GET
+  path: /api/v1/departments/{dept}
+  auth: bearer
+  access_method: rest
+
+department_chat_completions_post:
+  kind: action
+  name: Department Chat Completions
+  category: "Agents"
+  description: OpenAI-compatible SSE chat completion endpoint routing through a Zone 4 department.
+  source_module: bridge.api_server
+  schema_ref: "OpenAI ChatCompletion SSE stream"
+  method: POST
+  path: /api/v1/departments/{dept}/chat/completions
+  auth: bearer
+  access_method: rest

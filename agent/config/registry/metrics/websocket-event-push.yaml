@@ -1,0 +1,26 @@
+# WebSocket event-push supervision counter (Sprint audit-2026-05-16.F.06, #2079).
+#
+# Surfaces send failures on the /ws/events broadcast path. Pre-F.06 the
+# subscriber-side ``asyncio.ensure_future(ws.send_str(data))`` swallowed
+# errors silently, leaving stale clients in ``APIServer._ws_clients`` and
+# hiding the failure from operators. The supervisor in
+# ``bridge.api.routes_websocket._supervise_send`` increments this counter
+# once per failed send and evicts the dead ws from the registry.
+
+websocket_event_push_failed:
+  kind: metric
+  name: WebSocket Event Push Failed
+  category: "Health & Status"
+  description: |
+    Count of /ws/events broadcast attempts that raised on ``ws.send_str``
+    (closed connection, ConnectionResetError, or any other transport
+    error). Each increment is paired with a WARNING log entry carrying
+    the connection id and error type, and the failing ws is removed from
+    ``APIServer._ws_clients``. Operator queries via
+    ``GET /api/metrics/websocket.event_push_failed``.
+  source_module: bridge.api.routes_websocket
+  schema_ref: "int — cumulative counter"
+  metric_name: websocket.event_push_failed
+  access_method: "pull:/api/metrics/{name}"
+  introduced: "2026-05-16"
+  sprint: "audit-2026-05-16.F.06"

@@ -1,0 +1,26 @@
+# Run-checkpoint resume events — WS2.6 (#2570).
+#
+# The Zone 4 run-checkpoint feature persists a `checkpoint.json` beside each
+# run-memory note when a run fails with a recoverable failure class (WS2.1–
+# WS2.4). The `/resume <run_id>` operator command re-dispatches the
+# checkpointed department through `DepartmentRegistry.route` with
+# `resume_from=<run_id>` (WS2.6) and emits this event on the EventBus.
+#
+# Companion surface:
+#   - `/checkpoints` (Tier-2 Z4 command) — lists resumable checkpoints.
+#   - `/resume <run_id>` — folded into the Tier-1 `resume` verb.
+
+z4_run_resumed:
+  kind: event
+  name: Zone 4 Run Resumed
+  category: "Agents"
+  description: >-
+    Fires when the operator re-dispatches a checkpointed Zone 4 run via
+    /resume <run_id>. Published best-effort after DepartmentRegistry.route
+    returns. Payload: department, resumed_from (the prior run_id),
+    new_run_id (the resumed run's id, may be None), attempt (the checkpoint
+    attempt counter), success (bool).
+  source_module: bridge.command_handlers.departments
+  schema_ref: "dict — department, resumed_from, new_run_id, attempt, success"
+  event_type: z4.run.resumed
+  access_method: push:event_bus

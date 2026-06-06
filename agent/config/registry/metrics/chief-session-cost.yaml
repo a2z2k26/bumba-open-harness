@@ -1,0 +1,26 @@
+# ChiefSession cost metrics — Z4-S04 (#1389).
+#
+# Per-session and aggregate USD cost meters. Wired by Z4-S40 (#1398,
+# work_order_id and chief_session_id in CostEntry) and Z4-S42 (#1401,
+# Cost REST endpoints). The metric_name strings are the canonical
+# pull keys for `/api/metrics/{name}`.
+
+chief_session_cost_usd:
+  kind: metric
+  name: ChiefSession Cost (USD per session)
+  category: "Cost & Resources"
+  description: USD cost charged to a single ChiefSession across all of its runs (warm + execute + requeue cycles).
+  source_module: bridge.chief_session
+  schema_ref: "float — cumulative counter, USD"
+  metric_name: chief_session.cost_usd
+  access_method: "pull:/api/metrics/{name}"
+
+chief_session_cost_usd_total:
+  kind: metric
+  name: ChiefSession Cost (USD aggregated by department)
+  category: "Cost & Resources"
+  description: Total USD cost across all ChiefSessions for a given department, since bridge boot.
+  source_module: bridge.chief_session
+  schema_ref: "float — gauge, USD"
+  metric_name: chief_session.cost_usd_total
+  access_method: "pull:/api/metrics/{name}"

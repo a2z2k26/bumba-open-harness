@@ -1,0 +1,74 @@
+name: qa.api_contract_test
+trigger: explicit
+budget:
+  max_cost_usd: 1.50
+  max_duration_seconds: 600
+# 1112 Sprint 5q.05 — Zone 4 QA Layer 2 workflow paired with the
+# `qa-api-tester` specialist output bar
+# (agent/config/claude-files/agents/qa-api-tester.md).
+#
+# Purpose: operator-invoked at sprint-close to verify that a REST API's
+# implementation still conforms to its declared OpenAPI / JSON-schema
+# spec. The output bar this workflow holds the chief to:
+#
+#   - Drift must be checked in BOTH directions (spec-defined-but-impl-
+#     missing AND impl-exposed-but-spec-missing). Reporting only one
+#     direction is a fail.
+#   - Each finding carries an explicit authority recommendation:
+#     "update spec" | "update impl" | "intentional, document".
+#   - Findings reference the schema field / route by name; vague
+#     ("payload mismatch") fails the bar.
+#
+# Flat layout per workflow_registry.py:63 (`*.yaml` glob at the top of
+# config/workflows/, not under subdir).
+steps:
+  - name: gather-spec
+    department: qa
+    intent: >
+      Locate the OpenAPI / JSON-schema definition for the target API
+      surface. Report the spec path, version, and the list of routes +
+      response schemas it declares. If no spec is found, return one
+      sentence explaining that and stop — the contract test has no
+      ground truth without a spec.
+    outputs: [schema_spec]
+
+  - name: probe-implementation
+    department: qa
+    intent: >
+      Exercise the live implementation at every route named in the
+      spec gathered upstream. For each route, capture: request shape
+      accepted, response shape returned, status codes observed, error
+      payload shape. Use the bridge's REST surface (port 8200) or the
+      target service URL as provided in the trigger payload. Report
+      one observation block per route.
+    inputs: [schema_spec]
+    outputs: [impl_observations]
+
+  - name: validate-conformance
+    department: qa
+    intent: >
+      Compare {impl_observations} against {schema_spec} in BOTH
+      directions. For each discrepancy, output a finding with:
+      route + field name; direction (spec→impl missing OR impl→spec
+      missing OR shape mismatch); severity (breaking | additive |
+      cosmetic); authority recommendation (update spec | update impl
+      | intentional, document). If conformance is clean, say so in
+      one line — do not pad. Surface ≥1 finding when drift exists or
+      explicitly state clean pass.
+    inputs: [schema_spec, impl_observations]
+    outputs: [conformance_report]
+    on_failure: [publish-failure-notice]
+
+  - name: publish-conformance-report
+    action: publish_discord
+    channel: operator
+    message: "# API Contract Test\n\n{conformance_report}"
+
+  - name: publish-failure-notice
+    action: publish_discord
+    channel: operator
+    message: >
+      qa.api_contract_test workflow failed during validation. Check
+      `data/logs/<today>.md` for the stack trace; the spec and impl
+      observation steps may have succeeded — re-run with the captured
+      inputs to skip re-gathering.

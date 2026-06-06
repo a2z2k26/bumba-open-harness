@@ -1,0 +1,54 @@
+repos:
+  - repo: local
+    hooks:
+      - id: forbid-shadow-tree-writes
+        name: Forbid writes to repo-root shadow trees
+        entry: >-
+          bash -c
+          'for f in "$@"; do
+          case "$f" in
+          bridge/*|teams/*|tests/*|job_search/*|pyproject.toml|uv.lock)
+          echo "FORBIDDEN: $f is in a shadow tree. Write to agent/$f instead.";
+          exit 1;;
+          esac;
+          done' --
+        language: system
+        types: [text]
+
+      - id: py-compile-expanded
+        name: Syntax check (py_compile)
+        entry: python3 -m py_compile
+        language: system
+        types: [python]
+        files: ^agent/(bridge|teams|job_search|tests|scripts)/
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-toml
+      - id: check-merge-conflict
+      - id: detect-private-key
+      - id: check-executables-have-shebangs
+        files: \.sh$
+
+  - repo: https://github.com/koalaman/shellcheck-precommit
+    rev: v0.10.0
+    hooks:
+      - id: shellcheck
+        args: ["--severity=warning"]
+        files: ^(scripts|agent/scripts)/.*\.sh$
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.13.3
+    hooks:
+      - id: ruff
+        args: ["--fix", "--exit-non-zero-on-fix", "--select=E,F,W", "--ignore=E501,E402"]
+        files: ^agent/
+        # Mirror agent/ruff.toml excludes for vendored/template payloads.
+        exclude: ^agent/config/claude-files/(templates|skills)/
+
+# Semgrep runs in CI. Use `make secrets-scan` locally before publishing.

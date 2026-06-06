@@ -1,0 +1,19 @@
+# agent/config/subagent-mcp-allowlist.toml
+# Pre-approved MCP servers a subagent subprocess may reach.
+# Conservative default — expansion requires operator PR + review.
+#
+# Rationale per server:
+#   github   — code context, PR reads/writes (core subagent need)
+#   notion   — task queue state, knowledge retrieval
+#   context7 — library documentation lookups
+#
+# Do NOT add without operator review:
+#   cloudflare, digitalocean, mongodb, figma-console, pinecone,
+#   playwright, chrome-devtools, shadcn, supabase, etc.
+# If a subagent needs those, raise the constraint at sprint-proposal time.
+
+allowed = [
+    "github",
+    "notion",
+    "context7",
+]

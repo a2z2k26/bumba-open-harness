@@ -1,0 +1,41 @@
+# Actionable/HITL events — operator-facing directives, surface notifications, and acknowledgements.
+
+directive_issued:
+  kind: event
+  name: Directive Issued
+  category: "Actionable/HITL"
+  description: Fires when an operator-to-agent directive is created via the Phase 5 protocol.
+  source_module: bridge.directive_store
+  schema_ref: bridge.directive_store.Directive
+  event_type: directive.issued
+  access_method: push:event_bus
+
+directive_status_changed:
+  kind: event
+  name: Directive Status Changed
+  category: "Actionable/HITL"
+  description: Fires when a directive transitions between lifecycle states (pending/active/completed/cancelled).
+  source_module: bridge.directive_store
+  schema_ref: bridge.directive_store.Directive
+  event_type: directive.status_changed
+  access_method: push:event_bus
+
+surface_written:
+  kind: event
+  name: Surface Written
+  category: "Actionable/HITL"
+  description: Fires when a new surface entry is written to the surface store for operator review.
+  source_module: bridge.surface_store
+  schema_ref: bridge.surface_store.Surface
+  event_type: surface.written
+  access_method: push:event_bus
+
+surface_acknowledged:
+  kind: event
+  name: Surface Acknowledged
+  category: "Actionable/HITL"
+  description: Fires when an operator acknowledges a surface via POST /api/surfaces/{id}/ack.
+  source_module: bridge.surface_store
+  schema_ref: bridge.surface_store.Surface
+  event_type: surface.acknowledged
+  access_method: push:event_bus

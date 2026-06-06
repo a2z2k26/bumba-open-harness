@@ -1,0 +1,134 @@
+# Hook lifecycle events — Claude Code CLI lifecycle points surfaced via HooksTelemetrySubscriber.
+# These 13 event types are defined by E2.3 (HooksTelemetrySubscriber).
+# Note: E2.3 is not yet merged; entries are pre-registered per E2.5 scope.
+# Source: ~/.claude/hooks/ JSONL sink (E2.1) translated by bridge.hooks_telemetry_subscriber.
+
+hook_session_start:
+  kind: event
+  name: Hook — Session Start
+  category: "Agents"
+  description: Fires when the Claude Code CLI session starts (SessionStart lifecycle point).
+  source_module: bridge.hooks_telemetry_subscriber
+  schema_ref: "dict — ts, event, session_id"
+  event_type: hook.session_start
+  access_method: push:event_bus
+
+hook_session_end:
+  kind: event
+  name: Hook — Session End
+  category: "Agents"
+  description: Fires when the Claude Code CLI session ends (SessionEnd lifecycle point).
+  source_module: bridge.hooks_telemetry_subscriber
+  schema_ref: "dict — ts, event, session_id"
+  event_type: hook.session_end
+  access_method: push:event_bus
+
+hook_user_prompt_submit:
+  kind: event
+  name: Hook — User Prompt Submit
+  category: "Agents"
+  description: Fires when a user prompt is submitted to the Claude Code CLI (UserPromptSubmit).
+  source_module: bridge.hooks_telemetry_subscriber
+  schema_ref: "dict — ts, event, session_id, prompt_length"
+  event_type: hook.user_prompt_submit
+  access_method: push:event_bus
+
+hook_pre_tool_use:
+  kind: event
+  name: Hook — Pre Tool Use
+  category: "Agents"
+  description: Fires before the Claude Code CLI invokes any tool (PreToolUse lifecycle point).
+  source_module: bridge.hooks_telemetry_subscriber
+  schema_ref: "dict — ts, event, session_id, tool"
+  event_type: hook.pre_tool_use
+  access_method: push:event_bus
+
+hook_post_tool_use:
+  kind: event
+  name: Hook — Post Tool Use
+  category: "Agents"
+  description: Fires after the Claude Code CLI completes a tool call (PostToolUse lifecycle point).
+  source_module: bridge.hooks_telemetry_subscriber
+  schema_ref: "dict — ts, event, session_id, tool, exit_code"
+  event_type: hook.post_tool_use
+  access_method: push:event_bus
+
+hook_stop:
+  kind: event
+  name: Hook — Stop
+  category: "Agents"
+  description: Fires when the Claude Code CLI subprocess stops (Stop lifecycle point).
+  source_module: bridge.hooks_telemetry_subscriber
+  schema_ref: "dict — ts, event, session_id"
+  event_type: hook.stop
+  access_method: push:event_bus
+
+hook_subagent_stop:
+  kind: event
+  name: Hook — Subagent Stop
+  category: "Agents"
+  description: Fires when a subagent subprocess exits (SubagentStop lifecycle point).
+  source_module: bridge.hooks_telemetry_subscriber
+  schema_ref: "dict — ts, event, session_id, agent_id"
+  event_type: hook.subagent_stop
+  access_method: push:event_bus
+
+hook_notification:
+  kind: event
+  name: Hook — Notification
+  category: "Agents"
+  description: Fires when the Claude Code CLI emits a notification event (Notification lifecycle point).
+  source_module: bridge.hooks_telemetry_subscriber
+  schema_ref: "dict — ts, event, session_id, message"
+  event_type: hook.notification
+  access_method: push:event_bus
+
+hook_pre_compact:
+  kind: event
+  name: Hook — Pre Compact
+  category: "Agents"
+  description: Fires before context window compaction begins (PreCompact lifecycle point).
+  source_module: bridge.hooks_telemetry_subscriber
+  schema_ref: "dict — ts, event, session_id"
+  event_type: hook.pre_compact
+  access_method: push:event_bus
+
+hook_post_compact:
+  kind: event
+  name: Hook — Post Compact
+  category: "Agents"
+  description: Fires after context window compaction completes (PostCompact lifecycle point).
+  source_module: bridge.hooks_telemetry_subscriber
+  schema_ref: "dict — ts, event, session_id"
+  event_type: hook.post_compact
+  access_method: push:event_bus
+
+hook_pre_model_invoke:
+  kind: event
+  name: Hook — Pre Model Invoke
+  category: "Agents"
+  description: Fires before the Claude API is invoked (PreModelInvoke lifecycle point).
+  source_module: bridge.hooks_telemetry_subscriber
+  schema_ref: "dict — ts, event, session_id, model"
+  event_type: hook.pre_model_invoke
+  access_method: push:event_bus
+
+hook_post_model_invoke:
+  kind: event
+  name: Hook — Post Model Invoke
+  category: "Agents"
+  description: Fires after the Claude API call returns (PostModelInvoke lifecycle point).
+  source_module: bridge.hooks_telemetry_subscriber
+  schema_ref: "dict — ts, event, session_id, model, tokens"
+  event_type: hook.post_model_invoke
+  access_method: push:event_bus
+
+hook_error:
+  kind: event
+  name: Hook — Error
+  category: "Health & Status"
+  description: Fires when the Claude Code CLI hook system encounters an error (Error lifecycle point).
+  source_module: bridge.hooks_telemetry_subscriber
+  schema_ref: "dict — ts, event, session_id, error_message"
+  event_type: hook.error
+  access_method: push:event_bus

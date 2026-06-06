@@ -1,0 +1,31 @@
+{
+  "statusMapping": {
+    "github_to_notion": {
+      "open": "backlog",
+      "in_progress": "in_progress",
+      "closed": "completed"
+    },
+    "notion_to_github": {
+      "backlog": "open",
+      "ready": "open",
+      "in_progress": "in_progress",
+      "review": "in_progress",
+      "completed": "closed"
+    }
+  },
+  "syncBehavior": {
+    "debounceWindow": 5000,
+    "batchSize": 10,
+    "retryAttempts": 3,
+    "retryBackoff": [1000, 2000, 4000]
+  },
+  "fieldMapping": {
+    "github_issue_to_notion_task": {
+      "title": "Task ID",
+      "state": "Status",
+      "html_url": "GitHub Issue",
+      "created_at": "Started At",
+      "closed_at": "Completed At"
+    }
+  }
+}

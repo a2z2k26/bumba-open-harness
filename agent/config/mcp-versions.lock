@@ -1,0 +1,30 @@
+# MCP and CLI tooling version lock — Plan 01 (Quick Wins) batch.
+#
+# Format: one entry per line, free-form, comments allowed.
+# This file documents pinned versions of MCP servers and runtime-side CLIs
+# adopted by Plan 01 (sprints 01.02 / 01.03 / 01.04 / 01.05b). Concrete
+# versions are filled in by the operator at runtime install time (Mac mini,
+# bumba-agent user) and committed back here in the post-merge follow-up so
+# the source repo is the single source of truth for what's installed.
+#
+# Until the runtime install lands, entries are tagged TBD; that is the
+# expected interim state for the source-side PR — registration is complete,
+# pinning is operator-side.
+
+# Sprint 01.02 — browser-use MCP server (Python, MIT)
+# Install: `uv add browser-use` under bumba-agent's venv
+browser-use==TBD
+
+# Sprint 01.03 — designlang MCP server (npm, MIT — Manavarya09/design-extract)
+# Install: `npm install -g <verified-package-name>` under bumba-agent
+# Note: spec says `@designlang/cli` — verify exact npm package name at install time
+designlang@TBD
+
+# Sprint 01.04 — repomix MCP server + CLI (npm, MIT — yamadashy/repomix)
+# Install: `npm i -g repomix` under bumba-agent
+repomix@TBD
+
+# Sprint 01.05b — rtk subprocess token compressor (Rust binary, MIT — rtk-ai/rtk)
+# Install: Homebrew (`brew install rtk-ai/tap/rtk`) OR install.sh from rtk-ai/rtk
+# NOT crates.io's "rtk" (Rust Type Kit) — different project.
+rtk==TBD

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Zone 1 drift detector — Sprint 2.07 / #2142.
+
+  Default schedule: twice-weekly (Mon + Thu 09:00 local) so findings land
+  during the operator's morning briefing window. Cadence is conservative —
+  Zone 1 doctrine drifts slowly. Operator can tighten by editing the
+  StartCalendarInterval entries.
+
+  Safety: this daemon NEVER auto-writes or auto-merges. It scans + emits a
+  draft PR for operator review. Disabled by default (zone1_drift.enabled = false
+  in bridge.toml); operator opts in once the heuristics prove themselves on
+  a manual run.
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.bumba.agent-zone1-drift</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/opt/bumba-harness/agent-flat/agent/.venv/bin/python</string>
+        <string>-m</string>
+        <string>bridge.services.runner</string>
+        <string>zone1_drift</string>
+    </array>
+    <key>WorkingDirectory</key>
+    <string>/opt/bumba-harness/agent-flat/agent</string>
+    <key>StartCalendarInterval</key>
+    <array>
+        <dict>
+            <key>Weekday</key>
+            <integer>1</integer>
+            <key>Hour</key>
+            <integer>9</integer>
+            <key>Minute</key>
+            <integer>0</integer>
+        </dict>
+        <dict>
+            <key>Weekday</key>
+            <integer>4</integer>
+            <key>Hour</key>
+            <integer>9</integer>
+            <key>Minute</key>
+            <integer>0</integer>
+        </dict>
+    </array>
+    <key>RunAtLoad</key>
+    <false/>
+    <key>StandardOutPath</key>
+    <string>/opt/bumba-harness/logs/zone1-drift-stdout.log</string>
+    <key>StandardErrorPath</key>
+    <string>/opt/bumba-harness/logs/zone1-drift-stderr.log</string>
+</dict>
+</plist>

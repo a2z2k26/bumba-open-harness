@@ -1,0 +1,94 @@
+name: job_search.submit_via_ashby
+trigger: explicit
+budget:
+  max_cost_usd: 2.50
+  max_duration_seconds: 1800
+# 1112 Sprint 5j.09 — Zone 4 job-search Layer 2 workflow for Ashby ATS
+# submission. Ashby is smaller market share but growing — modern startup
+# hiring stack per Sitting 3 brief.
+#
+# Architecture: same as Greenhouse (#2157) — Claude computer-use over
+# CloakBrowser + bumba-browser UID sandbox + .secrets vault.
+#
+# DEPENDS ON #2157 — schema extension for "job_search" in DepartmentStep
+# literal.
+#
+# Ashby quirks:
+#   - URL pattern: jobs.ashbyhq.com/<company>/<job-id>
+#   - Single-page form similar to Greenhouse
+#   - Confirmation email from notifications@ashbyhq.com
+#
+# Flat layout per workflow_registry.py:63 glob.
+steps:
+  - name: authenticate-credentials
+    department: job_search
+    intent: >
+      Resolve ats_ashby_<account> credential reference. Authenticate to
+      Ashby (typically email + password). HALT on failure.
+    outputs: ["auth_session"]
+
+  - name: navigate-to-listing
+    department: job_search
+    inputs: ["auth_session"]
+    intent: >
+      Navigate via CloakBrowser to the Ashby listing URL. Verify open.
+    outputs: ["listing_state"]
+
+  - name: prepare-application-bundle
+    department: job_search
+    inputs: ["listing_state"]
+    intent: >
+      Load prepared bundle from Notion. Validate Ashby required fields
+      covered (typically First/Last Name, Email, Resume, Cover Letter).
+    outputs: ["application_bundle"]
+
+  - name: fill-form
+    department: job_search
+    inputs: ["listing_state", "application_bundle"]
+    intent: >
+      Fill the Ashby form per agent/job_search/ats/ashby.py field mapping
+      (existing module). humanize=True.
+    outputs: ["form_filled_state"]
+
+  - name: capture-pre-submit-screenshot
+    department: job_search
+    inputs: ["form_filled_state"]
+    intent: >
+      Capture filled-form screenshot to pre-submit.png.
+    outputs: ["pre_submit_screenshot_path"]
+
+  - name: submit-application
+    department: job_search
+    inputs: ["form_filled_state"]
+    intent: >
+      Click submit. Capture post-submit state. On captcha → Playwright
+      fallback (#2165), HALT if still failing.
+    outputs: ["post_submit_state"]
+
+  - name: capture-post-submit-screenshot
+    department: job_search
+    inputs: ["post_submit_state"]
+    intent: >
+      Capture confirmation screenshot.
+    outputs: ["post_submit_screenshot_path"]
+
+  - name: poll-receipt-email
+    department: job_search
+    inputs: ["post_submit_state"]
+    intent: >
+      Poll Gmail for notifications@ashbyhq.com confirmation (10min timeout).
+    outputs: ["receipt_evidence"]
+
+  - name: update-notion
+    department: job_search
+    inputs: ["pre_submit_screenshot_path", "post_submit_screenshot_path", "receipt_evidence"]
+    intent: >
+      Update Notion row to submitted with ATS family=ashby + artifact set.
+    outputs: ["notion_row_id"]
+
+  - name: synthesize-summary
+    department: job_search
+    inputs: ["receipt_evidence", "notion_row_id"]
+    intent: >
+      Discord summary: company/role + timestamp + 3/3 artifacts + Notion link.
+    outputs: ["discord_summary"]

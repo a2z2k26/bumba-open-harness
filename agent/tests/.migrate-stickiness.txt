@@ -1,0 +1,48 @@
+# migrate-stickiness allowlist (Sprint 08.13, Issue #791)
+#
+# Canonical paths for tests that Plan 00 sprint 00.04 (PR #813) migrated from
+# the repo root into agent/tests/. The CI gate verifies each path still exists
+# AND that no file with the same basename lives anywhere else in the tree.
+#
+# Layered defense: Plan 00 cleanup catches re-introduction of root tests;
+# this gate catches aliasing into agent/tests/<subdir>/ which would resurrect
+# false-coverage signals.
+#
+# Derivation:
+#   gh pr view 813 --json files | jq '...path | startswith("agent/tests/")'
+#   Yielded 30 paths. Excluded:
+#     - 4 quarantine/test_z4_job_search_*.py — deleted via Path D (Issue #814)
+#     - test_identity_injection.py — moved to agent/tests/quarantine/
+#     - test_job_search_service.py — duplicate basename exists at
+#         agent/tests/test_teams/test_job_search_service.py (different content,
+#         exercises BridgeDeps.for_cron). Tracked as follow-up; once the
+#         basename collision is resolved (rename one), add this entry back.
+#
+# Final: 24 canonical paths.
+#
+# Format: one path per line, relative to repo root. Lines starting with `#`
+# and blank lines are ignored by the validator.
+agent/tests/test_api_agents.py
+agent/tests/test_api_cost.py
+agent/tests/test_api_escalation.py
+agent/tests/test_api_integration.py
+agent/tests/test_api_server_extended.py
+agent/tests/test_api_sessions.py
+agent/tests/test_api_trust.py
+agent/tests/test_api_websocket.py
+agent/tests/test_branch_protection.py
+agent/tests/test_cost_attribution.py
+agent/tests/test_dialogue_delay_monitor.py
+agent/tests/test_evidence.py
+agent/tests/test_operator_inbox.py
+agent/tests/test_output_router.py
+agent/tests/test_primer_writer.py
+agent/tests/test_quality_gate.py
+agent/tests/test_regenerate_kernel_baseline.py
+agent/tests/test_runtime_drift.py
+agent/tests/test_service_result.py
+agent/tests/test_system_prompt.py
+agent/tests/test_task_pipeline.py
+agent/tests/test_tool_call_gate.py
+agent/tests/test_tool_trace_reader.py
+agent/tests/test_webhook_receiver.py

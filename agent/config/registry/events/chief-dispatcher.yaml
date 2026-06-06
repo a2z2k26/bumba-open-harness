@@ -1,0 +1,77 @@
+# ChiefDispatcher events — Z4-S04 (#1389).
+#
+# Catalog rows for events emitted by `bridge.chief_dispatcher` (Z4-S21
+# #1392). Filed in this Phase 0 sprint so the registry-completeness CI
+# gate has the entries in place before the dispatcher implementation
+# lands. Companion to:
+#   - `events/chief-session.yaml` (Z4-S01 #1385) — session lifecycle events
+#   - `metrics/chief-session-cost.yaml` (this sprint) — session cost meters
+#   - `metrics/chief-session-duration.yaml` (this sprint) — session timing
+#   - `actions/chief-dispatcher.yaml` (this sprint) — dispatcher REST/WS
+
+chief_dispatcher_routed:
+  kind: event
+  name: ChiefDispatcher Routed
+  category: "Agents"
+  description: Fires when ChiefDispatcher successfully routed a WorkOrder to a department's chief session.
+  source_module: bridge.chief_dispatcher
+  schema_ref: bridge.work_order_router.RoutingDecision
+  event_type: chief_dispatcher.routed
+  access_method: push:event_bus
+
+chief_dispatcher_rejected:
+  kind: event
+  name: ChiefDispatcher Rejected
+  category: "Agents"
+  description: Fires when ChiefDispatcher could not find a viable department for a WorkOrder. Maps to a [autonomous] BLOCKER surface.
+  source_module: bridge.chief_dispatcher
+  schema_ref: bridge.work_order_router.RoutingError
+  event_type: chief_dispatcher.rejected
+  access_method: push:event_bus
+
+chief_dispatcher_requeued:
+  kind: event
+  name: ChiefDispatcher Requeued
+  category: "Agents"
+  description: Fires when ChiefDispatcher requeued a WorkOrder after chief evaluation (AWAITING_EVALUATION → WARM path). Carries the attempt count.
+  source_module: bridge.chief_dispatcher
+  schema_ref: bridge.chief_session.ChiefSession
+  event_type: chief_dispatcher.requeued
+  access_method: push:event_bus
+
+chief_dispatcher_circuit_open:
+  kind: event
+  name: ChiefDispatcher Circuit Open
+  category: "Agents"
+  description: Fires when a per-department circuit breaker transitions CLOSED/HALF_OPEN → OPEN after the configured failure threshold (default 3 consecutive chief failures). Subsequent dispatches to this department fall back to RoutingDecision.fallback_departments until the breaker recovers.
+  source_module: bridge.chief_dispatcher
+  schema_ref: bridge.circuit_breaker.CircuitBreakerState
+  event_type: chief_dispatcher.circuit_open
+  access_method: push:event_bus
+
+chief_dispatcher_circuit_closed:
+  kind: event
+  name: ChiefDispatcher Circuit Closed
+  category: "Agents"
+  description: Fires when a per-department circuit breaker recovers (HALF_OPEN → CLOSED) after a successful chief run. Pairs with chief_dispatcher.circuit_open.
+  source_module: bridge.chief_dispatcher
+  schema_ref: bridge.circuit_breaker.CircuitBreakerState
+  event_type: chief_dispatcher.circuit_closed
+  access_method: push:event_bus
+
+chief_dispatcher_warmth_reused:
+  kind: event
+  name: ChiefDispatcher Warmth Reused
+  category: "Agents"
+  description: >-
+    ChiefDispatcher reused an existing AWAITING_EVALUATION session for
+    (department, operator) within the warm window. Gated by
+    chief_dispatcher_warmth_reuse_enabled (zone4-warmth.C.01 #2295).
+    Session transitions AWAITING_EVALUATION → WARM; run_count increments.
+    Payload: session_id, work_order_id, department, operator,
+    age_seconds, run_count, message_history_present,
+    message_history_count.
+  source_module: bridge.chief_dispatcher
+  schema_ref: bridge.chief_session.ChiefSession
+  event_type: chief_dispatcher.warmth_reused
+  access_method: push:event_bus

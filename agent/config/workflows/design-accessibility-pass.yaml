@@ -1,0 +1,51 @@
+name: design.accessibility_pass
+trigger: explicit
+budget:
+  max_cost_usd: 1.50
+  max_duration_seconds: 600
+steps:
+  - name: identify-audit-target
+    department: design
+    intent: >-
+      Have design-accessibility-specialist confirm the audit target: extract
+      the Figma file URL or shipped-component identifier from the operator
+      request, enumerate the surfaces to audit (e.g. all screens, primary
+      flows, modal+sidebar pair), and produce a checklist of components to
+      inspect.
+    outputs: [audit_target]
+
+  - name: wcag-contrast-focus-audit
+    department: design
+    intent: >-
+      Have design-accessibility-specialist run a design-time WCAG audit on
+      {audit_target}. Check: text/background contrast ratios against WCAG 2.2
+      AA + AAA (4.5:1 / 7:1), non-text contrast for icons and UI controls
+      (3:1), focus-state visibility for every interactive element, focus order
+      against logical reading order. Distinct from qa-accessibility-tester's
+      post-ship lane — this is the pre-ship design-time check. Report each
+      failure with element, measured value, target threshold, and fix recipe.
+    inputs: [audit_target]
+    outputs: [contrast_findings]
+
+  - name: aria-semantics-audit
+    department: design
+    intent: >-
+      Have design-accessibility-specialist audit {audit_target} for ARIA and
+      semantic correctness: missing alt text, missing landmarks (header/nav/
+      main/footer), incorrect role assignments, ambiguous labels, components
+      that look interactive but lack keyboard affordance. Report each gap with
+      element, current state, and the canonical pattern it should follow.
+    inputs: [audit_target]
+    outputs: [aria_findings]
+    parallel_with: wcag-contrast-focus-audit
+
+  - name: synthesize-accessibility-report
+    department: design
+    intent: >-
+      Have design-accessibility-specialist synthesize {contrast_findings} and
+      {aria_findings} into a single Discord-readable accessibility report.
+      Sort findings by WCAG conformance level (A blockers first, then AA,
+      then AAA). Include top-line pass/fail verdict, count of issues by
+      severity, and a fix-list ranked by user-impact.
+    inputs: [contrast_findings, aria_findings]
+    outputs: [accessibility_report]

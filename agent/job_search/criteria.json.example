@@ -1,0 +1,9 @@
+{
+  "roles": ["Senior Software Engineer", "Staff Engineer", "Engineering Manager"],
+  "location": "remote",
+  "seniority": ["senior", "staff", "principal"],
+  "compensation_floor_usd": 150000,
+  "exclusions": ["C++", "embedded", "hardware"],
+  "remote_only": true,
+  "daily_cap": 10
+}

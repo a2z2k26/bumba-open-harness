@@ -1,0 +1,25 @@
+# Memory actions — knowledge store read, search.
+
+knowledge_list_get:
+  kind: action
+  name: List Knowledge Entries
+  category: "Memory"
+  description: Returns knowledge entries from the SQLite-backed knowledge store.
+  source_module: bridge.api_server
+  schema_ref: bridge.memory.KnowledgeEntry
+  method: GET
+  path: /api/knowledge
+  auth: bearer
+  access_method: rest
+
+knowledge_search_get:
+  kind: action
+  name: Search Knowledge
+  category: "Memory"
+  description: Full-text search over knowledge entries using SQLite FTS5.
+  source_module: bridge.api_server
+  schema_ref: bridge.memory.KnowledgeEntry
+  method: GET
+  path: /api/knowledge/search
+  auth: bearer
+  access_method: rest

@@ -1,0 +1,22 @@
+# Sensitive configuration files
+config/workspace-mapping.json
+
+# Runtime state
+state/
+
+# Node modules (if any JS dependencies added later)
+node_modules/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~

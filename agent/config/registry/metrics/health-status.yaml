@@ -1,0 +1,32 @@
+# Health & Status metrics — core bridge counters emitted via MetricsCollector.increment()
+# in bridge/app.py. Accessible via GET /api/metrics/{name}.
+
+messages_total:
+  kind: metric
+  name: Messages Total
+  category: "Health & Status"
+  description: Cumulative count of inbound messages processed by the bridge since last restart.
+  source_module: bridge.app
+  schema_ref: "int — cumulative counter"
+  metric_name: messages_total
+  access_method: "pull:/api/metrics/{name}"
+
+errors_total:
+  kind: metric
+  name: Errors Total
+  category: "Health & Status"
+  description: Cumulative count of unhandled errors in the main message processing pipeline.
+  source_module: bridge.app
+  schema_ref: "int — cumulative counter"
+  metric_name: errors_total
+  access_method: "pull:/api/metrics/{name}"
+
+claude_invocations_success:
+  kind: metric
+  name: Claude Invocations Success
+  category: "Health & Status"
+  description: Cumulative count of successful Claude Code subprocess invocations.
+  source_module: bridge.app
+  schema_ref: "int — cumulative counter"
+  metric_name: claude_invocations_success
+  access_method: "pull:/api/metrics/{name}"

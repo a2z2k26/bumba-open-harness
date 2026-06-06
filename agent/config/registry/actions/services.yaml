@@ -1,0 +1,171 @@
+# Services actions — Zone 4 observability endpoints (feature-flag conditional).
+# These 14 endpoints are registered when z4_observability_tool_tracker_enabled = true.
+# They appear at startup in the bridge log: "Zone4Routes mounted during _register_routes".
+
+z4_sessions_get:
+  kind: action
+  name: Z4 Sessions List
+  category: "Services"
+  description: "Lists Zone 4 department sessions with pagination. [feature_flag_required: z4_observability_tool_tracker_enabled]"
+  source_module: bridge.observability.api_routes
+  schema_ref: "list[dict] — session_id, department, cost, started_at"
+  method: GET
+  path: /api/z4/sessions
+  auth: bearer
+  access_method: rest
+
+z4_session_detail_get:
+  kind: action
+  name: Z4 Session Detail
+  category: "Services"
+  description: "Full Zone 4 session detail including agent conversation log. [feature_flag_required: z4_observability_tool_tracker_enabled]"
+  source_module: bridge.observability.api_routes
+  schema_ref: "dict — session_id, departments, conversation"
+  method: GET
+  path: /api/z4/sessions/{sid}
+  auth: bearer
+  access_method: rest
+
+z4_session_cost_get:
+  kind: action
+  name: Z4 Session Cost
+  category: "Services"
+  description: "Zone 4 session cost breakdown by model and agent. [feature_flag_required: z4_observability_tool_tracker_enabled]"
+  source_module: bridge.observability.api_routes
+  schema_ref: "dict — session_id, cost_usd, by_model"
+  method: GET
+  path: /api/z4/sessions/{sid}/cost
+  auth: bearer
+  access_method: rest
+
+z4_session_conversation_get:
+  kind: action
+  name: Z4 Department Conversation
+  category: "Services"
+  description: "Inter-agent conversation log for a department within a session. [feature_flag_required: z4_observability_tool_tracker_enabled]"
+  source_module: bridge.observability.api_routes
+  schema_ref: "list[dict] — from_agent, to_agent, message, ts"
+  method: GET
+  path: /api/z4/sessions/{sid}/departments/{dept}/conversation
+  auth: bearer
+  access_method: rest
+
+z4_session_tools_get:
+  kind: action
+  name: Z4 Agent Tool Calls
+  category: "Services"
+  description: "Per-agent tool-call trace within a session/department. [feature_flag_required: z4_observability_tool_tracker_enabled]"
+  source_module: bridge.observability.api_routes
+  schema_ref: "list[dict] — tool, args_digest, duration_ms, ts"
+  method: GET
+  path: /api/z4/sessions/{sid}/departments/{dept}/tools/{agent}
+  auth: bearer
+  access_method: rest
+
+z4_departments_get:
+  kind: action
+  name: Z4 Departments List
+  category: "Services"
+  description: "Lists all Zone 4 departments with their health state. [feature_flag_required: z4_observability_tool_tracker_enabled]"
+  source_module: bridge.observability.api_routes
+  schema_ref: "list[dict] — name, chief, specialists"
+  method: GET
+  path: /api/z4/departments
+  auth: bearer
+  access_method: rest
+
+z4_department_health_get:
+  kind: action
+  name: Z4 Department Health
+  category: "Services"
+  description: "Health check for a specific Zone 4 department. [feature_flag_required: z4_observability_tool_tracker_enabled]"
+  source_module: bridge.observability.api_routes
+  schema_ref: "dict — name, status, last_task_at"
+  method: GET
+  path: /api/z4/departments/{dept}/health
+  auth: bearer
+  access_method: rest
+
+z4_agents_get:
+  kind: action
+  name: Z4 Agents List
+  category: "Services"
+  description: "Lists all Zone 4 agents across departments. [feature_flag_required: z4_observability_tool_tracker_enabled]"
+  source_module: bridge.observability.api_routes
+  schema_ref: "list[dict] — name, department, role"
+  method: GET
+  path: /api/z4/agents
+  auth: bearer
+  access_method: rest
+
+z4_agent_expertise_get:
+  kind: action
+  name: Z4 Agent Expertise
+  category: "Services"
+  description: "Returns the expertise file content for a named Zone 4 agent. [feature_flag_required: z4_observability_tool_tracker_enabled]"
+  source_module: bridge.observability.api_routes
+  schema_ref: "dict — agent, content"
+  method: GET
+  path: /api/z4/agents/{name}/expertise
+  auth: bearer
+  access_method: rest
+
+z4_board_briefs_get:
+  kind: action
+  name: Z4 Strategy Board Briefs
+  category: "Services"
+  description: "Lists strategy board briefs for deliberation input. [feature_flag_required: z4_observability_tool_tracker_enabled]"
+  source_module: bridge.observability.api_routes
+  schema_ref: "list[dict] — brief_id, summary, created_at"
+  method: GET
+  path: /api/z4/board/briefs
+  auth: bearer
+  access_method: rest
+
+z4_board_memos_get:
+  kind: action
+  name: Z4 Strategy Board Memos
+  category: "Services"
+  description: "Lists strategy board memos from deliberation output. [feature_flag_required: z4_observability_tool_tracker_enabled]"
+  source_module: bridge.observability.api_routes
+  schema_ref: "list[dict] — memo_id, content, created_at"
+  method: GET
+  path: /api/z4/board/memos
+  auth: bearer
+  access_method: rest
+
+z4_metrics_cost_daily_get:
+  kind: action
+  name: Z4 Daily Cost Metrics
+  category: "Services"
+  description: "Daily Zone 4 cost metrics by department. [feature_flag_required: z4_observability_tool_tracker_enabled]"
+  source_module: bridge.observability.api_routes
+  schema_ref: "dict — date, by_department, total_usd"
+  method: GET
+  path: /api/z4/metrics/cost/daily
+  auth: bearer
+  access_method: rest
+
+z4_metrics_agents_get:
+  kind: action
+  name: Z4 Agent Metrics
+  category: "Services"
+  description: "Per-agent Zone 4 metrics (invocations, cost, tool calls). [feature_flag_required: z4_observability_tool_tracker_enabled]"
+  source_module: bridge.observability.api_routes
+  schema_ref: "dict — agent → {invocations, cost_usd, tool_calls}"
+  method: GET
+  path: /api/z4/metrics/agents
+  auth: bearer
+  access_method: rest
+
+z4_metrics_violations_get:
+  kind: action
+  name: Z4 Violations Metrics
+  category: "Services"
+  description: "Domain-lock and guardrail violation counts. [feature_flag_required: z4_observability_tool_tracker_enabled]"
+  source_module: bridge.observability.api_routes
+  schema_ref: "dict — domain_lock, guardrail, total"
+  method: GET
+  path: /api/z4/metrics/violations
+  auth: bearer
+  access_method: rest

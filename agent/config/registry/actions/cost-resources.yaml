@@ -1,0 +1,25 @@
+# Cost & Resources actions — cost breakdown, trust, escalation management.
+
+cost_get:
+  kind: action
+  name: Cost Summary
+  category: "Cost & Resources"
+  description: Returns daily + weekly cost breakdown across models in USD.
+  source_module: bridge.api_server
+  schema_ref: bridge.cost_tracker.CostSummary
+  method: GET
+  path: /api/cost
+  auth: bearer
+  access_method: rest
+
+trust_get:
+  kind: action
+  name: Trust Scores
+  category: "Cost & Resources"
+  description: Returns per-capability trust scores (0-100) used for autonomy gating.
+  source_module: bridge.api_server
+  schema_ref: "dict — capability → score"
+  method: GET
+  path: /api/trust
+  auth: bearer
+  access_method: rest

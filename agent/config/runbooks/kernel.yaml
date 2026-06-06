@@ -1,0 +1,27 @@
+id: kernel-integrity-mismatch
+name: Kernel File Integrity Violation
+trigger:
+  or:
+    - "status == unhealthy"
+symptoms:
+  - SHA-256 hash mismatch on protected kernel files
+  - Halt flag set automatically
+  - Bridge enters halted state
+steps:
+  - id: check_halt_flag
+    check: "Is halt flag set?"
+    command: "test -f /opt/bumba-harness/data/halt.flag && echo 'HALT FLAG SET' || echo OK"
+    on_pass: "No halt flag"
+    on_fail: "Halt flag is active"
+  - id: check_baseline_exists
+    check: "Does kernel baseline exist?"
+    command: "test -f /opt/bumba-harness/data/kernel-baseline.json && echo OK || echo FAIL"
+    on_pass: "Baseline file exists"
+    on_fail: "Baseline file missing — was it deployed correctly?"
+  - id: check_changed_files
+    check: "Which files have changed?"
+    command: "cd /opt/bumba-harness/agent-flat/agent && git status --short 2>/dev/null | head -10 || echo 'Not a git repo'"
+    on_pass: "File status retrieved"
+    on_fail: "Cannot determine file changes"
+resolution: "If changes are legitimate (deploy in progress), regenerate baseline and clear halt flag. If unauthorized, investigate."
+escalation: "L3 (operator) — potential security issue"

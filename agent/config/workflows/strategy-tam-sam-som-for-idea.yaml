@@ -1,0 +1,178 @@
+name: strategy.tam_sam_som_for_idea
+trigger: explicit
+schedule: null
+budget:
+  max_cost_usd: 2.0
+  max_duration_seconds: 1200
+# Sprint 5s.05 (#2186). TAM / SAM / SOM market-sizing canvas applied
+# to a new product idea. Paired with two output bars:
+#
+# strategy-market-researcher: sources per claim, sizing math
+# transparent, assumptions explicit. No "industry experts estimate"
+# without naming the source; every number traceable.
+#
+# strategy-business-analyst: sensitivity ranges on every projection
+# (low/mid/high), explicit assumption-to-conclusion chain, calls out
+# load-bearing assumptions where a small input change swings the
+# output meaningfully.
+#
+# Two-specialist co-authoring: market-researcher carries the external
+# evidence (sources, comparables, market growth); business-analyst
+# carries the math (segment math, conversion assumptions, sensitivity
+# ranges). The merge step reconciles the two and produces the
+# structured doc the operator can paste into a memo or PRD.
+#
+# Budget $2 — sourcing can drive cost (web search rounds); cap holds
+# it bounded.
+steps:
+  - name: frame-the-idea
+    department: strategy
+    intent: >
+      Take the product-idea input and crisp it up for sizing. Output:
+
+      ## Idea in one sentence
+      What the product is, who it's for, the job it does. If the
+      input is vague, narrow it to the most likely interpretation and
+      flag the narrowing under Open questions.
+
+      ## Target buyer
+      Who would actually pay — by segment (industry, role, company
+      size, geography as relevant). Be specific; "businesses" is not
+      a segment.
+
+      ## Pricing hypothesis
+      Best current guess at price per unit and per period (e.g.
+      $X/user/month, $Y/transaction). This is the multiplicand in
+      every revenue calculation downstream — get it concrete even
+      if speculative; flag it as a hypothesis.
+
+      ## Open questions
+      Anything ambiguous about the idea itself that, if answered
+      differently, would change the sizing materially.
+
+      Skip a heading entirely if not applicable; do not pad.
+    outputs: [idea_frame]
+    on_failure: [publish-failure-notice]
+
+  - name: research-market-evidence
+    department: strategy
+    intent: >
+      Gather the external evidence base per the
+      strategy-market-researcher output bar. Use the idea frame below
+      as ground truth.
+
+      ## Total addressable population
+      How many entities (companies, users, transactions — pick the
+      unit that matches the pricing hypothesis) fit the buyer
+      definition globally? Cite a named source for each number.
+      Acceptable sources: government statistics, trade-body counts,
+      reputable industry reports, public filings, observed platform
+      counts. "Industry estimates" without a name is not acceptable.
+
+      ## Market growth signal
+      Year-over-year growth rate for the relevant segment, with
+      source. If the segment is too narrow to find a direct number,
+      use a defensible proxy and name it.
+
+      ## Comparable products
+      Two to four existing products serving adjacent or overlapping
+      buyers. For each: rough revenue scale (with source) and what
+      we can infer about realistic penetration rates from them.
+
+      ## Source confidence
+      Flag any source that is older than 24 months, regional only,
+      or based on a small sample. The downstream sizing math will
+      lean on these — the operator needs to know which numbers are
+      load-bearing-but-shaky.
+
+      Idea frame:
+      {idea_frame}
+    inputs: [idea_frame]
+    outputs: [market_evidence]
+    on_failure: [publish-failure-notice]
+
+  - name: size-the-market
+    department: strategy
+    intent: >
+      Run the TAM / SAM / SOM canvas per the strategy-business-analyst
+      output bar. Use the idea frame and market evidence below as
+      ground truth; do not invent new sources.
+
+      ## TAM — Total Addressable Market
+      Total addressable population × pricing-per-period × periods/year.
+      Show the math inline. Three values: low / mid / high based on
+      the source-confidence flags. Name the assumption that drives the
+      spread.
+
+      ## SAM — Serviceable Available Market
+      TAM × (fraction the product can realistically serve given
+      geography, language, regulatory constraints, technical fit).
+      Show the multiplier and justify it.
+
+      ## SOM — Serviceable Obtainable Market
+      SAM × (realistic share over a defined time-window, e.g. years
+      1–3). Anchor the share assumption to a comparable from the
+      evidence base — "we can capture 5% because <named comparable>
+      reached 8% over <timeframe>" is acceptable; "5% feels
+      reasonable" is not.
+
+      ## Load-bearing assumptions
+      List the two to four assumptions where a small change in input
+      moves the output meaningfully. For each, show what the SOM
+      becomes at +/- 50%. This is the sensitivity table.
+
+      ## Honest verdict
+      One paragraph: is this idea big enough to pursue? Frame the
+      decision in terms of the operator's threshold (what SOM-floor
+      would make this a yes; what would make it a no). If the math
+      says "too small," say so — do not euphemise.
+
+      Idea frame:
+      {idea_frame}
+
+      Market evidence:
+      {market_evidence}
+    inputs: [idea_frame, market_evidence]
+    outputs: [sizing_canvas]
+    on_failure: [publish-failure-notice]
+
+  - name: assemble-canvas
+    department: strategy
+    intent: >
+      Merge the three inputs into one durable market-sizing document.
+      Header:
+
+      # Market sizing: <idea title>
+      _Authored <YYYY-MM-DD> via strategy.tam_sam_som_for_idea workflow_
+
+      ## Idea
+      {idea_frame}
+
+      ## Market evidence
+      {market_evidence}
+
+      ## Sizing canvas
+      {sizing_canvas}
+
+      Do not re-write the inputs — concatenate cleanly. If there is a
+      contradiction between the market evidence and the sizing canvas
+      (e.g. sizing references a number not in the evidence section),
+      surface it at the top of the doc under a one-line "Reconciliation
+      needed" note rather than silently editing either input.
+    inputs: [idea_frame, market_evidence, sizing_canvas]
+    outputs: [final_canvas]
+    on_failure: [publish-failure-notice]
+
+  - name: publish-canvas
+    action: publish_discord
+    channel: operator
+    message: "# TAM / SAM / SOM ready\n\n{final_canvas}"
+
+  - name: publish-failure-notice
+    action: publish_discord
+    channel: operator
+    message: >
+      strategy.tam_sam_som_for_idea workflow failed before producing a
+      sizing canvas. Partial outputs (idea_frame, market_evidence,
+      sizing_canvas if reached) are preserved in the workflow context
+      for re-run.

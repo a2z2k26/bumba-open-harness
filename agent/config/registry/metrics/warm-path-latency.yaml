@@ -1,0 +1,29 @@
+# Warm-path latency metrics — P6.4 (#1599).
+#
+# Two histograms observed inside BridgeApp._invoke_claude when the warm
+# Claude subprocess path is taken (haiku/sonnet, warm process alive). The
+# operator can compare these against pre-P1.4 baselines to verify whether
+# narrowing the warm MCP config improved spawn cost.
+#
+# Recorded via MetricsCollector.observe() on each invocation; flushed to
+# data/metrics.jsonl every 300s. Read via GET /api/metrics/{name}.
+
+warm_path_enqueue_to_start_seconds:
+  kind: metric
+  name: Warm-path Enqueue-to-Start Latency (seconds)
+  category: "Health & Status"
+  description: Wall-clock seconds from message dequeue (MessageContext.msg_start) to the moment BridgeApp is about to call WarmClaudeProcess.send_message. Captures per-message bridge overhead before the warm subprocess handoff. One sample per warm-path invocation.
+  source_module: bridge.app
+  schema_ref: "float — histogram-shaped, seconds"
+  metric_name: warm_path.enqueue_to_start_seconds
+  access_method: "pull:/api/metrics/{name}"
+
+warm_path_total_seconds:
+  kind: metric
+  name: Warm-path Total Latency (seconds)
+  category: "Health & Status"
+  description: Wall-clock seconds for the full WarmClaudeProcess.send_message call. Includes round-trip to the warm subprocess and any streamed output time. One sample per warm-path invocation.
+  source_module: bridge.app
+  schema_ref: "float — histogram-shaped, seconds"
+  metric_name: warm_path.total_seconds
+  access_method: "pull:/api/metrics/{name}"

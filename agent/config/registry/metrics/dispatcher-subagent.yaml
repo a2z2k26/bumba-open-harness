@@ -1,0 +1,50 @@
+# Dispatcher SubagentExecutor lifecycle counters (Sprint D-R3, #1933).
+#
+# Three counters surface every WorkOrder outcome at the SubagentExecutor
+# boundary: timeout (asyncio.wait_for fired), success (clean completion
+# with VERIFYING transition), and error (exception or result.is_error).
+# Operator queries via /api/metrics/{name}; observers correlate by intent
+# + env labels to identify which Z4 chief routes are degraded.
+
+dispatcher_subagent_timeout:
+  kind: metric
+  name: Dispatcher SubagentExecutor Timeout
+  category: "Agents"
+  description: |
+    Count of WorkOrder executions that hit ``asyncio.wait_for`` timeout
+    in SubagentExecutor. Labels: intent, env.
+  source_module: bridge.dispatcher
+  schema_ref: "int — cumulative counter, labels: intent, env"
+  metric_name: dispatcher.subagent.timeout
+  access_method: "pull:/api/metrics/{name}"
+  introduced: "2026-05-14"
+  sprint: "D-R3"
+
+dispatcher_subagent_success:
+  kind: metric
+  name: Dispatcher SubagentExecutor Success
+  category: "Agents"
+  description: |
+    Count of WorkOrder executions that completed successfully in
+    SubagentExecutor (EXECUTING → VERIFYING). Labels: intent, env.
+  source_module: bridge.dispatcher
+  schema_ref: "int — cumulative counter, labels: intent, env"
+  metric_name: dispatcher.subagent.success
+  access_method: "pull:/api/metrics/{name}"
+  introduced: "2026-05-14"
+  sprint: "D-R3"
+
+dispatcher_subagent_error:
+  kind: metric
+  name: Dispatcher SubagentExecutor Error
+  category: "Agents"
+  description: |
+    Count of WorkOrder executions that failed in SubagentExecutor with a
+    non-timeout error (exception during execute, or result.is_error).
+    Labels: intent, env, error_type.
+  source_module: bridge.dispatcher
+  schema_ref: "int — cumulative counter, labels: intent, env, error_type"
+  metric_name: dispatcher.subagent.error
+  access_method: "pull:/api/metrics/{name}"
+  introduced: "2026-05-14"
+  sprint: "D-R3"

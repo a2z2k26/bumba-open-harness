@@ -1,0 +1,46 @@
+name: weekly-ceo-review
+trigger: schedule
+schedule: "cron:0 8 * * 1"  # Monday 08:00 UTC
+budget:
+  max_cost_usd: 3.0
+  max_duration_seconds: 600
+steps:
+  - name: gather-strategy-signals
+    department: strategy
+    intent: "Pull this week's competitive signals, product metrics, and strategic decisions. Summarise in bullet form."
+    outputs: [strategy_signals]
+
+  - name: check-ops-health
+    department: ops
+    intent: "Summarise service health, uptime, incident count, and key alerts for the past week."
+    outputs: [ops_health]
+    parallel_with: gather-strategy-signals
+
+  - name: board-synthesize
+    department: board
+    intent: >
+      Synthesize a Weekly CEO Review from the following inputs.
+
+      Strategy signals:
+      {strategy_signals}
+
+      Ops health:
+      {ops_health}
+
+      Format your response as:
+      ## What's Working
+      ## What's Next
+      ## Risks to Watch
+    inputs: [strategy_signals, ops_health]
+    outputs: [digest]
+    on_failure: [publish-failure-notice]
+
+  - name: publish-digest
+    action: publish_discord
+    channel: operator
+    message: "# Weekly CEO Review\n\n{digest}"
+
+  - name: publish-failure-notice
+    action: publish_discord
+    channel: operator
+    message: "Weekly CEO Review workflow failed during synthesis. Check logs."

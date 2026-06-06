@@ -1,0 +1,224 @@
+# Work & Progress actions — task pipeline, WorkOrder API, WebSocket workorder stream.
+
+tasks_list_get:
+  kind: action
+  name: List Tasks
+  category: "Work & Progress"
+  description: Returns all tasks in the Kanban pipeline across all states.
+  source_module: bridge.api_server
+  schema_ref: bridge.task_pipeline.Task
+  method: GET
+  path: /api/tasks
+  auth: bearer
+  access_method: rest
+
+task_get:
+  kind: action
+  name: Get Task by ID
+  category: "Work & Progress"
+  description: Returns a single task record with full state and audit history.
+  source_module: bridge.api_server
+  schema_ref: bridge.task_pipeline.Task
+  method: GET
+  path: /api/tasks/{task_id}
+  auth: bearer
+  access_method: rest
+
+task_create_post:
+  kind: action
+  name: Create Task
+  category: "Work & Progress"
+  description: Creates a new task in the inbox pipeline stage.
+  source_module: bridge.api_server
+  schema_ref: bridge.task_pipeline.Task
+  method: POST
+  path: /api/tasks
+  auth: bearer
+  access_method: rest
+
+task_status_put:
+  kind: action
+  name: Move Task to Status
+  category: "Work & Progress"
+  description: Transitions a task to a new pipeline state (inbox → assigned → in_progress → review → quality_review → done / failed).
+  source_module: bridge.api_server
+  schema_ref: "dict — task_id, new_status"
+  method: PUT
+  path: /api/tasks/{task_id}/status
+  auth: bearer
+  access_method: rest
+
+task_move_put:
+  kind: action
+  name: Move Task (alias)
+  category: "Work & Progress"
+  description: Alias of PUT /api/tasks/{task_id}/status for backward compatibility.
+  source_module: bridge.api_server
+  schema_ref: "dict — task_id, new_status"
+  method: PUT
+  path: /api/tasks/{task_id}/move
+  auth: bearer
+  access_method: rest
+
+task_assign_put:
+  kind: action
+  name: Assign Task to Agent
+  category: "Work & Progress"
+  description: Assigns a task to a specific agent ID for execution.
+  source_module: bridge.api_server
+  schema_ref: "dict — task_id, agent_id"
+  method: PUT
+  path: /api/tasks/{task_id}/assign
+  auth: bearer
+  access_method: rest
+
+workorder_create_post:
+  kind: action
+  name: Create WorkOrder
+  category: "Work & Progress"
+  description: |
+    Creates a new WorkOrder from an external spec. Triggers the Zone 3
+    dispatch pipeline. Z4-S23 (#1396) extension — when the request body
+    includes a ``department`` (alias ``department_hint``) field OR when
+    ``chief_dispatcher_enabled=true`` AND a ChiefDispatcher is wired,
+    the WorkOrder is routed through the chief-session dispatcher and
+    the response carries ``chief_session_id``.
+  source_module: bridge.api_server
+  schema_ref: bridge.work_order.WorkOrder
+  method: POST
+  path: /api/workorders
+  auth: bearer
+  access_method: rest
+
+workorder_get:
+  kind: action
+  name: Get WorkOrder
+  category: "Work & Progress"
+  description: Returns current state and audit history for a WorkOrder.
+  source_module: bridge.api_server
+  schema_ref: bridge.work_order.WorkOrder
+  method: GET
+  path: /api/workorders/{wo_id}
+  auth: bearer
+  access_method: rest
+
+ws_workorder_stream:
+  kind: action
+  name: WorkOrder State Stream
+  category: "Work & Progress"
+  description: Streams WorkOrder state transitions via WebSocket for a given WorkOrder ID. Registered via aiohttp `add_get` (HTTP GET upgrade handshake) — P5.5 / #1736 aligned `method` to the HTTP verb the gate sees.
+  source_module: bridge.api.routes_workorders
+  schema_ref: bridge.work_order.WorkOrder
+  method: GET
+  path: /ws/workorders/{wo_id}
+  auth: bearer
+  access_method: ws
+
+executor_status_get:
+  kind: action
+  name: Executor Status
+  category: "Work & Progress"
+  description: Returns per-executor activation status and routability for WorkOrder assignment lanes.
+  source_module: bridge.api.routes_workorders
+  schema_ref: "dict — executors: name -> {status, routable}"
+  method: GET
+  path: /api/executors/status
+  auth: bearer
+  access_method: rest
+
+webhooks_github_post:
+  kind: action
+  name: GitHub Webhook Receiver
+  category: "Work & Progress"
+  description: Receives GitHub webhook events with HMAC-SHA256 signature verification.
+  source_module: bridge.webhook_receiver
+  schema_ref: "GitHub webhook payload"
+  method: POST
+  path: /api/webhooks/github
+  auth: none
+  access_method: rest
+
+webhooks_calcom_post:
+  kind: action
+  name: Cal.com Webhook Receiver
+  category: "Work & Progress"
+  description: Receives Cal.com booking webhook events, deduplicates, publishes to EventBus (Z2-S4.1).
+  source_module: bridge.calcom_webhook
+  schema_ref: "Cal.com booking event payload"
+  method: POST
+  path: /api/webhooks/calcom
+  auth: none
+  access_method: rest
+
+vapi_voice_webhook_post:
+  kind: action
+  name: VAPI Voice Webhook Receiver
+  category: "Work & Progress"
+  description: Receives VAPI inbound webhook events (assistant-request, function-call, status-update, end-of-call-report, hang, transcript). Dispatches to VAPIClient.handle_webhook (D1.7b). P2.3 (#1578, audit C8) added X-VAPI-SECRET header verification via secrets.compare_digest; missing/wrong secret returns 401.
+  source_module: bridge.vapi_client
+  schema_ref: "VAPI webhook event payload"
+  method: POST
+  path: /api/v1/voice/webhook
+  auth: none
+  access_method: rest
+
+# Workflow run status + control surface (WS3.5, #2570).
+workflows_list_get:
+  kind: action
+  name: List Workflow Definitions
+  category: "Work & Progress"
+  description: Returns summary info for all loaded workflow definitions (name, trigger, steps, budget, last run).
+  source_module: bridge.api.routes_workflows
+  schema_ref: "WorkflowRegistry.list() entries"
+  method: GET
+  path: /api/workflows
+  auth: bearer
+  access_method: rest
+
+workflow_start_post:
+  kind: action
+  name: Start Workflow
+  category: "Work & Progress"
+  description: "Triggers a workflow by name with optional inputs. Returns {run_id}; 503 when no engine is attached so a null run is never reported as success."
+  source_module: bridge.api.routes_workflows
+  schema_ref: "{run_id: str}"
+  method: POST
+  path: /api/workflows/{name}/start
+  auth: bearer
+  access_method: rest
+
+workflow_runs_list_get:
+  kind: action
+  name: List Workflow Runs
+  category: "Work & Progress"
+  description: Returns the most recent workflow runs across all workflows (durable, restart-safe). Optional status query narrows to one status.
+  source_module: bridge.api.routes_workflows
+  schema_ref: "list[WorkflowRun]"
+  method: GET
+  path: /api/workflows/runs
+  auth: bearer
+  access_method: rest
+
+workflow_run_get:
+  kind: action
+  name: Get Workflow Run
+  category: "Work & Progress"
+  description: Returns a single workflow run — live in-memory engine state when present, else the persisted store row (restart fallback). 404 when both miss.
+  source_module: bridge.api.routes_workflows
+  schema_ref: "WorkflowRunState | WorkflowRun"
+  method: GET
+  path: /api/workflows/runs/{run_id}
+  auth: bearer
+  access_method: rest
+
+workflow_run_cancel_post:
+  kind: action
+  name: Cancel Workflow Run
+  category: "Work & Progress"
+  description: "Cancels an active workflow run via the engine. Returns {cancelled: bool}; 503 when no engine is attached."
+  source_module: bridge.api.routes_workflows
+  schema_ref: "{cancelled: bool, run_id: str}"
+  method: POST
+  path: /api/workflows/runs/{run_id}/cancel
+  auth: bearer
+  access_method: rest

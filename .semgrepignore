@@ -1,0 +1,5 @@
+# Vendored Claude Code files are operator payloads, not bridge runtime code.
+agent/config/claude-files/
+
+# Templates with Jinja placeholders are not parseable Python/TOML.
+agent/config/claude-files/templates/

@@ -1,0 +1,14 @@
+{
+  "name": "bumba-nlp-design",
+  "version": "1.0.0",
+  "description": "Generate Design Bridge components from natural language descriptions with bold creative vision and automatic registry integration",
+  "author": {
+    "name": "Bumba Design Bridge"
+  },
+  "license": "MIT",
+  "keywords": ["design", "nlp", "generation", "components", "design-bridge", "natural-language", "creative"],
+  "skills": ["skills/bumba-nlp-design/SKILL.md"],
+  "dependencies": {
+    "required": [".design/"]
+  }
+}

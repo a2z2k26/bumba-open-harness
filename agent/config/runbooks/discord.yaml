@@ -1,0 +1,26 @@
+id: discord-disconnected
+name: Discord Gateway Disconnected
+trigger:
+  condition: "components.discord.status == down"
+symptoms:
+  - Bot shows offline in Discord
+  - No messages being received
+  - discord.py logs reconnection attempts
+steps:
+  - id: check_token
+    check: "Is Discord token in .secrets?"
+    command: "grep -c 'discord_token=.' /opt/bumba-harness/data/.secrets 2>/dev/null || echo 0"
+    on_pass: "Token present"
+    on_fail: "Discord token missing from .secrets"
+  - id: check_network
+    check: "Can reach Discord API?"
+    command: "curl -s -o /dev/null -w '%{http_code}' --max-time 5 https://discord.com/api/v10/gateway"
+    on_pass: "Discord API reachable"
+    on_fail: "Network issue — cannot reach Discord"
+  - id: check_bot_process
+    check: "Is bridge process running?"
+    command: "cat /opt/bumba-harness/data/bridge.pid 2>/dev/null && ps -p $(cat /opt/bumba-harness/data/bridge.pid 2>/dev/null) > /dev/null 2>&1 && echo OK || echo FAIL"
+    on_pass: "Bridge process running"
+    on_fail: "Bridge process not found — may need restart"
+resolution: "discord.py has auto-reconnect. If persistent, restart bridge via launchctl."
+escalation: "L2 (Discord alert) if offline > 10 minutes"

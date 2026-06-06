@@ -1,0 +1,92 @@
+name: qa.security_review_pre_release
+trigger: explicit
+budget:
+  max_cost_usd: 2.00
+  max_duration_seconds: 900
+# 1112 Sprint 5q.04 — Zone 4 QA Layer 2 workflow paired with the
+# qa-security-auditor specialist output bar
+# (agent/config/agents/zone4/qa/output-bars/qa-security-auditor.md).
+#
+# Purpose: operator-invoked at release time. qa-security-auditor runs
+# OWASP Top 10 + Bumba-specific security checks against a release
+# candidate (PR ready to merge, branch ready to deploy, or shipped
+# artifact under post-mortem) and produces an EXPLICIT RELEASE-GATE
+# VERDICT: pass / pass-with-findings / BLOCK.
+#
+# The release-gate verdict is the load-bearing output. If verdict == BLOCK,
+# the operator must address critical findings BEFORE merging/deploying.
+#
+# Bar enforcement (from qa-security-auditor.md):
+#   - Every OWASP Top 10 category explicitly evaluated
+#   - Bumba-specific checks: secrets-in-code grep, halt-respect
+#     verification, auth-boundary checks at every new endpoint, kernel
+#     integrity, MCP scope
+#   - Critical findings BLOCK release (load-bearing rule)
+#   - Findings tie to CWE where applicable
+#   - Remediations cite specific files + lines, not abstractions
+#   - Verdict matches finding severity (3 criticals + "pass" verdict = corruption)
+#
+# Flat layout per workflow_registry.py:63 glob.
+steps:
+  - name: scope-release-candidate
+    department: qa
+    intent: >
+      Identify the release candidate precisely: what PR/branch/commit
+      is the target, what's the deploy-readiness context, what surfaces
+      are in scope. State explicitly what is OUT of scope.
+    outputs: ["candidate_scope"]
+
+  - name: owasp-top10-evaluation
+    department: qa
+    inputs: ["candidate_scope"]
+    intent: >
+      Walk every OWASP Top 10 category against the candidate. Per
+      category record: relevant + finding | relevant + clean | not-applicable
+      + rationale. No silent skips. Findings tie to CWE where applicable.
+    outputs: ["owasp_findings"]
+
+  - name: bumba-specific-security-checks
+    department: qa
+    inputs: ["candidate_scope"]
+    intent: >
+      Run Bumba-specific security checks:
+        - secrets-in-code grep: `grep -rE "(api[_-]?key|password|secret|token|bearer)\\s*=\\s*['\"]"` against the diff
+        - halt-flag respect at all claude_runner.invoke callers
+        - auth-boundary checks at every NEW endpoint (cite auth middleware by module:line)
+        - kernel integrity (any change to data/kernel-baseline.json)
+        - MCP scope (any new MCP server in .mcp.json)
+      Cite specific findings; never wave-through.
+    outputs: ["bumba_security_findings"]
+
+  - name: severity-bucket
+    department: qa
+    inputs: ["owasp_findings", "bumba_security_findings"]
+    intent: >
+      Bucket each finding by severity (critical / high / medium / low)
+      + CWE if applicable + reproduction + remediation that cites
+      specific files+lines. NEVER deflate criticals to high to avoid
+      blocking; NEVER inflate criticals to wave-everything-through.
+    outputs: ["bucketed_findings"]
+
+  - name: release-gate-verdict
+    department: qa
+    inputs: ["bucketed_findings"]
+    intent: >
+      Produce the EXPLICIT release-gate verdict:
+        - pass:               zero critical findings, zero high findings
+        - pass-with-findings: zero critical, ≥1 high/medium/low
+        - BLOCK:              ≥1 critical finding present
+      Verdict MUST match finding severity. 3 criticals + "pass" = corruption.
+      Report the verdict explicitly in machine-readable form.
+    outputs: ["verdict"]
+
+  - name: synthesize-report
+    department: qa
+    inputs: ["candidate_scope", "owasp_findings", "bumba_security_findings", "bucketed_findings", "verdict"]
+    intent: >
+      Produce the report at docs/qa/<date>-security-review-<target>.md
+      with all 5 required sections per qa-security-auditor output bar:
+      target description, OWASP Top 10 coverage, Bumba-specific checks,
+      finding inventory, release-gate verdict. Plus Discord summary with
+      EXPLICIT verdict (pass / pass-with-findings / BLOCK).
+    outputs: ["report_path", "discord_summary"]

@@ -1,0 +1,80 @@
+{
+  "version": "1.0.0",
+  "generated": "2025-11-20T00:00:00.000Z",
+  "projectPath": "./example-project",
+  "framework": "react",
+  "components": {
+    "Button": {
+      "name": "Button",
+      "path": ".design/extracted-code/react/components/Button",
+      "absolutePath": "./example-project/.design/extracted-code/react/components/Button",
+      "category": "form",
+      "description": "Primary button component with multiple variants",
+      "tags": ["button", "cta", "interactive"],
+      "searchTerms": ["button", "click", "cta", "call", "action", "submit", "primary"],
+      "props": [
+        { "name": "label", "type": "string", "required": true },
+        { "name": "onClick", "type": "function", "required": true },
+        { "name": "variant", "type": "primary | secondary", "required": false }
+      ],
+      "hasStory": true,
+      "hasTests": false,
+      "figmaNodeId": "123:456",
+      "figmaUrl": "https://figma.com/file/...",
+      "score": 100
+    },
+    "Input": {
+      "name": "Input",
+      "path": ".design/extracted-code/react/components/Input",
+      "absolutePath": "./example-project/.design/extracted-code/react/components/Input",
+      "category": "form",
+      "description": "Text input field with validation",
+      "tags": ["input", "text", "form"],
+      "searchTerms": ["input", "text", "field", "form", "entry"],
+      "props": [
+        { "name": "value", "type": "string", "required": true },
+        { "name": "onChange", "type": "function", "required": true },
+        { "name": "placeholder", "type": "string", "required": false }
+      ],
+      "hasStory": true,
+      "hasTests": true,
+      "score": 90
+    }
+  },
+  "tokens": {
+    "primary": {
+      "name": "primary",
+      "value": "#3B82F6",
+      "type": "color",
+      "path": ".design/tokens/colors.json",
+      "searchTerms": ["primary", "blue", "brand"],
+      "usedInComponents": ["Button", "Link", "Badge"]
+    },
+    "heading": {
+      "name": "heading",
+      "value": {
+        "fontSize": "24px",
+        "fontWeight": "600",
+        "lineHeight": "1.2"
+      },
+      "type": "typography",
+      "path": ".design/tokens/typography.json",
+      "searchTerms": ["heading", "title", "h1"],
+      "usedInComponents": ["Card", "Modal"]
+    }
+  },
+  "categories": {
+    "form": ["Button", "Input", "Checkbox"],
+    "layout": ["Container", "Grid"],
+    "navigation": ["Link", "NavBar"],
+    "data-display": ["Table", "Card"],
+    "feedback": ["Alert", "Toast"],
+    "overlay": ["Modal", "Popover"]
+  },
+  "statistics": {
+    "totalComponents": 15,
+    "totalTokens": 42,
+    "categorized": 15,
+    "uncategorized": 0
+  }
+}

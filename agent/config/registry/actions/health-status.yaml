@@ -1,0 +1,73 @@
+# Health & Status actions — health endpoint, heartbeat, services, metrics, traces.
+
+healthz_get:
+  kind: action
+  name: Health Check
+  category: "Health & Status"
+  description: Returns overall bridge health status. No auth required.
+  source_module: bridge.api_server
+  schema_ref: "dict — status, version, uptime_seconds, components, timestamp"
+  method: GET
+  path: /healthz
+  auth: none
+  access_method: rest
+
+heartbeat_status_get:
+  kind: action
+  name: Heartbeat Status
+  category: "Health & Status"
+  description: Dead-man's switch heartbeat status (Sprint 07.09 — uptime monitor integration).
+  source_module: bridge.api_server
+  schema_ref: "dict — last_ping, ping_url_configured, status"
+  method: GET
+  path: /api/heartbeat/status
+  auth: bearer
+  access_method: rest
+
+metrics_get:
+  kind: action
+  name: Get Metric by Name
+  category: "Health & Status"
+  description: Returns recorded metric data for the given metric name.
+  source_module: bridge.api_server
+  schema_ref: "dict — name, records, baseline"
+  method: GET
+  path: /api/metrics/{name}
+  auth: bearer
+  access_method: rest
+
+traces_get:
+  kind: action
+  name: Get Recent Traces
+  category: "Health & Status"
+  description: Returns recent request span timing records.
+  source_module: bridge.api_server
+  schema_ref: "list[dict] — span_id, duration_ms, tags"
+  method: GET
+  path: /api/traces
+  auth: bearer
+  access_method: rest
+
+services_get:
+  kind: action
+  name: Get Service States
+  category: "Health & Status"
+  description: Returns launchd service states for all registered scheduled services.
+  source_module: bridge.api_server
+  schema_ref: "dict — service_name → {status, last_run, plist}"
+  method: GET
+  path: /api/services
+  auth: bearer
+  access_method: rest
+
+api_index_get:
+  kind: action
+  name: API Endpoint Index
+  category: "Health & Status"
+  description: Introspective listing of all registered API endpoints (Sprint 07.02).
+  source_module: bridge.api_server
+  schema_ref: "dict — path → description"
+  method: GET
+  path: /api
+  auth: bearer
+  access_method: rest

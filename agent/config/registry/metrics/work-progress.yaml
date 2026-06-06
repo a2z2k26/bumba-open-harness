@@ -1,0 +1,31 @@
+# Work & Progress metrics — Zone 3 dispatcher and executor counters from z3_metrics.py.
+
+z3_dispatch_fallthrough:
+  kind: metric
+  name: Z3 Dispatch Fallthrough
+  category: "Work & Progress"
+  description: Labeled counter for WorkOrder dispatch fallthroughs with reason label. Incremented when dispatcher cannot route to any executor.
+  source_module: bridge.z3_metrics
+  schema_ref: "labeled counter — reason: str"
+  metric_name: z3.dispatch.fallthrough_total
+  access_method: "pull:/api/metrics/{name}"
+
+z3_routing_brain_cache:
+  kind: metric
+  name: Z3 Routing Brain Cache
+  category: "Work & Progress"
+  description: Labeled counter for routing brain LRU cache hits/misses. Labels (result=hit|miss).
+  source_module: bridge.z3_metrics
+  schema_ref: "labeled counter — result: hit|miss"
+  metric_name: z3.routing_brain.cache
+  access_method: "pull:/api/metrics/{name}"
+
+z3_env_selector_skew:
+  kind: metric
+  name: Z3 Environment Selector Skew
+  category: "Work & Progress"
+  description: Labeled counter for EnvironmentSelector anti-default-gravity skew events. Labels (env=env_value).
+  source_module: bridge.z3_metrics
+  schema_ref: "labeled counter — env: str"
+  metric_name: z3.env_selector.skew
+  access_method: "pull:/api/metrics/{name}"

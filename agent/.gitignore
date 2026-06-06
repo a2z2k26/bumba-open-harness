@@ -1,0 +1,35 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+.coverage
+htmlcov/
+
+# SQLite
+*.db
+*.db-wal
+*.db-shm
+
+# Secrets & auth
+data/.claude-token
+.secrets
+.env
+.env.*
+
+# Node / MCP servers (runtime, deployed separately)
+node_modules/
+mcp/
+
+# macOS
+.DS_Store
+
+# Logs
+*.log
+
+# IDE
+.idea/
+.vscode/

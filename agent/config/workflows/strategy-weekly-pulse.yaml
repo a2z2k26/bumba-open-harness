@@ -1,0 +1,162 @@
+name: strategy.weekly_pulse
+trigger: schedule
+schedule: "cron:0 16 * * 1"  # 16:00 UTC Monday — Monday-morning US/Eastern pulse
+budget:
+  max_cost_usd: 1.5
+  max_duration_seconds: 900
+# Sprint 5s.06 (#2187). Weekly metrics pulse — surfaces week-over-week
+# changes from the operator's Notion-tracked metrics. Paired with the
+# strategy-product-metrics-analyst output bar:
+#
+#   - noise vs signal explicitly LABELED on every change (this is the
+#     bar's load-bearing rule — a 5% wobble on a noisy weekly counter
+#     is not the same as a 5% drop on a clean stable trend)
+#   - a hypothesis per signal (why might this have moved? — not just
+#     "metric X is down")
+#   - action implication per signal (what does this suggest doing?)
+#   - flat-where-expected explicitly FLAGGED (silence on a metric that
+#     normally moves is itself a signal; do not let it disappear from
+#     the report just because there is nothing to say)
+#
+# **Precondition gate.** The workflow assumes the operator has
+# structured metrics in Notion. When the Notion data isn't there yet,
+# the workflow should not produce a half-empty pulse — it should
+# explicitly no-op and tell the operator the precondition is missing.
+# The first non-trivial step writes a `precondition_status` output;
+# the gate immediately after suppresses the rest of the workflow when
+# precondition_status != "ready" and the compensator publishes a one-
+# line "precondition not met" notice so the operator knows the
+# workflow ran but had nothing to report.
+#
+# Budget $1.50 — single specialist + packaging, but week-over-week
+# reasoning can spend tokens on cross-metric synthesis.
+steps:
+  - name: check-precondition
+    department: strategy
+    intent: >
+      Before running the pulse, verify the precondition: structured
+      metrics in Notion that this workflow can pull and compare
+      week-over-week.
+
+      Check for:
+      - A Notion database (or page tree) that the operator has flagged
+        as the canonical metrics surface
+      - At least one full week of historical data points (so a
+        week-over-week comparison is mathematically possible)
+      - Metric definitions clear enough to compare — a metric whose
+        definition changed mid-week is not comparable
+
+      Output `precondition_status` set to exactly one of:
+      - "ready" — proceed with the pulse
+      - "missing" — no structured metrics surface found, or fewer
+        than two weeks of data
+      - "ambiguous" — metrics exist but definitions or schema changed
+        in the last week; comparison would mislead
+
+      Also output `precondition_detail` with a one-paragraph
+      explanation of what was found (or not). When the status is
+      "ready", briefly summarise what metrics will be in scope; when
+      it's "missing" or "ambiguous", explain what the operator would
+      need to do to unblock the workflow.
+    outputs: [precondition_status, precondition_detail]
+    on_failure: [publish-precondition-failure]
+
+  - name: gate-on-precondition
+    gate: operator
+    condition: '{precondition_status} != "ready"'
+    timeout_seconds: 1
+    message: >
+      _Internal gate — auto-skipped when the metrics precondition is
+      satisfied. When skipped (precondition_status != "ready"), the
+      compensator below posts the explanation and the rest of the
+      workflow is short-circuited._
+    on_failure: [publish-precondition-not-met]
+
+  - name: pull-and-analyse-week-over-week
+    department: strategy
+    intent: >
+      Pull the metrics surface confirmed in the precondition step and
+      produce a week-over-week pulse per the
+      strategy-product-metrics-analyst output bar.
+
+      ## Movers — significant signals
+      For each metric that moved meaningfully week-over-week:
+      - the number this week, the number last week, the delta
+      - **noise-vs-signal label** (NOISE / WEAK SIGNAL / STRONG
+        SIGNAL) with a one-line reason — a metric with high
+        week-to-week variance gets NOISE unless the move is well
+        outside that variance; a metric with a clean trend that
+        broke gets STRONG SIGNAL
+      - one hypothesis on why this might have moved
+      - one action implication ("if this continues for two more
+        weeks, X"; or "this suggests trying Y")
+
+      ## Flat-where-expected
+      Metrics that normally move and didn't this week. Silence on a
+      living metric IS data — do not let these disappear from the
+      report. One line each.
+
+      ## Stable — no notable change
+      Counts of metrics that came in within their normal variance.
+      One-sentence summary, no per-metric detail.
+
+      ## Operator decisions surfaced
+      If any signal above warrants an explicit operator decision,
+      list it here under "Decisions to make this week" — short
+      labels, with the relevant signal cross-referenced.
+
+      Precondition detail (use as ground truth on what metrics are
+      in scope):
+      {precondition_detail}
+    inputs: [precondition_detail]
+    outputs: [pulse_report]
+    on_failure: [publish-failure-notice]
+
+  - name: package-pulse
+    department: strategy
+    intent: >
+      Assemble the final pulse as a single Markdown document. Header:
+
+      # Weekly metrics pulse — week of <YYYY-MM-DD>
+      _Authored via strategy.weekly_pulse workflow_
+
+      Then the pulse report. Keep it phone-readable (≤ 2500 chars).
+      If the Movers list is empty AND the flat-where-expected list is
+      empty, lead with "Quiet week — nothing material moved" and keep
+      the rest brief. Do not pad to look productive.
+
+      Pulse report:
+      {pulse_report}
+    inputs: [pulse_report]
+    outputs: [final_pulse]
+    on_failure: [publish-failure-notice]
+
+  - name: publish-pulse
+    action: publish_discord
+    channel: operator
+    message: "# Weekly pulse\n\n{final_pulse}"
+
+  - name: publish-precondition-not-met
+    action: publish_discord
+    channel: operator
+    message: >
+      _Weekly pulse skipped — precondition not met._
+
+      {precondition_detail}
+
+  - name: publish-precondition-failure
+    action: publish_discord
+    channel: operator
+    message: >
+      strategy.weekly_pulse precondition check itself failed (the
+      check step raised). The Notion metrics surface may be
+      unreachable or the analyst couldn't classify the state. Check
+      the workflow run logs.
+
+  - name: publish-failure-notice
+    action: publish_discord
+    channel: operator
+    message: >
+      strategy.weekly_pulse workflow failed after the precondition
+      passed. Partial outputs (pulse_report if reached) are preserved
+      in the workflow context for re-run.

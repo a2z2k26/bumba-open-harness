@@ -1,0 +1,13 @@
+This script was archived to scripts/archived/install_2026-03_pre-d6-bis.sh
+on 2026-05-12 because pre-D6-bis paths + python-telegram-bot (extinct
+since March 2026) made fresh disaster-recovery installs fail.
+
+Post-1.0 work will write a new install.sh. For now, fresh-install or
+recovery should follow the 4-step operator runbook:
+  1. Clone the repo
+  2. Run the regen flow per docs/operator-runbook.md
+  3. Restart the bridge launchctl service
+  4. Smoke-test (POST /events/recent + health check)
+
+See issue #1713 for archival context and combined-audit Lane E E-3 for
+the original finding.

@@ -1,0 +1,56 @@
+# Autonomous-surface metrics — critical counters from the autonomous
+# execution surfaces (experiment loop, halt enforcement, cost accounting,
+# deploy helper). These names form the seed set checked by
+# `agent/scripts/check_critical_metrics_drift.py` (audit-2026-05-16.F.01,
+# finding SW-1): every entry below MUST stay registered. Removing one
+# breaks the drift gate.
+
+experiment_iteration_started:
+  kind: metric
+  name: Experiment Iteration Started
+  category: "Work & Progress"
+  description: Increments once at the start of each experiment-loop iteration. Lets the operator see whether the autonomous loop is ticking at the expected cadence.
+  source_module: scripts.experiment_loop
+  schema_ref: "int — cumulative counter"
+  metric_name: experiment.iteration.started
+  access_method: "pull:/api/metrics/{name}"
+
+experiment_iteration_completed:
+  kind: metric
+  name: Experiment Iteration Completed
+  category: "Work & Progress"
+  description: Increments once per experiment-loop iteration that runs to a terminal outcome (merged, discarded, or skipped). Divergence from `experiment.iteration.started` flags stuck or crashing iterations.
+  source_module: scripts.experiment_loop
+  schema_ref: "int — cumulative counter"
+  metric_name: experiment.iteration.completed
+  access_method: "pull:/api/metrics/{name}"
+
+halt_blocked:
+  kind: metric
+  name: Halt Blocked
+  category: "Health & Status"
+  description: Increments every time an autonomous entrypoint refuses to start (or continue) because `data/halt.flag` is present. Lets the operator confirm halt is actually enforced across surfaces (cron runner, experiment loop, factory orchestrator, deploy helper).
+  source_module: bridge.security
+  schema_ref: "int — cumulative counter"
+  metric_name: halt.blocked
+  access_method: "pull:/api/metrics/{name}"
+
+cost_unknown:
+  kind: metric
+  name: Cost Unknown
+  category: "Cost & Resources"
+  description: Increments when a Claude/Codex invocation completes without a parseable cost figure (parser failure, missing field, fallback path). High values mean the budget cap and cost dashboards are running on incomplete data.
+  source_module: bridge.cost_tracker
+  schema_ref: "int — cumulative counter"
+  metric_name: cost.unknown
+  access_method: "pull:/api/metrics/{name}"
+
+deploy_helper_invoked:
+  kind: metric
+  name: Deploy Helper Invoked
+  category: "Work & Progress"
+  description: Increments once per `deploy_helper.py` execution. Surfaces how often the privileged deploy daemon runs, independent of which manifest was applied.
+  source_module: scripts.deploy_helper
+  schema_ref: "int — cumulative counter"
+  metric_name: deploy.helper.invoked
+  access_method: "pull:/api/metrics/{name}"

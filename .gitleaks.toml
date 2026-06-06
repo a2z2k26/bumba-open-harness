@@ -1,0 +1,50 @@
+title = "Bumba Open Harness no-secrets gate"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Known-safe public placeholders, test canaries, and scanner config"
+
+paths = [
+    '''\.gitleaks\.toml''',
+    '''agent/tests/.*\.py''',
+    '''agent/job_search/tests/.*\.py''',
+    '''agent/config/claude-files/plugins/.*\.md''',
+    '''agent/config/claude-files/agents/.*\.md''',
+    '''data/browser-profiles/.*''',
+    '''agent/data/browser-profiles/.*''',
+    '''\.secrets$''',
+    '''agent/data/\.secrets$''',
+]
+
+regexes = [
+    '''CANARY:[a-f0-9]{12}''',
+    '''FAKE-[A-Z]+-TOKEN''',
+    '''EXAMPLE-FAKE-SECRET-DO-NOT-USE''',
+    '''YOUR_TOKEN_HERE''',
+    '''YOUR_API_KEY''',
+    '''reflection-\d{4}-W\d{1,2}''',
+    '''sk[-_]live[-_][a-z]+\d+[a-z]*\d*''',
+    '''sk-secret-key''',
+    '''ghp_ABCDEF\d+''',
+    '''my-api-key-1234\d''',
+    '''c29tZS1zZWNyZXQtYXBpLWtleQo=''',
+    '''toml_key: computer_use\.enabled''',
+    '''toml_key: zone1_drift\.enabled''',
+]
+
+stopwords = [
+    "FAKE-DISCORD-TOKEN",
+    "FAKE-OAUTH-TOKEN",
+    "EXAMPLE-FAKE-SECRET-DO-NOT-USE",
+    "YOUR_TOKEN_HERE",
+    "YOUR_API_KEY",
+    "NEW_TOKEN_HERE",
+    "<openrouter-api-key>",
+    "<anthropic-api-key>",
+    "<claude-oauth-token>",
+    "<github-token>",
+    "computer_use.enabled",
+    "zone1_drift.enabled",
+]

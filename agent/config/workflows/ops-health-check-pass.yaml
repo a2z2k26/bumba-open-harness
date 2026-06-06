@@ -1,0 +1,79 @@
+# Workflow: ops.health_check_pass
+#
+# Issue: #2181 (Sprint 5o.04)
+# Paired output bar: agent/config/agents/zone4/ops/output-bars/ops-monitoring-specialist.md
+#
+# Operator-invoked health-check pass. Wraps three surfaces into one
+# operator-readable report:
+#   1. Bridge daemon `/healthz` (raw response + kernel-baseline + uptime + halt-flag)
+#   2. Per-service state-files at data/service_state/<name>-state.json (#1806 schema)
+#   3. Halt-flag boolean
+#
+# Output verdict reflects the worst-bucket reality per the
+# ops-monitoring-specialist output bar (right metric per surface; alert
+# ergonomics signal > noise; verdict honest).
+
+name: ops.health_check_pass
+trigger: explicit
+budget:
+  max_cost_usd: 0.50
+  max_duration_seconds: 300
+
+steps:
+  - name: gather-healthz
+    department: ops
+    intent: >
+      Fetch the bridge daemon `/healthz` response (raw JSON), kernel-baseline
+      status, daemon uptime, and current halt-flag state. Return as a single
+      structured snapshot. Do not interpret yet — just gather.
+    outputs: [healthz_response]
+
+  - name: gather-service-states
+    department: ops
+    intent: >
+      Read every `data/service_state/<name>-state.json` file (#1806 schema) and
+      assemble a per-service inventory. For each service capture: last_run,
+      last_status, consecutive_failures, total_runs, total_skipped, last_error.
+      Compute the bucket per Zone 2 doctrine:
+        - broken     → consecutive_failures >= 3
+        - degraded   → consecutive_failures in [1, 2]
+        - stale      → total_skipped > 0.5 * total_runs
+        - healthy    → otherwise
+      Return the full inventory keyed by service name. Do not flag yet —
+      synthesis happens in the next step.
+    outputs: [service_inventory]
+    parallel_with: gather-healthz
+
+  - name: synthesize-report
+    department: ops
+    intent: >
+      Synthesize the operator-readable health-check report from the gathered
+      inputs. Follow the ops-monitoring-specialist output bar exactly:
+
+        1. Overall verdict — healthy / degraded / broken + one-line rationale.
+           Verdict MUST match the worst-bucket reality across all surfaces:
+             - any broken service          → verdict = broken (minimum)
+             - any degraded service        → verdict = degraded (minimum)
+             - halt flag set OR /healthz not green → verdict = degraded (minimum)
+             - else → healthy
+        2. Bridge daemon health — `/healthz` raw + kernel baseline + uptime + halt-flag state
+        3. Scheduled-service inventory — per service: last_run / last_status /
+           consecutive_failures / bucket. Summarize healthy services; do not
+           flag them.
+        4. Flagged services — ONLY broken + degraded + stale, ordered by severity.
+           Stale must be its own explicit bucket — never lumped into degraded.
+        5. Recommended next action — concrete: name the specific state-file
+           field to read OR the specific launchctl bootstrap command to run.
+           No "look into it" or "investigate" — cite the file + signal.
+
+      Save the report under `docs/ops/<date>-health-check.md` and emit a
+      Discord summary to the operator channel containing: overall verdict +
+      flagged service names + recommended next action.
+
+      Healthz response:
+      {healthz_response}
+
+      Service inventory:
+      {service_inventory}
+    inputs: [healthz_response, service_inventory]
+    outputs: [health_report]

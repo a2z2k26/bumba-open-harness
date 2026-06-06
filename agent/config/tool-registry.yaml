@@ -1,0 +1,133 @@
+tools:
+  # Built-in Claude Code tools
+  - name: Read
+    category: builtin
+    description: "Read file contents from the filesystem"
+    capabilities: [read]
+    source: anthropic
+
+  - name: Write
+    category: builtin
+    description: "Write file contents to the filesystem"
+    capabilities: [write]
+    source: anthropic
+
+  - name: Edit
+    category: builtin
+    description: "Make targeted edits to existing files"
+    capabilities: [write]
+    source: anthropic
+
+  - name: Bash
+    category: builtin
+    description: "Execute shell commands"
+    capabilities: [execute, read, write]
+    source: anthropic
+
+  - name: Glob
+    category: builtin
+    description: "Find files by glob pattern"
+    capabilities: [read]
+    source: anthropic
+
+  - name: Grep
+    category: builtin
+    description: "Search file contents with regex"
+    capabilities: [read]
+    source: anthropic
+
+  - name: Task
+    category: builtin
+    description: "Spawn specialized subagents"
+    capabilities: [execute]
+    source: anthropic
+
+  - name: WebFetch
+    category: builtin
+    description: "Fetch and analyze web content"
+    capabilities: [network, read]
+    source: anthropic
+
+  - name: WebSearch
+    category: builtin
+    description: "Search the web for current information"
+    capabilities: [network, read]
+    source: anthropic
+
+  # MCP tools
+  - name: mcp__github
+    category: mcp
+    description: "GitHub API — issues, PRs, repos, code search"
+    capabilities: [read, write, network]
+    source: plugin
+    health_check: mcp_monitor
+
+  - name: mcp__notion
+    category: mcp
+    description: "Notion workspace read/write"
+    capabilities: [read, write, network]
+    source: plugin
+    health_check: mcp_monitor
+
+  - name: mcp__playwright
+    category: mcp
+    description: "Headless browser automation"
+    capabilities: [execute, network, read]
+    source: plugin
+    health_check: mcp_monitor
+
+  - name: mcp__filesystem
+    category: mcp
+    description: "Extended filesystem access beyond cwd"
+    capabilities: [read, write]
+    source: plugin
+    health_check: mcp_monitor
+
+  - name: mcp__brave-search
+    category: mcp
+    description: "Brave web search"
+    capabilities: [network, read]
+    source: plugin
+    health_check: mcp_monitor
+
+  - name: mcp__pinecone
+    category: mcp
+    description: "Pinecone vector database"
+    capabilities: [read, write, network]
+    source: plugin
+    health_check: mcp_monitor
+
+  - name: mcp__mongodb
+    category: mcp
+    description: "MongoDB document database"
+    capabilities: [read, write, network, infrastructure]
+    source: plugin
+    health_check: mcp_monitor
+
+  - name: mcp__cloudflare
+    category: mcp
+    description: "Cloudflare infrastructure (KV, R2, D1, Workers)"
+    capabilities: [read, write, network, infrastructure]
+    source: plugin
+    health_check: mcp_monitor
+
+  - name: mcp__digitalocean
+    category: mcp
+    description: "DigitalOcean droplets, databases, apps"
+    capabilities: [read, write, network, infrastructure]
+    source: plugin
+    health_check: mcp_monitor
+
+  - name: mcp__context7
+    category: mcp
+    description: "Fetch live library documentation"
+    capabilities: [network, read]
+    source: plugin
+    health_check: mcp_monitor
+
+  - name: mcp__bumba-sandbox
+    category: mcp
+    description: "E2B cloud sandbox orchestration"
+    capabilities: [execute, network, infrastructure]
+    source: plugin
+    health_check: mcp_monitor

@@ -1,0 +1,59 @@
+name: pr-ship-decision
+trigger: webhook
+webhook: github.pull_request.opened
+budget:
+  max_cost_usd: 2.0
+  max_duration_seconds: 300
+steps:
+  - name: qa-check
+    department: qa
+    intent: "Review PR #{pr_number} ({pr_title}). Check for test coverage, security issues, and breaking changes. Report blockers clearly."
+    outputs: [qa_report]
+
+  - name: strategy-check
+    department: strategy
+    intent: "Does PR #{pr_number} ({pr_title}) affect competitive position, product direction, or introduce strategic risk?"
+    outputs: [strategy_report]
+    parallel_with: qa-check
+
+  - name: board-decide
+    department: board
+    intent: >
+      Given the following review inputs for PR #{pr_number} ({pr_title}), decide: ship / hold / iterate.
+      Include a confidence score 0.0–1.0.
+
+      QA Report:
+      {qa_report}
+
+      Strategy Review:
+      {strategy_report}
+
+      Respond with:
+      Decision: <ship|hold|iterate>
+      Confidence: <0.0–1.0>
+      Rationale: <brief explanation>
+    inputs: [qa_report, strategy_report]
+    outputs: [board_decision]
+    on_failure: [publish-review-failure]
+
+  - name: borderline-gate
+    gate: operator
+    condition: "{confidence} < 0.7"
+    timeout_seconds: 3600
+    message: "PR #{pr_number} is borderline. Board decision: {board_decision}\n\nApprove to proceed with board recommendation?"
+    on_failure: [publish-gate-timeout]
+
+  - name: publish-pr-comment
+    action: publish_github_comment
+    target: pr
+    message: "{board_decision}"
+
+  - name: publish-review-failure
+    action: publish_discord
+    channel: operator
+    message: "PR Ship Decision workflow failed for PR #{pr_number}. Manual review required."
+
+  - name: publish-gate-timeout
+    action: publish_discord
+    channel: operator
+    message: "PR #{pr_number} gate timed out. Board recommendation: {board_decision}"

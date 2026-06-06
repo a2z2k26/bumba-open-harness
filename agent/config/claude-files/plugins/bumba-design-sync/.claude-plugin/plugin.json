@@ -1,0 +1,17 @@
+{
+  "name": "bumba-design-sync",
+  "version": "1.0.0",
+  "description": "Design sync monitoring and cascade automation for Bumba Design Bridge",
+  "author": {
+    "name": "Bumba Design Bridge"
+  },
+  "license": "MIT",
+  "keywords": ["design", "sync", "figma", "automation", "cascade", "monitor", "design-bridge"],
+  "skills": [
+    "skills/design-sync-monitor/SKILL.md",
+    "skills/design-sync-cascade/SKILL.md"
+  ],
+  "dependencies": {
+    "required": [".design/", ".design/logs/"]
+  }
+}

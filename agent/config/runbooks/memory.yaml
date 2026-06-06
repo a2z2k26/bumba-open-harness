@@ -1,0 +1,27 @@
+id: memory-search-empty
+name: Memory FTS5 Search Returns No Results
+trigger:
+  condition: "components.memory.search_functional == false"
+symptoms:
+  - search_knowledge returns empty for terms that should match
+  - FTS5 index may be out of sync
+  - Knowledge table has entries but FTS5 doesn't find them
+steps:
+  - id: check_knowledge_count
+    check: "Are there entries in the knowledge table?"
+    command: "sqlite3 /opt/bumba-harness/data/memory.db 'SELECT COUNT(*) FROM knowledge;' 2>/dev/null"
+    on_pass: "Knowledge entries exist"
+    on_fail: "Knowledge table empty or inaccessible"
+  - id: check_fts_count
+    check: "Are there entries in the FTS5 index?"
+    command: "sqlite3 /opt/bumba-harness/data/memory.db 'SELECT COUNT(*) FROM knowledge_fts;' 2>/dev/null"
+    on_pass: "FTS5 index has entries"
+    on_fail: "FTS5 index empty — needs rebuild"
+    fix: "sqlite3 /opt/bumba-harness/data/memory.db \"INSERT INTO knowledge_fts(knowledge_fts) VALUES('rebuild');\""
+  - id: test_search
+    check: "Does a basic search work?"
+    command: "sqlite3 /opt/bumba-harness/data/memory.db \"SELECT COUNT(*) FROM knowledge_fts WHERE knowledge_fts MATCH '\\\"zone\\\"';\" 2>/dev/null"
+    on_pass: "FTS5 search functional"
+    on_fail: "FTS5 search broken"
+resolution: "Rebuild FTS5 index. If persistent, check for corrupt database."
+escalation: "L2 (Discord alert) — affects agent context quality"

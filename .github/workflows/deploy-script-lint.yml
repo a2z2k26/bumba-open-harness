@@ -1,0 +1,68 @@
+name: Deploy script lint
+on:
+  pull_request:
+    paths:
+      - 'agent/scripts/deploy_*.sh'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  shellcheck:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install shellcheck
+        run: sudo apt-get install -y shellcheck
+
+      - name: Shellcheck deploy scripts
+        run: |
+          SCRIPTS=$(find . -name "deploy_*.sh" 2>/dev/null)
+          if [ -z "$SCRIPTS" ]; then
+            echo "No deploy scripts found — skipping shellcheck"
+            exit 0
+          fi
+          echo "$SCRIPTS" | xargs shellcheck -S warning
+
+      - name: Check baseline regen presence
+        run: |
+          SCRIPTS=$(find . -name "deploy_*.sh" 2>/dev/null)
+          if [ -z "$SCRIPTS" ]; then
+            echo "No deploy scripts found — skipping baseline check"
+            exit 0
+          fi
+          ERRORS=0
+          for f in $SCRIPTS; do
+            if grep -q "# NO_BASELINE:" "$f"; then
+              echo "OK (documented exception): $f"
+            elif grep -qE "regenerate_kernel_baseline|NO_BASELINE" "$f"; then
+              echo "OK: $f"
+            else
+              echo "MISSING baseline regen in: $f"
+              ERRORS=$((ERRORS+1))
+            fi
+          done
+          exit $ERRORS
+
+      - name: Runtime path check
+        # Public deployments should not reintroduce private home-directory
+        # paths in deploy scripts.
+        run: |
+          set +e
+          PRIVATE_HOME_PATTERN="/""Users/"
+          MATCHES=$(grep -rn "$PRIVATE_HOME_PATTERN" agent/scripts/ 2>/dev/null \
+            | grep -E '(^|/)deploy[_-][^:]*\.sh:')
+          set -e
+          if [ -n "$MATCHES" ]; then
+            echo "Private home-directory runtime path detected in deploy script(s):"
+            echo "$MATCHES"
+            exit 1
+          fi
+          echo "OK: no private home-directory paths found in deploy scripts."

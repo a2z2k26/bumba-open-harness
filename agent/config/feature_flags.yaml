@@ -1,0 +1,611 @@
+# Feature Flag Registry (Sprint P6.3, issue #1595)
+#
+# Single source of truth for every boolean feature flag declared on
+# bridge.config.BridgeConfig. Used by agent/scripts/check_feature_flags.py
+# to detect drift between:
+#   1. BridgeConfig dataclass fields (bool, default = True/False)
+#   2. _TOML_MAP keys in bridge/config.py
+#   3. bridge.toml documentation / runtime defaults
+#   4. This registry
+#
+# Schema (per entry):
+#   field:           dataclass attribute name on BridgeConfig (required, key)
+#   toml_key:        "section.key" path in bridge.toml ("" if env-only)
+#   owner:           sprint id, plan, or subsystem responsible for the flag
+#   default:         dataclass default (true/false) — MUST match BridgeConfig
+#   runtime_reader:  module:symbol or file path that reads the flag at runtime
+#   docs:            short prose pointer to where the flag is described
+#   status:          active | dormant | scaffold | deprecated
+#
+# Status legend:
+#   active     — flag is wired AND flipped on (or operator-tunable) in prod
+#   dormant    — flag is wired but defaults to False; awaiting flip
+#   scaffold   — flag exists but the subsystem it gates is not yet shipped
+#   deprecated — flag still in code, slated for removal
+#
+# When you add a new bool feature flag to BridgeConfig, also add it here.
+# The CI gate (`check_feature_flags.py`) fails the PR otherwise.
+
+memory_v2_disclosure_enabled:
+  toml_key: memory.v2_disclosure_enabled
+  owner: Plan-03 Sprint 03.10 (#1000)
+  default: false
+  runtime_reader: bridge.hybrid_search.HybridSearch
+  docs: Plan-03 memory v2 progressive disclosure; flipped on per ship-and-watch
+  status: active
+
+precompact_externalization_enabled:
+  toml_key: memory.precompact_externalization_enabled
+  owner: Sprint 03.05 (#995)
+  default: false
+  runtime_reader: bridge.compaction_checkpoint.externalize_before_compact
+  docs: PreCompact externalization hook; concept-only port of egregore (MIT)
+  status: dormant
+
+context_pressure_hard_stop_enabled:
+  toml_key: context_pressure.hard_stop_enabled
+  owner: Sprint E1.1 (#1233)
+  default: false
+  runtime_reader: bridge.claude_runner
+  docs: Hard-stop on context pressure overflow; flip after E1.2 capsule schema wires
+  status: dormant
+
+voice_enabled:
+  toml_key: voice.enabled
+  owner: D1.7a-D1.7c VAPI integration
+  default: false
+  runtime_reader: bridge.voice_manager / bridge.vapi_client
+  docs: VAPI voice activation; set true + add vapi_api_key and vapi_webhook_secret to .secrets
+  status: dormant
+
+calcom_webhook_enabled:
+  toml_key: calcom.webhook_enabled
+  owner: audit-2026-05-16.B.05 (#2054)
+  default: false
+  runtime_reader: bridge.api.routes_webhooks / bridge.calcom_webhook
+  docs: Cal.com webhook receiver fail-closed gate; requires calcom_webhook_secret when enabled
+  status: dormant
+
+checkin_enabled:
+  toml_key: checkin.enabled
+  owner: services/checkin
+  default: true
+  runtime_reader: bridge.services.checkin
+  docs: Operator check-in scheduled service
+  status: active
+
+briefing_enabled:
+  toml_key: briefing.enabled
+  owner: services/briefing
+  default: true
+  runtime_reader: bridge.services.briefing
+  docs: Daily briefing scheduled service
+  status: active
+
+few_shot_enabled:
+  toml_key: few_shot.enabled
+  owner: "#23 A/B bypass"
+  default: true
+  runtime_reader: bridge.few_shot
+  docs: Few-shot injection bypass flag; disable without removing the store
+  status: active
+
+api_enabled:
+  toml_key: api.enabled
+  owner: Mission Control API
+  default: true
+  runtime_reader: bridge.api_server / bridge.app
+  docs: REST API server for Mission Control dashboard
+  status: active
+
+proactive_enabled:
+  toml_key: proactive.enabled
+  owner: Proactive tick loop
+  default: false
+  runtime_reader: bridge.tick_manager
+  docs: Periodic proactive tick when idle; /proactive on|off to toggle
+  status: dormant
+
+proactive_scheduler_enabled:
+  toml_key: proactive.scheduler_enabled
+  owner: D7.12 (#1424) slice 1
+  default: false
+  runtime_reader: bridge.background_loops
+  docs: Perpetual-proactive scheduler skeleton; slice 1 dormant
+  status: scaffold
+
+proactive_scheduler_dry_run:
+  toml_key: proactive.scheduler_dry_run
+  owner: D7.12 (#1424) slice 1
+  default: true
+  runtime_reader: bridge.background_loops
+  docs: Scheduler dry-run; selection + ledger only, no dispatch
+  status: scaffold
+
+proactive_scheduler_dispatch_enabled:
+  toml_key: proactive.scheduler_dispatch_enabled
+  owner: D7.12 (#1424) slice 2
+  default: false
+  runtime_reader: bridge.background_loops / AutonomousPlanDrafter
+  docs: Dispatch surface for proactive scheduler; off until operator opts in
+  status: scaffold
+
+daily_log_enabled:
+  toml_key: daily_log.enabled
+  owner: Sprint 09.14
+  default: true
+  runtime_reader: bridge.daily_log.DailyLogWriter
+  docs: Append-only daily markdown log; /log command reads from this writer
+  status: active
+
+webhooks_enabled:
+  toml_key: webhooks.enabled
+  owner: Outbound webhooks
+  default: false
+  runtime_reader: bridge.webhook_deliverer
+  docs: Outbound webhook delivery (HMAC-SHA256 signing)
+  status: dormant
+
+verification_enabled:
+  toml_key: verification.enabled
+  owner: Generator-critic verifier
+  default: false
+  runtime_reader: bridge.self_verifier
+  docs: Generator-critic output verification; advisory only, never blocks
+  status: dormant
+
+quality_chain_enabled:
+  toml_key: quality_chain.enabled
+  owner: D1.4 quality chain
+  default: false
+  runtime_reader: bridge.quality_chain
+  docs: 7-gate quality verification pipeline on WorkOrder completion
+  status: dormant
+
+branch_protection_enabled:
+  toml_key: quality_chain.branch_protection_enabled
+  owner: D1.5 branch protection gate
+  default: false
+  runtime_reader: bridge.branch_protection
+  docs: Branch protection verification before deploy; posture "warn" | "block"
+  status: dormant
+
+dispatcher_enabled:
+  toml_key: dispatcher.enabled
+  owner: Zone 3 keystone (Z3-S10b #574)
+  default: false
+  runtime_reader: bridge.dispatcher
+  docs: WorkOrder Dispatcher routing; fallthrough to direct invocation when off
+  status: active
+
+e2b_executor_enabled:
+  toml_key: dispatcher.e2b_executor_enabled
+  owner: S4.2 (#2345)
+  default: false
+  runtime_reader: bridge.dispatcher / bridge.executors.e2b
+  docs: E2B executor activation gate; requires e2b_api_key and still reports stub until sandbox lifecycle ships
+  status: scaffold
+
+env_selector_force_alternative:
+  toml_key: zone3.env_selector_force_alternative
+  owner: Sprint 03.07
+  default: false
+  runtime_reader: bridge.environment_selector.EnvironmentSelector
+  docs: Pick second-highest-scoring env on skew warning
+  status: dormant
+
+workorder_decomposition_enabled:
+  toml_key: zone3.workorder_decomposition_enabled
+  owner: Sprint 07.01
+  default: false
+  runtime_reader: bridge.work_order
+  docs: Recursive WorkOrder decomposition contract (TinyAGI/fractals port, MIT)
+  status: scaffold
+
+z4_observability_tool_tracker_enabled:
+  toml_key: z4_observability.tool_tracker_enabled
+  owner: Zone 4 observability
+  default: false
+  runtime_reader: bridge.api_server / teams tool tracker
+  docs: Tool call tracking for Z4 departments; writes JSONL with secret redaction
+  status: active
+
+peer_coordination_enabled:
+  toml_key: peer.coordination_enabled
+  owner: Sprint 07.04
+  default: false
+  runtime_reader: bridge.peer_registration / bridge.peer_api
+  docs: Cross-machine peer registry self-registration; merge_queue scaffolding (Q2)
+  status: scaffold
+
+chief_dispatcher_enabled:
+  toml_key: chief_dispatcher.enabled
+  owner: Z4-S12/S22/S63 (#1383/#1395/#1407)
+  default: false
+  runtime_reader: bridge.chief_dispatcher
+  docs: Durable ChiefSession lifecycle (state machine + dispatcher + circuit breaker)
+  status: active
+
+chief_dispatcher_warmth_reuse_enabled:
+  toml_key: chief_dispatcher.warmth_reuse_enabled
+  owner: zone4-warmth.C.01 (#2295) → C.04-bypass (2026-05-18)
+  default: true
+  runtime_reader: bridge.chief_dispatcher (C.02 + C.03 wire the behavior)
+  docs: Phase 3 warmth-reuse — reload prior message_history on re-engagement; default flipped True 2026-05-18 per operator decision to bypass shadow soak
+  status: active
+
+drift_telemetry_enabled:
+  toml_key: telemetry.drift_enabled
+  owner: Sprint 07.12
+  default: false
+  runtime_reader: bridge.drift_telemetry / bridge.session_manager
+  docs: Per-session behavioural drift telemetry; writes bridge-metrics.jsonl
+  status: dormant
+
+log_json_enabled:
+  toml_key: logging.json_enabled
+  owner: Sprint 07.11
+  default: false
+  runtime_reader: bridge.log_format.JSONFormatter
+  docs: Structured JSON logging; one JSON line per record
+  status: dormant
+
+inject_identity:
+  toml_key: identity.inject_identity
+  owner: Sprint 17 (#637) / activation #817
+  default: false
+  runtime_reader: bridge.memory.Memory.assemble_context
+  docs: Wire SOUL+OPERATOR+RULES into context assembly; flip after 1-week soak
+  status: dormant
+
+smart_tool_rag_enabled:
+  toml_key: tool_rag.enabled
+  owner: Sprint 03.03 / ref-audit-03-03
+  default: false
+  runtime_reader: bridge.tool_shed.get_tools_for_intent (NOT YET PRESENT)
+  docs: Smart Tool RAG selection; DORMANT - tool_shed.get_tools_for_intent missing
+  status: scaffold
+
+memory_tiers_enabled:
+  toml_key: memory_tiers.enabled
+  owner: Sprint 03.04 / ref-audit-03-04
+  default: false
+  runtime_reader: bridge.memory_tiers
+  docs: L0-L4 memory tier hierarchy; column always present, active paths gated
+  status: dormant
+
+strict_tier_required:
+  toml_key: memory_tiers.strict_tier_required
+  owner: Sprint Mem-8 (#1849)
+  default: false
+  runtime_reader: bridge.hybrid_search.search_tiered
+  docs: Fail-loud filter for NULL/empty memory tier rows after backfill
+  status: dormant
+
+memory_wal_enabled:
+  toml_key: memory.wal_enabled
+  owner: Sprint 03.06 / ref-audit-03-06
+  default: false
+  runtime_reader: bridge.memory
+  docs: Write-ahead log for memory mutations; concept-only port (egregore MIT)
+  status: dormant
+
+skill_version_dag_enabled:
+  toml_key: skill_version_dag.enabled
+  owner: Sprint 03.07 (#997)
+  default: false
+  runtime_reader: bridge.temporal_knowledge / bridge.skill_evolution
+  docs: Skill version DAG schema; schema migrates unconditionally, writes gated
+  status: dormant
+
+skill_evolution_loop_enabled:
+  toml_key: skill_evolution.loop_enabled
+  owner: Sprint 03.08 (#998)
+  default: false
+  runtime_reader: bridge.skill_evolution.SkillEvolutionEngine
+  docs: 3-trigger skill evolution loop; concept-only port (OpenSpace MIT)
+  status: dormant
+
+skill_crystallization_enabled:
+  toml_key: skill_evolution.crystallization_enabled
+  owner: Sprint 03.09 (#999)
+  default: false
+  runtime_reader: bridge.skill_evolution.crystallize_from_trace
+  docs: Crystallize successful traces into draft SkillProposal
+  status: dormant
+
+markdown_skills_enabled:
+  toml_key: skill_evolution.markdown_skills_enabled
+  owner: Sprint 07.04 (#1033)
+  default: false
+  runtime_reader: bridge.skill_evolution.discover_markdown_skills
+  docs: Markdown-skill persistence under agent/config/domain-skills/
+  status: dormant
+
+board_v2_enabled:
+  toml_key: board.v2_enabled
+  owner: Sprint 04.01 / Plan-04 04.07 (#1008)
+  default: false
+  runtime_reader: bridge.peer_ranking / bridge.agent_router
+  docs: Anonymized A/B/C peer-ranking; flipped on per ship-and-watch
+  status: active
+
+board_cross_vendor_enabled:
+  toml_key: board.cross_vendor_enabled
+  owner: Sprint 04.03 (#1003)
+  default: true
+  runtime_reader: bridge.agent_router / bridge.cross_model.OpenRouterAdapter
+  docs: Cross-vendor (OpenRouter) adapters for board deliberation
+  status: active
+
+specialist_retrieval_enabled:
+  toml_key: specialist_retrieval.enabled
+  owner: Sprint #1112/4.06 (#2153)
+  default: false
+  runtime_reader: bridge.specialist_retrieval / teams._factory.build_manager_agent
+  docs: Replace full-roster chief prompts with embedding-based top-K specialist retrieval
+  status: dormant
+
+workflow_first_dispatch_enabled:
+  toml_key: workflow_first_dispatch.enabled
+  owner: Sprint 5.00c (#2155)
+  default: false
+  runtime_reader: bridge.chief_dispatcher.ChiefDispatcher
+  docs: Match directives against WorkflowRegistry before constructing ChiefSession
+  status: dormant
+
+computer_use_enabled:
+  toml_key: computer_use.enabled
+  owner: Sprint 5j.04 (#2129)
+  default: false
+  runtime_reader: job_search.browser.computer_use
+  docs: Computer-use authorization for job-search browser-use specialist; requires operator sandbox setup
+  status: dormant
+
+zone1_drift_enabled:
+  toml_key: zone1_drift.enabled
+  owner: Sprint 2.07 (#2142)
+  default: false
+  runtime_reader: bridge.services.zone1_drift
+  docs: Zone 1 drift-gate cron drafts stale-reference findings for operator review
+  status: dormant
+
+feature_cost_caps_enabled:
+  toml_key: cost.feature_caps_enabled
+  owner: Sprint 04.04 (#1005)
+  default: false
+  runtime_reader: bridge.cost_tracker.CostTracker.check_feature_cap
+  docs: Per-feature daily budget cap layer; composes with global budget
+  status: dormant
+
+factory_triage_enabled:
+  toml_key: factory.triage_enabled
+  owner: Sprint 14.04 (#1042)
+  default: false
+  runtime_reader: bridge.services.factory_orchestrator
+  docs: Dark Factory triage workflow; sonnet subprocess classifies opt-in issues
+  status: dormant
+
+factory_implement_enabled:
+  toml_key: factory.implement_enabled
+  owner: Sprint 14.05 (#1043)
+  default: false
+  runtime_reader: bridge.services.factory_orchestrator
+  docs: Dark Factory implement workflow; 10-phase pipeline in git worktree
+  status: dormant
+
+factory_validate_enabled:
+  toml_key: factory.validate_enabled
+  owner: Sprint 14.07 (#1045)
+  default: false
+  runtime_reader: bridge.services.factory_orchestrator
+  docs: Dark Factory validate workflow; 4 holdout reviewers (Haiku subprocesses)
+  status: dormant
+
+factory_orchestrator_enabled:
+  toml_key: factory.orchestrator_enabled
+  owner: Sprint 14.10 (#1048)
+  default: false
+  runtime_reader: bridge.services.factory_orchestrator
+  docs: Dark Factory orchestrator service; composes triage/implement/validate
+  status: dormant
+
+factory_fix_loop_enabled:
+  toml_key: factory.fix_loop_enabled
+  owner: Sprint 14.09 (#1047)
+  default: false
+  runtime_reader: bridge.services.factory_orchestrator
+  docs: Fresh-context fix loop; spawns up to 2 fresh subprocesses on NEEDS_FIX
+  status: dormant
+
+factory_soak_harness_enabled:
+  toml_key: factory.soak_harness_enabled
+  owner: Sprint 14.11 (#1050)
+  default: false
+  runtime_reader: bridge.services.factory_soak
+  docs: Shadow-mode soak harness; observes 5 issues before flipping orchestrator
+  status: dormant
+
+factory_mailbox_enabled:
+  toml_key: factory.mailbox_enabled
+  owner: Sprint 15.03 (#1053)
+  default: false
+  runtime_reader: bridge.factory.implement_mailbox_worker
+  docs: Mailbox back-channel between bridge and factory implement subprocess
+  status: dormant
+
+factory_channels_enabled:
+  toml_key: factory.channels_enabled
+  owner: Sprint 15.04 (#1054)
+  default: false
+  runtime_reader: bridge.services.factory_orchestrator
+  docs: Channels-as-branches routing; factory:channel:<name> integration branches
+  status: dormant
+
+second_brain_baseline_enabled:
+  toml_key: second_brain.baseline_enabled
+  owner: Sprint 05.0a (#1018)
+  default: false
+  runtime_reader: bridge.second_brain
+  docs: Second-brain baseline-ingest of operator-vault notes
+  status: dormant
+
+second_brain_backup_enabled:
+  toml_key: second_brain.backup_enabled
+  owner: Sprint 05.0b (#1019)
+  default: false
+  runtime_reader: bridge.second_brain.backup.ensure_snapshot_today
+  docs: Daily vault-backup primitives; pure & testable regardless of flag
+  status: dormant
+
+second_brain_enabled:
+  toml_key: second_brain.enabled
+  owner: Sprint 05.04 (#1013)
+  default: false
+  runtime_reader: bridge.app.BridgeApp._initialize
+  docs: Master gate for second-brain contributor subsystem
+  status: dormant
+
+second_brain_contributor_dailylog_enabled:
+  toml_key: second_brain.contributor_dailylog_enabled
+  owner: Sprint 05.07 (#1015)
+  default: true
+  runtime_reader: bridge.second_brain (registry-build time)
+  docs: Daily-log mirror contributor; opt out by setting false
+  status: dormant
+
+second_brain_contributor_reflection_enabled:
+  toml_key: second_brain.contributor_reflection_enabled
+  owner: Sprint 05.07 (#1015)
+  default: true
+  runtime_reader: bridge.second_brain (registry-build time)
+  docs: Reflection mirror contributor; opt out by setting false
+  status: dormant
+
+second_brain_contributor_consolidation_enabled:
+  toml_key: second_brain.contributor_consolidation_enabled
+  owner: Sprint 05.07 (#1015)
+  default: true
+  runtime_reader: bridge.second_brain (registry-build time)
+  docs: Consolidation mirror contributor; opt out by setting false
+  status: dormant
+
+second_brain_lint_enabled:
+  toml_key: second_brain.lint_enabled
+  owner: Sprint 05.09 (#1017)
+  default: false
+  runtime_reader: bridge.services.knowledge_review
+  docs: Daily vault lint pass; warnings flag schema/integrity, never block
+  status: dormant
+
+second_brain_shadow_router_enabled:
+  toml_key: second_brain.shadow_router_enabled
+  owner: Sprint 05.11 (#1021)
+  default: false
+  runtime_reader: bridge.second_brain.shadow_router.ShadowRouter
+  docs: 14-day shadow + auto-routing decision harness for consolidation
+  status: dormant
+
+job_search_rubric_gate_enabled:
+  toml_key: job_search.rubric_gate_enabled
+  owner: Sprint 06.03 (#1024)
+  default: false
+  runtime_reader: job_search.agent.JobSearchAgent
+  docs: A-F rubric scoring + cover-letter/submit/outreach filter
+  status: dormant
+
+job_search_team_enabled:
+  toml_key: job_search.team_enabled
+  owner: Sprint D5.2 (#1207)
+  default: false
+  runtime_reader: bridge.services.job_search / teams/job_search
+  docs: Zone 4 team scaffold; delegate PREPARE/EXECUTE to job-search-chief
+  status: dormant
+
+universal_tool_gate_enabled:
+  toml_key: interrupts.universal_tool_gate_enabled
+  owner: Sprint E1.5 (#1237)
+  default: true
+  runtime_reader: bridge.tool_call_gate / bridge.claude_runner
+  docs: Tool-call gate; BLOCK_* decisions when pending operator messages
+  status: active
+
+experiment_validator_enabled:
+  toml_key: experiment_loop.validator_enabled
+  owner: Sprint 02.14 (#989)
+  default: false
+  runtime_reader: scripts.experiment_loop
+  docs: Holdout validator subprocess for experiment-loop diffs
+  status: dormant
+
+experiment_mailbox_enabled:
+  toml_key: experiment_loop.mailbox_enabled
+  owner: Sprint 15.02 (#1052)
+  default: false
+  runtime_reader: scripts.experiment_loop
+  docs: Mailbox primitive wired into experiment-loop worktree boundary
+  status: dormant
+
+experiment_audit_branches_enabled:
+  toml_key: experiment_loop.audit_branches_enabled
+  owner: Sprint 02.04 (#978)
+  default: false
+  runtime_reader: scripts.experiment_loop
+  docs: Append-only autoresearch/iter-NNNN audit-branch trail
+  status: dormant
+
+experiment_audit_branches_push_to_origin:
+  toml_key: experiment_loop.audit_branches_push_to_origin
+  owner: Sprint 02.04 (#978)
+  default: false
+  runtime_reader: scripts.experiment_loop
+  docs: Push audit branches to origin; independent bandwidth/storage opt-in
+  status: dormant
+
+experiment_audit_branches_local_cleanup:
+  toml_key: experiment_loop.audit_branches_local_cleanup
+  owner: audit-2026-05-16.E.02 (#2070)
+  default: false
+  runtime_reader: scripts.experiment_loop
+  docs: Auto-delete local experiment audit branches after successful local-mode merge
+  status: dormant
+
+experiment_finalize_enabled:
+  toml_key: experiment_loop.finalize_enabled
+  owner: Sprint 02.08 (#983)
+  default: false
+  runtime_reader: scripts.finalize_experiments
+  docs: /experiment_finalize operator command; script callable directly regardless
+  status: dormant
+
+experiment_push_guard_enabled:
+  toml_key: experiment_loop.push_guard_enabled
+  owner: Sprint ref-audit-02-11 (#986)
+  default: true
+  runtime_reader: scripts.experiment_loop_push_guard
+  docs: Defense-in-depth branch-name guard for experiment-loop push code path
+  status: active
+
+api_allow_remote_bind:
+  toml_key: api.allow_remote_bind
+  owner: Sprint P2.1 (#1626)
+  default: false
+  runtime_reader: bridge.api_server.APIServer.start
+  docs: Explicit opt-in for non-loopback API bind; startup aborts when host is non-local and this is false
+  status: active
+
+response_evaluator_enabled:
+  toml_key: evaluator.enabled
+  owner: "#1565"
+  default: true
+  runtime_reader: bridge.app.BridgeApp._deliver_response
+  docs: Per-response adversarial evaluator gate; disable to skip the per-response model call
+  status: active
+
+backends_enabled:
+  toml_key: backends.enabled
+  owner: Codex-3 (#1837)
+  default: false
+  runtime_reader: bridge.backends.registry.BackendRegistry
+  docs: Backend routing policy. When false, ClaudeRunner uses the legacy code path (ClaudeBackend only). When true, BackendRegistry.resolve() decides which backend handles each agent_role. Flipped by Codex-7 after the acceptance harness greens.
+  status: dormant

@@ -1,0 +1,29 @@
+{
+  "_README": "Sprint D8.1 — narrow MCP config for WarmClaudeProcess. Loaded with --mcp-config + --strict-mcp-config to drop warm-path init from 30-120s to 3-8s. Conversational chat (haiku/sonnet) does not need playwright/docker/cloudflare/figma/etc. Cold path (ClaudeRunner one-shot) still inherits the full .mcp.json.",
+
+  "mcpServers": {
+    "bumba-memory": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["/opt/bumba-harness/agent-flat/mcp-servers/bumba-memory/src/mcp-server.js"],
+      "env": { "BUMBA_MEMORY_DIR": "/opt/bumba-harness/data/shared-memory" }
+    },
+    "github": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": { "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}" }
+    },
+    "notion": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "https://mcp.notion.com/mcp"]
+    },
+    "brave-search": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-brave-search"],
+      "env": { "BRAVE_API_KEY": "${BRAVE_API_KEY}" }
+    }
+  }
+}

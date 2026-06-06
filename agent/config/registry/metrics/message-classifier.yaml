@@ -1,0 +1,68 @@
+# MessageClassifier per-type counters (Sprint D-R4, #1934).
+#
+# Emitted from invocation_pipeline.invoke_claude_pipeline at the top of
+# the per-message path, before any routing decision. Operator can query
+# via /api/metrics/{name} to see the distribution of message types and
+# verify the routing assumptions (most traffic should be CONVERSATIONAL
+# + INFORMATION_REQUEST; ZONE4_EXPLICIT should be rare).
+
+message_classifier_conversational:
+  kind: metric
+  name: Message Classifier — Conversational
+  category: "Agents"
+  description: |
+    Count of messages classified as CONVERSATIONAL by the
+    MessageClassifier. Routed directly to the warm process without
+    preamble injection. No dispatcher entry.
+  source_module: bridge.invocation_pipeline
+  schema_ref: "int — cumulative counter"
+  metric_name: message_classifier.conversational
+  access_method: "pull:/api/metrics/{name}"
+  introduced: "2026-05-14"
+  sprint: "D-R4"
+
+message_classifier_information_request:
+  kind: metric
+  name: Message Classifier — Information Request
+  category: "Agents"
+  description: |
+    Count of messages classified as INFORMATION_REQUEST (interrogative
+    at start, or default fallback). Routed directly to the warm
+    process without preamble injection.
+  source_module: bridge.invocation_pipeline
+  schema_ref: "int — cumulative counter"
+  metric_name: message_classifier.information_request
+  access_method: "pull:/api/metrics/{name}"
+  introduced: "2026-05-14"
+  sprint: "D-R4"
+
+message_classifier_task:
+  kind: metric
+  name: Message Classifier — Task
+  category: "Agents"
+  description: |
+    Count of messages classified as TASK (verb match anywhere in the
+    message). Routed to the warm process with task-framing.md preamble
+    injected.
+  source_module: bridge.invocation_pipeline
+  schema_ref: "int — cumulative counter"
+  metric_name: message_classifier.task
+  access_method: "pull:/api/metrics/{name}"
+  introduced: "2026-05-14"
+  sprint: "D-R4"
+
+message_classifier_zone4_explicit:
+  kind: metric
+  name: Message Classifier — Zone 4 Explicit
+  category: "Agents"
+  description: |
+    Count of messages classified as ZONE4_EXPLICIT (operator typed a
+    /board, /route, @engineering, or similar prefix). The only path
+    that reaches the dispatcher branch; D-R2 intent gate runs as a
+    secondary guard.
+  source_module: bridge.invocation_pipeline
+  schema_ref: "int — cumulative counter"
+  metric_name: message_classifier.zone4_explicit
+  access_method: "pull:/api/metrics/{name}"
+  introduced: "2026-05-14"
+  sprint: "D-R4"

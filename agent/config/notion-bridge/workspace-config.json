@@ -1,0 +1,39 @@
+{
+  "workspace": {
+    "id": "2a60ab715bfa8022ad9dcc25b03de3c4"
+  },
+  "databases": {
+    "tasks": "b9e06ae0f6974be786641109e2962294",
+    "epics": "9912c6eeff4f487b8bc2ea0f78ee6bc1",
+    "sprints": "bb6ccdd0d1424ae5be842937c1431893",
+    "projects": "2e90ab715bfa80bba454fb5feb118b4d"
+  },
+  "templatePageId": "97753a4eecb4489298cb8c8a17ec0155",
+  "statusMapping": {
+    "githubToNotion": {
+      "open": "backlog",
+      "open+label:ready": "ready",
+      "open+label:in-progress": "in_progress",
+      "open+label:blocked": "blocked",
+      "closed": "completed"
+    },
+    "notionToGithub": {
+      "backlog":     { "state": "open",   "addLabels": [],              "removeLabels": ["in-progress", "blocked", "ready"] },
+      "ready":       { "state": "open",   "addLabels": ["ready"],       "removeLabels": ["in-progress", "blocked"] },
+      "in_progress": { "state": "open",   "addLabels": ["in-progress"], "removeLabels": ["ready", "blocked"] },
+      "blocked":     { "state": "open",   "addLabels": ["blocked"],     "removeLabels": ["ready", "in-progress"] },
+      "completed":   { "state": "closed", "addLabels": [],              "removeLabels": ["in-progress", "blocked", "ready"] }
+    }
+  },
+  "propertyMapping": {
+    "taskName": "Task Name",
+    "status": "Status",
+    "githubIssueUrl": "GitHub Issue URL",
+    "githubIssueNumber": "GitHub Issue Number",
+    "githubRepo": "GitHub Repo"
+  },
+  "syncDefaults": {
+    "syncStateFile": "/opt/bumba-harness/data/notion-sync-state.json",
+    "maxIssuesPerSync": 100
+  }
+}

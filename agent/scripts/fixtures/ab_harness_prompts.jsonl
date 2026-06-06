@@ -1,0 +1,10 @@
+{"prompt": "What's my Discord OAuth setup?", "tags": ["config", "discord"]}
+{"prompt": "Recent decisions about agent dispatch?", "tags": ["decision", "agents"]}
+{"prompt": "Who is the operator?", "tags": ["identity", "preference"]}
+{"prompt": "How do I deploy the bridge?", "tags": ["ops", "deploy"]}
+{"prompt": "What memory tier defaults are set?", "tags": ["config", "memory"]}
+{"prompt": "Cal.com booking webhook config?", "tags": ["config", "calcom"]}
+{"prompt": "Bumba design philosophy?", "tags": ["identity", "design"]}
+{"prompt": "Most recent sprint completed?", "tags": ["context", "sprint"]}
+{"prompt": "Error handling patterns for subprocess failures?", "tags": ["pattern", "error"]}
+{"prompt": "Where does the kernel baseline live?", "tags": ["ops", "kernel"]}

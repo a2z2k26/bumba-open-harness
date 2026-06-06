@@ -1,0 +1,15 @@
+[package]
+name = "{{PROJECT_NAME}}"
+version = "0.1.0"
+edition = "2021"
+description = "Generated with Bumba Sandbox Orchestrator"
+license = "MIT"
+
+[dependencies]
+dotenv = "0.15"
+
+[dev-dependencies]
+
+[[bin]]
+name = "{{PROJECT_NAME}}"
+path = "src/main.rs"

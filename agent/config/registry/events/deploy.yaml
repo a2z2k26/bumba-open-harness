@@ -1,0 +1,31 @@
+# Deploy events — code deploy lifecycle events.
+
+deploy_started:
+  kind: event
+  name: Deploy Started
+  category: "Work & Progress"
+  description: Fires when a deployment workflow begins execution.
+  source_module: bridge.deploy_manifest
+  schema_ref: bridge.deploy_manifest.DeployManifest
+  event_type: deploy.started
+  access_method: push:event_bus
+
+deploy_completed:
+  kind: event
+  name: Deploy Completed
+  category: "Work & Progress"
+  description: Fires when a deployment workflow completes successfully.
+  source_module: bridge.deploy_manifest
+  schema_ref: bridge.deploy_manifest.DeployManifest
+  event_type: deploy.completed
+  access_method: push:event_bus
+
+deploy_failed:
+  kind: event
+  name: Deploy Failed
+  category: "Work & Progress"
+  description: Fires when a deployment workflow encounters an unrecoverable error.
+  source_module: bridge.deploy_manifest
+  schema_ref: bridge.deploy_manifest.DeployManifest
+  event_type: deploy.failed
+  access_method: push:event_bus

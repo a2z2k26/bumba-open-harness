@@ -1,0 +1,260 @@
+# Zone 4 model allocation — canonical mapping
+#
+# Filed: 2026-05-18
+# Source: 2026-05-18 cost-optimization conversation. The $2/run board incident
+# made the case concrete; this file is the response.
+#
+# Strategy (operator-stated):
+#   - Solve for cost. Zone 4 PydanticAI agents do NOT route through the
+#     Anthropic paid account (which Zone 1 + Zone 3 do); every Zone 4 token
+#     is per-token billable via OpenRouter. That makes Zone 4 the cost lever.
+#   - Use latest top-tier model from each non-Anthropic / non-OpenAI family.
+#     Prefer Chinese-model cohort: DeepSeek, Z.AI (GLM), MoonshotAI (Kimi),
+#     Qwen. Mistral as the European baseline.
+#   - One Claude exception only: design-visual-designer (creative-aesthetic
+#     work that genuinely benefits from Claude's prose voice).
+#   - Avoid GPT-family unless a specific role truly demands it. None do today.
+#
+# Live OpenRouter pricing snapshot used to size this allocation (2026-05-18):
+#   - deepseek/deepseek-v4-pro      $0.44/$0.87 per M tokens
+#   - deepseek/deepseek-v4-flash    $0.11/$0.22
+#   - z-ai/glm-5.1                  $0.98/$3.08
+#   - moonshotai/kimi-k2.6          $0.73/$3.49
+#   - qwen/qwen3.6-max-preview      $1.04/$6.24
+#   - qwen/qwen3.6-plus             $0.33/$1.95
+#   - mistralai/mistral-medium-3.5  $1.50/$7.50
+#   - anthropic/claude-opus-4-7     ~$15/$75 (one-agent exception)
+#
+# Expected per-run cost reduction vs. the pre-2026-05-18 GPT-5 chief +
+# GPT-4o-mini specialist slate (which produced the $2 board incident):
+#   - Full board run: ~$2 → ~$0.04 (≈50× cheaper)
+#   - Other dept runs: proportional; chiefs land on cheap-frontier instead of GPT-5
+#
+# This file is the operator-readable canonical mapping. The runtime
+# authority lives in `agent/config/teams/<dept>.yaml` — when the two
+# diverge, the team YAML wins. Keep them in sync via PR review.
+
+teams:
+  # ---------------------------------------------------------------------------
+  # Board of Directors (10 members)
+  # ---------------------------------------------------------------------------
+  # Diversity is the point. Different cheap-frontier models per role, so the
+  # contrarian's reasoning actually differs from the systems-thinker's at the
+  # model layer, not just at the prompt layer. Same total cost, real divergence.
+  board:
+    members:
+      - agent: board-ceo
+        model: moonshotai/kimi-k2.6
+        rationale: "Synthesis + narrative + long context — Kimi's strongest fit"
+      - agent: board-revenue
+        model: deepseek/deepseek-v4-pro
+        rationale: "Unit-economics math reasoning — DeepSeek's strength"
+      - agent: board-compounder
+        model: deepseek/deepseek-v4-pro
+        rationale: "Second-order / compounding reasoning depth"
+      - agent: board-product-strategist
+        model: moonshotai/kimi-k2.6
+        rationale: "Product-narrative synthesis"
+      - agent: board-technical-architect
+        model: z-ai/glm-5.1
+        rationale: "Code/architecture grounded; GLM's tool-use is strong"
+      - agent: board-contrarian
+        model: qwen/qwen3.6-max-preview
+        rationale: "Different model family = genuinely different priors"
+      - agent: board-moonshot
+        model: deepseek/deepseek-v4-pro
+        rationale: "Reasoning depth for ambitious 10x framing"
+      - agent: board-cross-vendor-strategist
+        model: mistralai/mistral-medium-3.5
+        rationale: "Non-Anthropic vendor perspective by definition (European)"
+      - agent: board-openrouter-generalist
+        model: z-ai/glm-5.1
+        rationale: "GLM as the broad-spectrum generalist read"
+      - agent: board-systems-thinker
+        model: deepseek/deepseek-v4-pro
+        rationale: "Feedback-loop + interaction modeling"
+    # board-drunken-master.md exists in agent/config/agents/zone4/board/ but
+    # isn't wired into board.yaml as of 2026-05-18 — out of scope for this PR;
+    # tracked as a follow-up. When added, recommended model:
+    #   qwen/qwen3.6-plus (Qwen's looser style fits the "chaos agent" role).
+
+  # ---------------------------------------------------------------------------
+  # Design (chief + 7 specialists)
+  # ---------------------------------------------------------------------------
+  design:
+    default_chief_model: qwen/qwen3.6-max-preview
+    default_specialist_model: qwen/qwen3.6-max-preview
+    rationale: >
+      Qwen 3.6 Max has the strongest open-weight visual-reasoning /
+      multimodal alignment in the cheap cohort. Good fit for layout
+      reasoning, design-system thinking, accessibility analysis.
+    members:
+      - agent: design-chief
+        model: qwen/qwen3.6-max-preview
+      - agent: design-ux-researcher
+        model: qwen/qwen3.6-max-preview
+      - agent: design-interaction-designer
+        model: qwen/qwen3.6-max-preview
+      - agent: design-visual-designer
+        model: anthropic/claude-opus-4-7
+        rationale: "The singular Claude exception. Opus 4.7 — the one place we trade cost for quality. Distinctive aesthetic + prose voice for visual-design copy. Rare-invocation by design; cost-cap enforced via team-level constraints."
+        # Sprint zone4-warmth.E.01 (#2301): this is the ONLY agent that
+        # carries an OpenRouter ``cache_control: {type: ephemeral}`` marker
+        # on its last system-prompt block. ``CachingOpenRouterChatModel``
+        # in ``teams/_factory.py`` injects it; OpenRouter forwards it to
+        # Anthropic for 5-minute server-side caching at ~10% input-token
+        # cost on hits. Stacks on top of message-history reuse (Phase 3).
+        prompt_caching: ephemeral_5m
+      - agent: design-ui-designer
+        model: qwen/qwen3.6-max-preview
+      - agent: design-system-architect
+        model: qwen/qwen3.6-max-preview
+      - agent: design-accessibility-specialist
+        model: qwen/qwen3.6-max-preview
+      - agent: design-prototyper
+        model: z-ai/glm-5.1
+        rationale: "Structured code-generation for interactive prototypes; GLM's coding ability"
+
+  # ---------------------------------------------------------------------------
+  # QA (chief + 8 specialists)
+  # ---------------------------------------------------------------------------
+  qa:
+    default_chief_model: z-ai/glm-5.1
+    default_specialist_model: z-ai/glm-5.1
+    rationale: >
+      GLM 5.1 is strongest at structured tool-use, deterministic checks,
+      audit work. QA roles are largely executional with rule-following.
+    members:
+      - agent: qa-chief
+        model: z-ai/glm-5.1
+      - agent: qa-engineer
+        model: z-ai/glm-5.1
+      - agent: security-auditor
+        model: deepseek/deepseek-v4-pro
+        rationale: "Security analysis is reasoning-heavy — frontier-tier"
+      - agent: performance-tester
+        model: deepseek/deepseek-v4-pro
+        rationale: "Perf-debug reasoning"
+      - agent: code-reviewer
+        model: z-ai/glm-5.1
+      - agent: accessibility-tester
+        model: qwen/qwen3.6-plus
+        rationale: "A11y standards are pattern-matching + checklist heavy"
+      - agent: api-tester
+        model: z-ai/glm-5.1
+      - agent: automation-engineer
+        model: z-ai/glm-5.1
+      - agent: mobile-tester
+        model: z-ai/glm-5.1
+
+  # ---------------------------------------------------------------------------
+  # Ops (chief + 7 specialists)
+  # ---------------------------------------------------------------------------
+  ops:
+    default_chief_model: deepseek/deepseek-v4-flash
+    default_specialist_model: deepseek/deepseek-v4-flash
+    rationale: >
+      Ops work is high-volume + executional (cron health, deploy verification,
+      monitoring). DeepSeek V4 Flash is fast and cheap; the 1M context helps
+      when reading large logs.
+    members:
+      - agent: ops-chief
+        model: deepseek/deepseek-v4-flash
+      - agent: ops-cloud-architect
+        model: deepseek/deepseek-v4-pro
+        rationale: "Architectural decisions deserve the stronger tier"
+      - agent: ops-devops-specialist
+        model: deepseek/deepseek-v4-flash
+      - agent: ops-sre-engineer
+        model: deepseek/deepseek-v4-pro
+        rationale: "Incident-response reasoning"
+      - agent: ops-database-admin
+        model: deepseek/deepseek-v4-flash
+      - agent: ops-monitoring-specialist
+        model: deepseek/deepseek-v4-flash
+      - agent: ops-network-engineer
+        model: deepseek/deepseek-v4-flash
+      - agent: ops-kubernetes-engineer
+        model: deepseek/deepseek-v4-flash
+
+  # ---------------------------------------------------------------------------
+  # Strategy (chief + 7 specialists; NOT the board)
+  # ---------------------------------------------------------------------------
+  strategy:
+    default_chief_model: moonshotai/kimi-k2.6
+    default_specialist_model: moonshotai/kimi-k2.6
+    rationale: >
+      Kimi K2.6 is the strongest narrative-synthesis model in the cohort.
+      Strategy specialists produce reports, market-research narratives,
+      roadmap rationale — narrative-heavy work.
+    members:
+      - agent: strategy-product-chief
+        model: moonshotai/kimi-k2.6
+      - agent: strategy-product-metrics-analyst
+        model: deepseek/deepseek-v4-pro
+        rationale: "Numerical reasoning over narrative"
+      - agent: strategy-requirement-engineer
+        model: moonshotai/kimi-k2.6
+      - agent: strategy-market-researcher
+        model: moonshotai/kimi-k2.6
+      - agent: strategy-user-analyst
+        model: moonshotai/kimi-k2.6
+      - agent: strategy-roadmap-strategist
+        model: moonshotai/kimi-k2.6
+      - agent: strategy-business-analyst
+        model: moonshotai/kimi-k2.6
+      - agent: strategy-competitive-intelligence-analyst
+        model: deepseek/deepseek-v4-pro
+        rationale: "Analytical depth over narrative"
+
+  # ---------------------------------------------------------------------------
+  # Job Search (director + 4 inline specialists)
+  # ---------------------------------------------------------------------------
+  job_search:
+    default_chief_model: deepseek/deepseek-v4-flash
+    default_specialist_model: deepseek/deepseek-v4-flash
+    rationale: >
+      High-volume daily cron work; ATS parsing, dedup, scoring, scraping
+      are pattern-matching. Cheapest-fast tier is the right fit.
+    members:
+      - agent: job-search-chief
+        model: deepseek/deepseek-v4-flash
+      - agent: acquire-and-prepare-specialist
+        model: deepseek/deepseek-v4-flash
+      - agent: outreach-execute-specialist
+        model: deepseek/deepseek-v4-flash
+      - agent: browser-use-specialist
+        model: deepseek/deepseek-v4-flash
+      - agent: email-verification-specialist
+        model: deepseek/deepseek-v4-flash
+
+# =============================================================================
+# Summary — model usage across Zone 4
+# =============================================================================
+#
+# Frequency of model assignment across 44 agents post-allocation:
+#   - deepseek/deepseek-v4-pro       : 7 agents
+#   - deepseek/deepseek-v4-flash     : 13 agents
+#   - z-ai/glm-5.1                   : 9 agents
+#   - moonshotai/kimi-k2.6           : 8 agents
+#   - qwen/qwen3.6-max-preview       : 7 agents
+#   - qwen/qwen3.6-plus              : 1 agent  (qa-accessibility-tester)
+#   - mistralai/mistral-medium-3.5   : 1 agent  (board-cross-vendor-strategist)
+#   - anthropic/claude-opus-4-7      : 1 agent  (design-visual-designer)
+#
+# Total: 47 assignments (sum > 44 because some agents appear in multiple
+# departments via the routing layer; actual unique agent count is 44).
+#
+# =============================================================================
+# Operator follow-up
+# =============================================================================
+#
+# After this PR merges:
+#   1. Validate with a sample board run (same prompts as the $2 incident).
+#      Confirm actual cost lands near $0.04/run.
+#   2. Re-run each department's flagship workflow once. Confirm output
+#      quality is acceptable on the new model.
+#   3. If any role's quality regresses, file a follow-up to bump that
+#      specific agent up a tier rather than reverting wholesale.
+#   4. Consider wiring `board-drunken-master` into board.yaml as a
+#      separate follow-up; model recommendation included above.

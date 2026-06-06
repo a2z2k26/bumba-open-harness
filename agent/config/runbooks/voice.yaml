@@ -1,0 +1,28 @@
+id: voice-backend-unreachable
+name: Voice Backend (STT/TTS) Unreachable
+trigger:
+  condition: "components.voice.status == down"
+symptoms:
+  - Voice transcriptions return empty
+  - TTS produces no audio
+  - Health endpoint shows stt_reachable=false or tts_reachable=false
+steps:
+  - id: check_stt
+    check: "Is Whisper STT service reachable?"
+    command: "curl -s -o /dev/null -w '%{http_code}' --max-time 3 http://127.0.0.1:8880/ || echo FAIL"
+    on_pass: "STT service responding"
+    on_fail: "STT service unreachable on port 8880"
+    fix: "Restart Whisper container or check if mlx-whisper is running"
+  - id: check_tts
+    check: "Is Kokoro TTS service reachable?"
+    command: "curl -s -o /dev/null -w '%{http_code}' --max-time 3 http://127.0.0.1:7888/ || echo FAIL"
+    on_pass: "TTS service responding"
+    on_fail: "TTS service unreachable on port 7888"
+    fix: "Restart Kokoro container or verify TTS service is running"
+  - id: check_docker
+    check: "Are Docker containers running?"
+    command: "docker ps --format '{{.Names}}' 2>/dev/null | grep -c 'silero\\|whisper\\|kokoro' || echo 0"
+    on_pass: "Voice containers running"
+    on_fail: "Voice containers not found"
+resolution: "Voice gracefully degrades to text-only. Restart containers to restore voice."
+escalation: "L1 (logged) — voice is non-critical"

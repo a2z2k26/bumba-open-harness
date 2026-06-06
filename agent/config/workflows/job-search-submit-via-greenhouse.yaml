@@ -1,0 +1,124 @@
+name: job_search.submit_via_greenhouse
+trigger: explicit
+budget:
+  max_cost_usd: 2.50
+  max_duration_seconds: 1800
+# 1112 Sprint 5j.06 — Zone 4 job-search Layer 2 workflow for Greenhouse ATS
+# submission, paired with the browser-use-specialist sandbox stack:
+#
+#   - Browser substrate (ADR #2156, merged): Claude computer-use over
+#     CloakBrowser stealth Chromium, scoped to job-search ONLY
+#   - Sandbox (ADR #2158, merged): bumba-browser macOS user + ephemeral
+#     profile + pfctl egress allowlist
+#   - Credential vault (ADR #2159, #2160): .secrets extension with
+#     ats_<family>_<account>_<field> namespacing; chief passes REFERENCE,
+#     specialist resolves at use-time
+#
+# Operator-paired soak required before this workflow ships to production:
+# operator runs against ONE real Greenhouse listing with verification
+# artifact capture (confirmation screenshot + email-receipt parse + Notion
+# row update) per Sitting 3 brief Section 5.
+#
+# Flat layout per workflow_registry.py:63 glob.
+steps:
+  - name: authenticate-credentials
+    department: job_search
+    intent: >
+      Resolve the credential REFERENCE (ats_greenhouse_<account>) via
+      job_search.credentials.read_credentials in the bumba-browser
+      sandbox. Authenticate to Greenhouse using email + password +
+      mfa_secret if present. Capture session cookies for the duration of
+      this workflow. On auth failure: surface immediate Discord blocker
+      and HALT — never proceed with subsequent steps.
+    outputs: ["auth_session"]
+
+  - name: navigate-to-listing
+    department: job_search
+    inputs: ["auth_session"]
+    intent: >
+      Navigate to the listing URL using the BrowserDriver (CloakBrowser
+      stealth Chromium per ADR #2156). Verify the listing is still open
+      (not "applications closed"). Capture initial page state.
+    outputs: ["listing_state"]
+
+  - name: prepare-application-bundle
+    department: job_search
+    inputs: ["listing_state"]
+    intent: >
+      Load the prepared application bundle from the Notion staging row:
+      resume path, cover-letter text, custom-answer responses if any.
+      Validate every required Greenhouse form field has a corresponding
+      bundle value. Missing fields → HALT with blocker; do NOT submit
+      partial.
+    outputs: ["application_bundle"]
+
+  - name: fill-form
+    department: job_search
+    inputs: ["listing_state", "application_bundle"]
+    intent: >
+      Fill the Greenhouse application form per agent/job_search/ats/greenhouse.py
+      field mapping: First Name + Last Name (two separate fields), Email,
+      Phone, Resume (file upload), Cover Letter (textarea). Use the
+      humanize=True CloakBrowser flag for keyboard/mouse timing realism.
+    outputs: ["form_filled_state"]
+
+  - name: capture-pre-submit-screenshot
+    department: job_search
+    inputs: ["form_filled_state"]
+    intent: >
+      Capture confirmation screenshot of the filled form BEFORE the submit
+      button is clicked. Save to data/job_search/applications/<application-id>/pre-submit.png.
+      This is one of the three required verification artifacts.
+    outputs: ["pre_submit_screenshot_path"]
+
+  - name: submit-application
+    department: job_search
+    inputs: ["form_filled_state"]
+    intent: >
+      Click the submit button. Capture the post-submit page state
+      (typically a "thank you" page with confirmation language). If the
+      submit results in a captcha wall: escalate via Playwright fallback
+      (#2165); if still failing → HALT with blocker. NEVER record
+      "submitted" without page confirmation.
+    outputs: ["post_submit_state"]
+
+  - name: capture-post-submit-screenshot
+    department: job_search
+    inputs: ["post_submit_state"]
+    intent: >
+      Capture confirmation screenshot of the post-submit page. Save to
+      data/job_search/applications/<application-id>/post-submit.png. This
+      is the second of three required verification artifacts.
+    outputs: ["post_submit_screenshot_path"]
+
+  - name: poll-receipt-email
+    department: job_search
+    inputs: ["post_submit_state"]
+    intent: >
+      Poll the operator's Gmail inbox (via gws_gmail skills) for the
+      Greenhouse application-received confirmation email. Timeout: 10
+      minutes. Capture the email subject + body + timestamp. This is
+      the third required verification artifact. If timeout fires without
+      receipt: record_failure with "no_receipt_within_10min" reason —
+      operator can inspect manually.
+    outputs: ["receipt_evidence"]
+
+  - name: update-notion
+    department: job_search
+    inputs: ["pre_submit_screenshot_path", "post_submit_screenshot_path", "receipt_evidence"]
+    intent: >
+      Update the Notion staging row to status "submitted" with: ATS family
+      (greenhouse), submission timestamp, all three verification artifact
+      paths/refs. The row was operator-approved in PREPARE phase; this
+      step records that the EXECUTE phase completed verifiably.
+    outputs: ["notion_row_id"]
+
+  - name: synthesize-summary
+    department: job_search
+    inputs: ["receipt_evidence", "notion_row_id"]
+    intent: >
+      Produce a Discord summary: applied to <company>/<role>, submission
+      timestamp, verification artifact set complete (3/3), Notion row
+      link. Discord summary is the operator-facing confirmation that the
+      full pipeline completed.
+    outputs: ["discord_summary"]

@@ -1,0 +1,29 @@
+id: mcp-startup-failed
+name: MCP Server Initialization Failed
+trigger:
+  or:
+    - "components.mcp.status == degraded"
+    - "components.mcp.status == down"
+symptoms:
+  - Claude subprocess logs MCP server connection errors
+  - Tools from specific servers unavailable
+  - Longer startup times
+steps:
+  - id: check_mcp_config
+    check: "Is .mcp.json readable?"
+    command: "test -r /opt/bumba-harness/agent-flat/agent/.mcp.json && echo OK || echo FAIL"
+    on_pass: "Config file readable"
+    on_fail: "Config file missing or not readable"
+    fix: "chmod 600 /opt/bumba-harness/agent-flat/agent/.mcp.json && chown bumba-agent:staff /opt/bumba-harness/agent-flat/agent/.mcp.json"
+  - id: check_npx
+    check: "Is npx available?"
+    command: "which npx 2>/dev/null && echo OK || echo FAIL"
+    on_pass: "npx found"
+    on_fail: "npx not in PATH — Node.js may not be installed"
+  - id: check_node_version
+    check: "Is Node.js version adequate?"
+    command: "node --version 2>/dev/null || echo FAIL"
+    on_pass: "Node.js version retrieved"
+    on_fail: "Node.js not found"
+resolution: "Individual MCP servers can fail without blocking bridge operation. Check specific server logs."
+escalation: "L1 (logged) — MCP failures are non-critical"

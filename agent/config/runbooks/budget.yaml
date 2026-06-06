@@ -1,0 +1,27 @@
+id: budget-exceeded
+name: Daily API Budget Exceeded
+trigger:
+  or:
+    - "components.claude.status == degraded"
+symptoms:
+  - Budget guard blocks Claude invocations
+  - Messages receive "budget exceeded" response
+  - Daily cost exceeds configured limit
+steps:
+  - id: check_budget_log
+    check: "What is today's spend?"
+    command: "sqlite3 /opt/bumba-harness/data/memory.db \"SELECT SUM(cost_usd) FROM budget_log WHERE timestamp > datetime('now', '-24 hours');\" 2>/dev/null || echo 0"
+    on_pass: "Budget data accessible"
+    on_fail: "Cannot read budget data"
+  - id: check_budget_limit
+    check: "What is the configured limit?"
+    command: "grep 'daily_budget' /opt/bumba-harness/agent-flat/agent/config/bridge.toml 2>/dev/null || echo 'Not configured'"
+    on_pass: "Limit configured"
+    on_fail: "No budget limit set in config"
+  - id: check_conversation_costs
+    check: "Which sessions used the most?"
+    command: "sqlite3 /opt/bumba-harness/data/memory.db \"SELECT session_id, SUM(cost_usd) as total FROM conversations WHERE created_at > datetime('now', '-24 hours') GROUP BY session_id ORDER BY total DESC LIMIT 3;\" 2>/dev/null || echo 'No data'"
+    on_pass: "Cost breakdown available"
+    on_fail: "Cannot retrieve cost breakdown"
+resolution: "Budget resets at midnight UTC. If urgent, operator can temporarily increase limit."
+escalation: "L1 (logged) — normal operational limit"

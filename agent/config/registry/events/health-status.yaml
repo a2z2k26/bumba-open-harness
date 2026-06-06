@@ -1,0 +1,143 @@
+# Health & Status events — bridge lifecycle, system health changes, failures, and recovery.
+
+message_received:
+  kind: event
+  name: Message Received
+  category: "Health & Status"
+  description: Fires when an inbound Discord message arrives at the bridge before processing.
+  source_module: bridge.app
+  schema_ref: bridge.app.MessageContext
+  event_type: message.received
+  access_method: push:event_bus
+
+message_processed:
+  kind: event
+  name: Message Processed
+  category: "Health & Status"
+  description: Fires after the 5-stage pipeline completes processing an inbound message.
+  source_module: bridge.app
+  schema_ref: bridge.app.MessageContext
+  event_type: message.processed
+  access_method: push:event_bus
+
+health_changed:
+  kind: event
+  name: Health Changed
+  category: "Health & Status"
+  description: Fires when overall bridge health transitions between healthy/degraded/unhealthy.
+  source_module: bridge.health
+  schema_ref: "dict — status, components, timestamp"
+  event_type: health.changed
+  access_method: push:event_bus
+
+failure_detected:
+  kind: event
+  name: Failure Detected
+  category: "Health & Status"
+  description: Fires when a recurring failure pattern is first detected by error-recovery logic.
+  source_module: bridge.error_recovery
+  schema_ref: "dict — failure_type, module, message"
+  event_type: failure.detected
+  access_method: push:event_bus
+
+failure_recovered:
+  kind: event
+  name: Failure Recovered
+  category: "Health & Status"
+  description: Fires when a previous failure_detected clears and normal operation resumes.
+  source_module: bridge.error_recovery
+  schema_ref: "dict — failure_type, module"
+  event_type: failure.recovered
+  access_method: push:event_bus
+
+failure_escalated:
+  kind: event
+  name: Failure Escalated
+  category: "Health & Status"
+  description: Fires when a failure exceeds thresholds and is escalated to the operator.
+  source_module: bridge.escalation
+  schema_ref: bridge.escalation.EscalationAlert
+  event_type: failure.escalated
+  access_method: push:event_bus
+
+guardrail_triggered:
+  kind: event
+  name: Guardrail Triggered
+  category: "Health & Status"
+  description: Fires when input/output validation or prompt injection detection fires.
+  source_module: bridge.guardrails
+  schema_ref: "dict — rule, input_snippet, severity"
+  event_type: guardrail.triggered
+  access_method: push:event_bus
+
+crash_recorded:
+  kind: event
+  name: Crash Recorded
+  category: "Health & Status"
+  description: Fires when the crash black-box records a new crash entry (Sprint E.3).
+  source_module: bridge.event_bus
+  schema_ref: "dict — crash_id, traceback_digest, timestamp"
+  event_type: crash.recorded
+  access_method: push:event_bus
+
+trust_changed:
+  kind: event
+  name: Trust Changed
+  category: "Health & Status"
+  description: Fires when a per-capability trust score changes direction (up or down).
+  source_module: bridge.trust_score
+  schema_ref: "dict — capability, old_score, new_score"
+  event_type: trust.changed
+  access_method: push:event_bus
+
+schedule_triggered:
+  kind: event
+  name: Schedule Triggered
+  category: "Health & Status"
+  description: Fires when a LaunchDaemon scheduled service begins its run cycle.
+  source_module: bridge.services.runner
+  schema_ref: "dict — service_name, run_id, started_at"
+  event_type: schedule.triggered
+  access_method: push:event_bus
+
+# ── P5.5 / #1736 backfill ───────────────────────────────────────────────────
+
+security_remote_halt_activated:
+  kind: event
+  name: Security Remote Halt Activated
+  category: "Health & Status"
+  description: Fires when the remote kill-switch endpoint returns halt=true and the bridge sets local halt mode. Operator-visible security signal.
+  source_module: bridge.background_loops
+  schema_ref: "dict — url, timestamp"
+  event_type: security.remote_halt_activated
+  access_method: push:event_bus
+
+security_branch_protection_failed:
+  kind: event
+  name: Security Branch Protection Failed
+  category: "Health & Status"
+  description: Fires when the factory quality gate detects an under-protected repo (less than STRICT_OK). Surfaces during the warn-and-allow soak period so operator can track degraded repos before strict-block flips on.
+  source_module: bridge.factory.quality
+  schema_ref: "dict — repo, status, reason, posture"
+  event_type: security.branch_protection.failed
+  access_method: push:event_bus
+
+response_evaluator_fail:
+  kind: event
+  name: Response Evaluator Fail
+  category: "Health & Status"
+  description: Fires when the adversarial ResponseEvaluator returns verdict=fail for a Claude response. Pipes into the model_router's auto-escalation signal and is the canonical HITL surface for response-quality regressions.
+  source_module: bridge.app
+  schema_ref: "dict — session_id, verdict, evaluator_score, response_prefix"
+  event_type: response.evaluator.fail
+  access_method: push:event_bus
+
+funnel_anomaly_detected:
+  kind: event
+  name: Funnel Anomaly Detected
+  category: "Health & Status"
+  description: Fires when the daily funnel-post canary detects a statistical anomaly worth surfacing. Deduplicated per-day per-tag so a single anomaly only emits once.
+  source_module: bridge.services.funnel_post
+  schema_ref: "dict — date_key, tag, message"
+  event_type: funnel.anomaly_detected
+  access_method: push:event_bus

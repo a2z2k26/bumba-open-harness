@@ -1,0 +1,39 @@
+name: critical-metrics-drift
+
+# Asserts that every metric in `CRITICAL_METRICS` (see
+# `agent/scripts/check_critical_metrics_drift.py`) is declared in
+# `agent/config/registry/metrics/`.
+
+on:
+  pull_request:
+    paths:
+      - "agent/config/registry/metrics/**.yaml"
+      - "agent/scripts/check_critical_metrics_drift.py"
+      - "agent/tests/test_critical_metrics_drift.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Critical-metrics drift gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Python dependencies
+        run: pip install pyyaml
+
+      - name: Run critical-metrics drift check
+        run: python3 agent/scripts/check_critical_metrics_drift.py

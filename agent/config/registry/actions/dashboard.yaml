@@ -1,0 +1,31 @@
+# Operator dashboard actions (Board Phase 2 WS1, #2391).
+# Read-only aggregation surface over services / escalation / halt / wiring / cost.
+
+dashboard_get:
+  kind: action
+  name: Operator Dashboard (JSON)
+  category: "Health & Status"
+  description: >
+    Returns the aggregated operator dashboard payload: halt status, wiring
+    manifest summary, active escalations, last 10 surface runs with cumulative
+    cost, and daily/weekly cost totals. Pure read over existing components.
+  source_module: bridge.api.routes_dashboard
+  schema_ref: "dict — halt, wiring, active_escalations, service_runs, cost"
+  method: GET
+  path: /api/v1/dashboard
+  auth: bearer
+  access_method: rest
+
+dashboard_html_get:
+  kind: action
+  name: Operator Dashboard (HTML)
+  category: "Health & Status"
+  description: >
+    Serves a dependency-free, inline-CSS HTML page that polls
+    /api/v1/dashboard every 30s. No external assets, no WebSocket.
+  source_module: bridge.api.routes_dashboard
+  schema_ref: "text/html — self-contained page"
+  method: GET
+  path: /dashboard
+  auth: bearer
+  access_method: rest

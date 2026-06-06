@@ -1,0 +1,84 @@
+name: qa.performance_baseline
+trigger: explicit
+budget:
+  max_cost_usd: 1.50
+  max_duration_seconds: 600
+# 1112 Sprint 5q.06 — Zone 4 QA Layer 2 workflow paired with the
+# `qa-performance-tester` specialist output bar
+# (agent/config/claude-files/agents/qa-performance-tester.md).
+#
+# Purpose: operator-invoked at sprint-close to establish a fresh
+# performance baseline for a new endpoint or feature so future
+# regressions can be detected against a known anchor. This workflow
+# captures the baseline; it does NOT run regression detection (that
+# is the scope boundary called out in the sprint spec).
+#
+# Output bar this workflow holds the chief to:
+#
+#   - p50 / p95 / p99 latency are ALL required — single-number "avg
+#     response time" fails the bar.
+#   - Throughput (req/s) and error rate must accompany latency, never
+#     reported in isolation.
+#   - Regression thresholds are stated as multipliers of the captured
+#     baseline (e.g. "alert when p95 > 1.5x baseline") so they remain
+#     meaningful as the baseline shifts.
+#   - The baseline payload (target identifier, load profile, p50/p95/
+#     p99, throughput, error rate, threshold multipliers) is emitted
+#     in a single machine-readable block so downstream tooling can
+#     persist it without re-parsing prose.
+#
+# Flat layout per workflow_registry.py:63.
+steps:
+  - name: define-load-profile
+    department: qa
+    intent: >
+      Define the load profile for the target endpoint or feature
+      provided in the trigger payload: concurrent users, requests-
+      per-second target, duration, request mix, payload size. State
+      assumptions about steady-state vs warmup vs ramp. One block,
+      no padding. If the target is ambiguous, ask once via the
+      output and stop — do not guess.
+    outputs: [load_profile]
+
+  - name: run-baseline-measurement
+    department: qa
+    intent: >
+      Execute the load profile against the target. Capture: p50,
+      p95, p99 latency (all three required); throughput (req/s);
+      error rate (%); sample size. Use the existing perf tooling
+      pattern shown in qa-performance-tester.md (k6 / locust /
+      wrk — pick whatever is already wired). Emit the measurement
+      block; do not interpret yet.
+    inputs: [load_profile]
+    outputs: [baseline_measurement]
+
+  - name: synthesize-baseline
+    department: qa
+    intent: >
+      Combine {load_profile} and {baseline_measurement} into a
+      single baseline artifact. Required fields: target identifier;
+      load profile summary; p50 / p95 / p99 latency; throughput;
+      error rate; sample size; regression threshold multipliers
+      (default: p95 > 1.5x baseline = warn, p95 > 2.0x = fail; p99
+      > 2.0x baseline = warn, p99 > 3.0x = fail; error rate > 2x
+      baseline = warn). Emit as one fenced YAML block so downstream
+      tooling can persist it without re-parsing prose. Note: this
+      workflow only captures the baseline — regression-detection
+      automation is out of scope (deferred).
+    inputs: [load_profile, baseline_measurement]
+    outputs: [baseline_artifact]
+    on_failure: [publish-failure-notice]
+
+  - name: publish-baseline
+    action: publish_discord
+    channel: operator
+    message: "# Performance Baseline Captured\n\n{baseline_artifact}"
+
+  - name: publish-failure-notice
+    action: publish_discord
+    channel: operator
+    message: >
+      qa.performance_baseline workflow failed during synthesis.
+      Check `data/logs/<today>.md` for the stack trace; the load
+      profile and measurement steps may have succeeded — re-run
+      with the captured inputs to skip re-measuring.

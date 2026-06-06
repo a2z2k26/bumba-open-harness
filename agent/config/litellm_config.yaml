@@ -1,0 +1,39 @@
+# LiteLLM Proxy Configuration — Bumba Cross-Model Orchestration
+# Generated reference config. In production, use generate_litellm_config() for dynamic generation.
+
+model_list:
+  - model_name: bumba-simple
+    litellm_params:
+      model: claude-3-5-haiku-20241022
+      fallbacks:
+        - model: claude-sonnet-4-20250514
+
+  - model_name: bumba-medium
+    litellm_params:
+      model: claude-sonnet-4-20250514
+      fallbacks:
+        - model: claude-opus-4-20250514
+        - model: claude-3-5-haiku-20241022
+
+  - model_name: bumba-complex
+    litellm_params:
+      model: claude-opus-4-20250514
+      fallbacks:
+        - model: claude-sonnet-4-20250514
+
+  - model_name: bumba-conversational
+    litellm_params:
+      model: pi
+      fallbacks:
+        - model: claude-sonnet-4-20250514
+
+litellm_settings:
+  drop_params: true
+  set_verbose: false
+  num_retries: 2
+  request_timeout: 120
+
+general_settings:
+  master_key: sk-bumba-litellm-proxy
+  alerting:
+    - slack

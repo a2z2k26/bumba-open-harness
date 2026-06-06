@@ -1,0 +1,14 @@
+{
+  "name": "bumba-frontend-design",
+  "version": "1.0.0",
+  "description": "Bumba Design Bridge frontend skill for creating distinctive, production-grade interfaces using extracted components, layouts, and design tokens",
+  "author": {
+    "name": "Bumba Design Bridge"
+  },
+  "license": "MIT",
+  "keywords": ["design", "frontend", "components", "figma", "design-bridge", "production", "tokens", "layouts"],
+  "skills": ["skills/bumba-frontend-design/SKILL.md"],
+  "dependencies": {
+    "required": [".design/componentRegistry.json", ".design/tokens/"]
+  }
+}

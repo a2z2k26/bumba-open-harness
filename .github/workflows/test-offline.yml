@@ -1,0 +1,36 @@
+name: Tests (offline)
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install dependencies
+        run: |
+          pip install -e "agent/[dev]" \
+            || pip install pytest pytest-asyncio aiosqlite "discord.py>=2.4.0" "keyring>=25.0.0" "pydantic-ai[anthropic]>=1.78,<2.0"
+      - name: Syntax check (py_compile)
+        run: |
+          find agent/bridge agent/teams agent/job_search agent/tests agent/scripts -name "*.py" \
+            | xargs python3 -m py_compile
+      - name: Lint no scattered CommandHandler setters
+        run: python3 agent/scripts/lint_no_scattered_setters.py agent/bridge/app.py
+      - name: Run offline tests
+        # `not live and not socket` mirrors `make test` / `make test-offline`.
+        # The `socket` marker tags aiohttp TestServer suites that bind localhost
+        # ports. Those require unrestricted networking and run in the
+        # `test-socket` lane locally (not in this default CI workflow).
+        run: cd agent && python -m pytest tests/ job_search/tests/ -m "not live and not socket" -x -q --tb=short

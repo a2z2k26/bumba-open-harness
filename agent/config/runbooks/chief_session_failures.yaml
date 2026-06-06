@@ -1,0 +1,185 @@
+# Chief session failure runbook (Z4-S66, issue #1410).
+#
+# This file is consumed by `bridge/diagnosis.py::RunbookEngine.load_runbooks`,
+# which expects: top-level `id`, optional `trigger`, list of `steps` (each with
+# `command`), `resolution`, and `escalation`. Anything else (e.g. `scenarios`,
+# `severity`, `investigation_steps`, `escalate_if`) is preserved in the parsed
+# dict and made available to operators via `engine.runbooks` — the loader
+# itself does not interpret those fields, so adding them does not require
+# changes to the engine.
+#
+# The `scenarios` block carries the operator-facing detail required by the
+# Z4-S66 acceptance criteria: per-mode trigger, severity, investigation steps,
+# resolution, and escalation rules. Each scenario is keyed by its failure-mode
+# id (EXECUTING_STUCK, ALL_RETRIES_EXHAUSTED, COST_CAP_EXCEEDED, CIRCUIT_OPEN,
+# REAPER_NOT_RUNNING).
+
+id: chief-session-failures
+name: Chief Session Failure Modes
+trigger:
+  or:
+    - "components.claude.status == degraded"
+    - "components.claude.status == down"
+
+symptoms:
+  - WarmChief sessions stuck in EXECUTING beyond expected wall time
+  - ChiefDispatcher exhausts retries for a department
+  - Per-session cost cap exceeded
+  - Circuit breaker opens for a department
+  - Reaper loop not draining idle sessions
+
+# `steps` are executed by RunbookEngine.execute_runbook in order. A step
+# passes when its command exits 0 AND stdout does not contain the literal
+# string "FAIL". Commands that depend on the API server use the bridge token
+# from `data/.secrets`; if you run these by hand, export
+# `BUMBA_API_TOKEN=$(grep ^api_token= ~/data/.secrets | cut -d= -f2-)` first.
+steps:
+  - id: list_executing_sessions
+    check: "How many chief sessions are stuck in EXECUTING?"
+    command: "curl -fsS -H \"Authorization: Bearer ${BUMBA_API_TOKEN:-}\" 'http://127.0.0.1:8200/api/chief_sessions?state=executing' 2>/dev/null | python3 -c 'import json,sys; d=json.load(sys.stdin); print(\"count:\", len(d.get(\"sessions\", [])))' || echo FAIL"
+    on_pass: "API reachable and EXECUTING count returned"
+    on_fail: "API unreachable or chief_sessions endpoint not registered"
+    fix: "Verify bridge is running and api.enabled = true in bridge.toml"
+  - id: scan_recent_failures
+    check: "Any chief sessions in failed state in the last hour?"
+    command: "curl -fsS -H \"Authorization: Bearer ${BUMBA_API_TOKEN:-}\" 'http://127.0.0.1:8200/api/chief_sessions?state=failed&limit=10' 2>/dev/null | python3 -c 'import json,sys; d=json.load(sys.stdin); print(\"failed:\", len(d.get(\"sessions\", [])))' || echo FAIL"
+    on_pass: "Failed-session count retrieved"
+    on_fail: "Cannot query failed sessions"
+  - id: check_retry_exhaustion_log
+    check: "Any 'all retries exhausted' lines in the last hour?"
+    command: "test -r /opt/bumba-harness/logs/bridge-stderr.log && grep -c 'retries exhausted' /opt/bumba-harness/logs/bridge-stderr.log || echo 0"
+    on_pass: "Log scan completed"
+    on_fail: "Cannot read bridge stderr log"
+  - id: check_cost_cap_log
+    check: "Any CostCapExceeded events in the bridge log?"
+    command: "test -r /opt/bumba-harness/logs/bridge-stderr.log && grep -c 'CostCapExceeded' /opt/bumba-harness/logs/bridge-stderr.log || echo 0"
+    on_pass: "Cost-cap log scan completed"
+    on_fail: "Cannot read bridge stderr log"
+  - id: check_reaper_running
+    check: "Is the chief_session_reaper_loop active?"
+    command: "test -r /opt/bumba-harness/logs/bridge-stderr.log && grep -c 'chief_session_reaper_loop' /opt/bumba-harness/logs/bridge-stderr.log || echo 0"
+    on_pass: "Reaper loop has logged at least one tick since last restart"
+    on_fail: "Reaper loop has not logged — may have crashed or never started"
+    fix: "Restart the bridge daemon to respawn the reaper loop"
+
+resolution: >
+  Match the failing symptom to one of the five scenarios in the `scenarios`
+  block below and follow its `resolution` list. If multiple scenarios fire
+  simultaneously, escalate per the highest-severity entry first.
+
+escalation: >
+  L1 (logged) for LOW severity, L2 (Discord alert) for MEDIUM, L3
+  (operator-paged) for HIGH. Escalate immediately if more than one HIGH-severity
+  scenario is active or if the bridge has been restarted in the last 15 minutes
+  without recovery.
+
+# ---------------------------------------------------------------------------
+# Scenarios — operator-facing detail per Z4-S66 acceptance criteria.
+# These are not executed by the engine; they are read by humans (and by future
+# tooling that introspects `engine.runbooks`).
+# ---------------------------------------------------------------------------
+scenarios:
+
+  - id: EXECUTING_STUCK
+    last_verified: "2026-05-09"
+    trigger:
+      type: api_condition
+      endpoint: "GET /api/chief_sessions?state=executing"
+      condition: "any session has elapsed_minutes > 15 with run_count > 0"
+    severity: HIGH
+    investigation_steps:
+      - "List stuck sessions: curl -H 'Authorization: Bearer $BUMBA_API_TOKEN' 'http://127.0.0.1:8200/api/chief_sessions?state=executing'"
+      - "Tail bridge stderr for WarmChief activity: tail -200 /opt/bumba-harness/logs/bridge-stderr.log | grep -i 'warmchief\\|EXECUTING'"
+      - "Check asyncio task counts: curl -H 'Authorization: Bearer $BUMBA_API_TOKEN' 'http://127.0.0.1:8200/api/metrics/asyncio_tasks'"
+      - "Confirm DepartmentTeam.run() has a timeout configured for the affected department"
+    resolution:
+      - "Force-shutdown a single stuck session: POST /api/chief_sessions/{sid}/shutdown"
+      - "If 3+ sessions are stuck simultaneously, restart the bridge: sudo launchctl kickstart -k system/com.bumba.agent-bridge"
+      - "After restart, regenerate the kernel baseline if any code changed since last deploy"
+    escalate_if:
+      - "More than 5 sessions stuck simultaneously"
+      - "Stuck session is for a P0 work order"
+      - "Same department exhibits stuck behavior across two restarts"
+
+  - id: ALL_RETRIES_EXHAUSTED
+    last_verified: "2026-05-09"
+    trigger:
+      type: log_pattern
+      pattern: "ChiefDispatcher: all .* retries exhausted"
+      window_minutes: 60
+      threshold: 3
+    severity: MEDIUM
+    investigation_steps:
+      - "Identify failing department: grep 'retries exhausted' /opt/bumba-harness/logs/bridge-stderr.log | tail -20"
+      - "Check department health: curl -H 'Authorization: Bearer $BUMBA_API_TOKEN' 'http://127.0.0.1:8200/api/z4/departments/{dept}/health'"
+      - "Check Anthropic status page: https://status.anthropic.com"
+      - "Inspect circuit breaker state: curl -H 'Authorization: Bearer $BUMBA_API_TOKEN' 'http://127.0.0.1:8200/api/metrics/circuit_breakers'"
+      - "Confirm daily budget is not the cause: curl -H 'Authorization: Bearer $BUMBA_API_TOKEN' 'http://127.0.0.1:8200/api/cost'"
+    resolution:
+      - "If transient API outage: take no action; circuit breakers will half-open and recover"
+      - "If budget exhausted: raise daily limit in bridge.toml or wait for midnight UTC reset"
+      - "If config error in board.yaml: fix the department definition and redeploy"
+      - "After fix, re-submit the failed work order: POST /api/workorders with explicit department_hint"
+    escalate_if:
+      - "Same department failing for more than one hour"
+      - "All departments failing simultaneously (bridge-wide issue)"
+      - "Anthropic status page reports no incident yet local symptom persists"
+
+  - id: COST_CAP_EXCEEDED
+    last_verified: "2026-05-09"
+    trigger:
+      type: log_pattern
+      pattern: "CostCapExceeded.*chief_session"
+      window_minutes: 60
+      threshold: 1
+    severity: MEDIUM
+    investigation_steps:
+      - "Identify the session: grep 'CostCapExceeded' /opt/bumba-harness/logs/bridge-stderr.log | tail -5"
+      - "Inspect session cost: curl -H 'Authorization: Bearer $BUMBA_API_TOKEN' 'http://127.0.0.1:8200/api/chief_sessions/{sid}/cost'"
+      - "Review the originating work order's complexity score and prompt size"
+      - "Compare against chief_dispatcher_cost_cap_usd in bridge.toml"
+    resolution:
+      - "If one-off: re-submit the work order with a higher explicit cost_limit_usd"
+      - "If systemic across multiple sessions: raise chief_dispatcher_cost_cap_usd in bridge.toml and redeploy"
+      - "If pattern looks like abuse: audit the work order source channel and add input validation"
+    escalate_if:
+      - "5+ CostCapExceeded events in 1 hour for the same department"
+      - "Cost cap is exceeded by more than 2x on a single session"
+
+  - id: CIRCUIT_OPEN
+    last_verified: "2026-05-09"
+    trigger:
+      type: event
+      event_name: chief_dispatcher.circuit_open
+    severity: HIGH
+    investigation_steps:
+      - "Identify the open circuit: curl -H 'Authorization: Bearer $BUMBA_API_TOKEN' 'http://127.0.0.1:8200/api/chief_sessions?state=failed' | jq '[.sessions[].department] | group_by(.) | map({dept: .[0], count: length})'"
+      - "Inspect the three most recent failures: curl -H 'Authorization: Bearer $BUMBA_API_TOKEN' 'http://127.0.0.1:8200/api/chief_sessions?state=failed&limit=3'"
+      - "Search bridge logs for the root cause: grep 'FAILED.*{department}' /opt/bumba-harness/logs/bridge-stderr.log | tail -20"
+      - "Check whether fallback departments are also failing"
+    resolution:
+      - "If transient (API blip): wait 5 minutes for the circuit to half-open and recover automatically"
+      - "If config error: fix board.yaml for the affected department and redeploy"
+      - "If an immediate reset is required: restart the bridge to clear in-memory circuit state"
+    escalate_if:
+      - "Circuit has been open for more than 30 minutes"
+      - "Fallback departments also have open circuits"
+      - "More than half of registered departments have open circuits"
+
+  - id: REAPER_NOT_RUNNING
+    last_verified: "2026-05-09"
+    trigger:
+      type: api_condition
+      endpoint: "GET /api/chief_sessions?state=awaiting_evaluation"
+      condition: "any session has idle_minutes > 60"
+    severity: LOW
+    investigation_steps:
+      - "Confirm reaper loop is alive: curl -H 'Authorization: Bearer $BUMBA_API_TOKEN' 'http://127.0.0.1:8200/api/tasks' | grep reaper"
+      - "Check bridge uptime: curl -fsS 'http://127.0.0.1:8200/healthz' | python3 -c 'import json,sys; print(json.load(sys.stdin).get(\"uptime_seconds\"))'"
+      - "Search bridge logs for reaper errors: grep 'chief_session_reaper_loop' /opt/bumba-harness/logs/bridge-stderr.log | tail -20"
+    resolution:
+      - "If reaper has crashed: restart the bridge to respawn reaper_loop"
+      - "If a restart is not yet warranted: shut down idle sessions manually via Discord (/chief_sessions, then /shutdown_session {sid})"
+    escalate_if:
+      - "More than 10 sessions idle longer than 1 hour"
+      - "Reaper has not logged a tick in more than 2x its scheduled interval"

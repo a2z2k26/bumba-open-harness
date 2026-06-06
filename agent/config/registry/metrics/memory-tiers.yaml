@@ -1,0 +1,72 @@
+# Memory tier metrics — registered by Mem-9 (#1850), wired by Mem-9.5 (#1877).
+#
+# Five labeled counters covering the memory-tier-architecture lifecycle:
+# writes, retrievals, evictions, promotions, and demotions. Names below are
+# the canonical pull-keys for `/api/metrics/{name}`.
+#
+# Label-folding note (Mem-9.5): `MetricsCollector.observe(name, value)` does
+# not accept labels, so tier labels are folded into the metric name suffix
+# at the emit site, e.g. `memory.tier.writes.preference`. `metric_name`
+# below is the registry-canonical *prefix*; the runtime histograms live at
+# `<metric_name>.<tier-value>` (writes/retrievals) or
+# `<metric_name>.<from>_to_<to>` (promotions/demotions).
+#
+# Emit sites wired by:
+#   - Mem-9.5 (#1877) Site 1: memory.tier.writes (in bridge/memory/knowledge.py)
+#   - Mem-9.5 (#1877) Site 3: memory.tier.retrievals (in bridge/hybrid_search.py::search_tiered)
+#   - Mem-9.5 (#1877) Site 4: memory.tier.promotions (in bridge/dream_agent.py::_run_tier_ops)
+#   - Mem-9.5 (#1877) Site 5: memory.tier.demotions (in bridge/dream_agent.py::_run_tier_ops)
+#
+# Site 2 (dual_write.py) skipped: redundant with Site 1; same event upstream.
+# Site 6 (evictions): no Python-side prune step exists yet; left as defined-but-
+# unincremented until a future sprint adds Python-side eviction.
+
+memory_tier_writes:
+  kind: metric
+  name: Memory Tier Writes
+  category: "Memory"
+  description: "Labeled counter incremented on every tiered knowledge write. Tier label folded into the metric suffix: `memory.tier.writes.preference` | `memory.tier.writes.decision` | `memory.tier.writes.context`. Emit site: bridge/memory/knowledge.py::store_knowledge."
+  source_module: bridge.memory.knowledge
+  schema_ref: "labeled counter — tier: preference|decision|context (label folded into metric-name suffix)"
+  metric_name: memory.tier.writes
+  access_method: "pull:/api/metrics/{name}"
+
+memory_tier_retrievals:
+  kind: metric
+  name: Memory Tier Retrievals
+  category: "Memory"
+  description: "Labeled counter incremented on every search_tiered() per-tier result list. Tier label folded into the metric suffix: `memory.tier.retrievals.preference` | `memory.tier.retrievals.decision` | `memory.tier.retrievals.context`. Emit site: bridge/hybrid_search.py::search_tiered."
+  source_module: bridge.hybrid_search
+  schema_ref: "labeled counter — tier: preference|decision|context (label folded into metric-name suffix)"
+  metric_name: memory.tier.retrievals
+  access_method: "pull:/api/metrics/{name}"
+
+memory_tier_evictions:
+  kind: metric
+  name: Memory Tier Evictions
+  category: "Memory"
+  description: "Labeled counter incremented on every consolidation eviction by tier. Tier label folded into the metric suffix: `memory.tier.evictions.preference` | `memory.tier.evictions.decision` | `memory.tier.evictions.context`. Emit site deferred — no Python-side prune step today (LLM phase does file-level prunes). Filed as Mem-9.6 follow-up."
+  source_module: bridge.dream_agent
+  schema_ref: "labeled counter — tier: preference|decision|context (label folded into metric-name suffix)"
+  metric_name: memory.tier.evictions
+  access_method: "pull:/api/metrics/{name}"
+
+memory_tier_promotions:
+  kind: metric
+  name: Memory Tier Promotions
+  category: "Memory"
+  description: "Labeled counter incremented on every tier promotion during dream-agent tier-ops. (from, to) labels folded into the metric suffix: `memory.tier.promotions.context_to_decision` | `memory.tier.promotions.decision_to_preference`. Emit site: bridge/dream_agent.py::_run_tier_ops."
+  source_module: bridge.dream_agent
+  schema_ref: "labeled counter — from: preference|decision|context, to: preference|decision|context with to higher than from (labels folded into metric-name suffix as `<from>_to_<to>`)"
+  metric_name: memory.tier.promotions
+  access_method: "pull:/api/metrics/{name}"
+
+memory_tier_demotions:
+  kind: metric
+  name: Memory Tier Demotions
+  category: "Memory"
+  description: "Labeled counter incremented on every tier demotion during dream-agent tier-ops. (from, to) labels folded into the metric suffix: `memory.tier.demotions.preference_to_decision` | `memory.tier.demotions.decision_to_context`. Emit site: bridge/dream_agent.py::_run_tier_ops."
+  source_module: bridge.dream_agent
+  schema_ref: "labeled counter — from: preference|decision|context, to: preference|decision|context with to lower than from (labels folded into metric-name suffix as `<from>_to_<to>`)"
+  metric_name: memory.tier.demotions
+  access_method: "pull:/api/metrics/{name}"

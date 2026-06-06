@@ -1,0 +1,74 @@
+# ResourceWarning baseline — Sprint S6.1 (#2351)
+# Format: <test_nodeid>|<warning_kind>
+# Memory addresses, pytest tmp paths, and PID dirs are normalized.
+# Update via: python agent/scripts/check_resource_warning_baseline.py --update-baseline
+job_search/tests/test_approval.py::TestExecuteApproved::test_outreach_sends_email|unclosed database in <sqlite3.Connection object at <ADDR>>
+job_search/tests/test_boards.py::TestStubBoards::test_stub_returns_empty[LetsWorkRemotelyBoard]|unclosed database in <sqlite3.Connection object at <ADDR>>
+job_search/tests/test_notifier.py::TestNotionNotifierLogListing::test_cover_letter_included_in_children|unclosed database in <sqlite3.Connection object at <ADDR>>
+job_search/tests/test_rubric.py::TestRubricLoadsYaml::test_loads_real_rubric_yaml_from_main|unclosed database in <sqlite3.Connection object at <ADDR>>
+tests/test_app.py::TestChiefDispatcherWiring::test_default_department_is_strategy|unclosed database in <sqlite3.Connection object at <ADDR>>
+tests/test_app_startup.py::test_tick_manager_constructed_when_enabled|unclosed database in <sqlite3.Connection object at <ADDR>>
+tests/test_app_workflow_wiring.py::TestCommandHandlerWiring::test_command_handler_receives_workflow_engine|unclosed database in <sqlite3.Connection object at <ADDR>>
+tests/test_app_workflow_wiring.py::TestWorkflowConstruction::test_workflow_engine_constructed|unclosed database in <sqlite3.Connection object at <ADDR>>
+tests/test_background_loops.py::TestConsolidationLoop::test_calls_fetch_all_knowledge_rows|unclosed database in <sqlite3.Connection object at <ADDR>>
+tests/test_commands_dispatch.py::TestDispatchCommand::test_dispatch_usage_message_when_text_empty|unclosed database in <sqlite3.Connection object at <ADDR>>
+tests/test_commands_dispatch.py::TestGracefulDegradation::test_dispatch_command_when_env_selector_missing|unclosed database in <sqlite3.Connection object at <ADDR>>
+tests/test_commands_dispatch.py::TestGracefulDegradation::test_dispatch_command_when_env_selector_missing|unclosed event loop <_UnixSelectorEventLoop running=False closed=False debug=False>
+tests/test_commands_dispatch.py::TestRoutingBrainConstruction::test_app_holds_routing_brain_source_attribute|unclosed database in <sqlite3.Connection object at <ADDR>>
+tests/test_cross_model_openrouter_adapter.py::TestDelegation::test_invoke_passes_context_system_field_as_system_message|unclosed database in <sqlite3.Connection object at <ADDR>>
+tests/test_discord_bot.py::TestStatusEmbed::test_build_status_embed_healthy|unclosed file <_io.FileIO name='/var/folders/00/nrg_xrgs33g5v8nm_s1zn77r0000gn/T/bumba_img_<RAND>.png' mode='rb+' closefd=True>
+tests/test_dream_agent.py::test_run_valid_json_returns_success|unclosed database in <sqlite3.Connection object at <ADDR>>
+tests/test_experiment_loop.py::TestAuditBranchCleanupReport::test_load_audit_branch_settings_returns_three_tuple|unclosed database in <sqlite3.Connection object at <ADDR>>
+tests/test_experiment_loop.py::TestHaltScope::test_iteration_skipped_when_halted|unclosed database in <sqlite3.Connection object at <ADDR>>
+tests/test_experiment_loop.py::TestHookContract::test_nonzero_exit_logged_loop_continues|unclosed database in <sqlite3.Connection object at <ADDR>>
+tests/test_experiment_loop.py::TestMainExceptionMasking::test_mailbox_cleanup_runs_when_run_experiment_raises_after_mailbox_open|unclosed database in <sqlite3.Connection object at <ADDR>>
+tests/test_experiment_loop.py::TestMainLoopMidIterationHalt::test_validate_skipped_when_halt_fires_between_apply_and_validate|unclosed file <_io.FileIO name=133 mode='rb' closefd=True>
+tests/test_experiment_loop.py::TestMainLoopMidIterationHalt::test_validate_skipped_when_halt_fires_between_apply_and_validate|unclosed file <_io.FileIO name=135 mode='rb' closefd=True>
+tests/test_experiment_loop.py::TestMainModeMatrix::test_proposal_only_no_db_row_no_merge|unclosed database in <sqlite3.Connection object at <ADDR>>
+tests/test_experiment_loop.py::TestMainModeMatrix::test_shadow_notifies_discord_once_per_iteration|unclosed database in <sqlite3.Connection object at <ADDR>>
+tests/test_experiment_loop.py::TestMainModeMatrixIntegration::test_main_mode_proposal_only_does_not_call_run_experiment_or_merge|unclosed database in <sqlite3.Connection object at <ADDR>>
+tests/test_experiment_loop.py::TestMainShadowBody::test_dry_run_never_calls_merge_experiment|unclosed database in <sqlite3.Connection object at <ADDR>>
+tests/test_experiment_loop.py::TestMainShadowBody::test_dry_run_writes_shadow_keep_row_to_experiment_log|unclosed database in <sqlite3.Connection object at <ADDR>>
+tests/test_experiment_loop.py::TestRunSubprocessCancellable::test_subprocess_halt_idempotent|unclosed file <_io.TextIOWrapper name=134 encoding='UTF-8'>
+tests/test_experiment_loop.py::TestRunSubprocessCancellable::test_subprocess_halt_idempotent|unclosed file <_io.TextIOWrapper name=137 encoding='UTF-8'>
+tests/test_experiment_loop.py::TestRunSubprocessCancellable::test_subprocess_timeout_still_honored|unclosed file <_io.TextIOWrapper name=134 encoding='UTF-8'>
+tests/test_experiment_loop.py::TestRunSubprocessCancellable::test_subprocess_timeout_still_honored|unclosed file <_io.TextIOWrapper name=137 encoding='UTF-8'>
+tests/test_experiment_loop.py::TestValidatorRunnerCostIntegration::test_validator_subprocess_cost_parsed_from_result_event|unclosed database in <sqlite3.Connection object at <ADDR>>
+tests/test_experiment_push_guard.py::TestAssertPushableBranchForbidden::test_empty_string_is_rejected|unclosed database in <sqlite3.Connection object at <ADDR>>
+tests/test_factory_implement_mailbox.py::TestRequestDecision::test_returns_none_on_timeout|unclosed database in <sqlite3.Connection object at <ADDR>>
+tests/test_factory_labels.py::test_transition_state_from_none_omits_remove_label|unclosed database in <sqlite3.Connection object at <ADDR>>
+tests/test_integration_full.py::TestEndToEndMocked::test_queue_position_acknowledgment|unclosed database in <sqlite3.Connection object at <ADDR>>
+tests/test_integration_full.py::TestErrorScenarios::test_auth_expiry_halts_agent|unclosed database in <sqlite3.Connection object at <ADDR>>
+tests/test_integration_full.py::TestErrorScenarios::test_max_turns_sends_partial|unclosed database in <sqlite3.Connection object at <ADDR>>
+tests/test_integration_full.py::TestSecurityAudit::test_audit_append_only|unclosed database in <sqlite3.Connection object at <ADDR>>
+tests/test_integration_full.py::TestSecurityAudit::test_command_logged_to_audit|unclosed database in <sqlite3.Connection object at <ADDR>>
+tests/test_integration_full.py::TestSessionLifecycle::test_context_injection|unclosed database in <sqlite3.Connection object at <ADDR>>
+tests/test_job_search_preflight_wired.py::test_execute_preflight_ok_proceeds_to_department_call|<aiosqlite.core.Connection object at <ADDR>> was deleted before being closed. Please use 'async with' or '.close()' to close the connection properly.
+tests/test_job_search_service.py::test_prepare_and_execute_share_state_file|<aiosqlite.core.Connection object at <ADDR>> was deleted before being closed. Please use 'async with' or '.close()' to close the connection properly.
+tests/test_job_search_service.py::test_prepare_success_increments_total_runs|<aiosqlite.core.Connection object at <ADDR>> was deleted before being closed. Please use 'async with' or '.close()' to close the connection properly.
+tests/test_last_accessed_at.py::test_touch_last_accessed_no_op_on_empty_keys|<aiosqlite.core.Connection object at <ADDR>> was deleted before being closed. Please use 'async with' or '.close()' to close the connection properly.
+tests/test_log_consolidation.py::test_session_scanner_never_reads_content|unclosed database in <sqlite3.Connection object at <ADDR>>
+tests/test_mailbox.py::test_perf_5k_round_trip|unclosed database in <sqlite3.Connection object at <ADDR>>
+tests/test_memory_knowledge_pending_tasks.py::TestKnowledgePendingTaskRetention::test_store_knowledge_retains_embedding_task|unclosed database in <sqlite3.Connection object at <ADDR>>
+tests/test_memory_semantic_search.py::TestMemorySemanticFirstWhenConfigured::test_search_knowledge_skips_semantic_when_no_client|unclosed database in <sqlite3.Connection object at <ADDR>>
+tests/test_peer_registration_integration.py::TestPeerConstructionGate::test_manager_uses_owned_registry|unclosed database in <sqlite3.Connection object at <ADDR>>
+tests/test_peer_registration_integration.py::TestPeerConstructionGate::test_no_constructor_call_when_flag_off|unclosed database in <sqlite3.Connection object at <ADDR>>
+tests/test_peer_registration_integration.py::TestPeerLifecycleHooks::test_peer_deregistered_on_stop|unclosed database in <sqlite3.Connection object at <ADDR>>
+tests/test_peer_registration_integration.py::TestPeerLifecycleHooks::test_start_hook_is_noop_when_flag_off|unclosed database in <sqlite3.Connection object at <ADDR>>
+tests/test_per_department_commands.py::TestDynamicRegistration::test_registers_handler_for_each_department|unclosed database in <sqlite3.Connection object at <ADDR>>
+tests/test_permission_audit.py::TestPermissionAuditLog::test_log_and_query_decision|<aiosqlite.core.Connection object at <ADDR>> was deleted before being closed. Please use 'async with' or '.close()' to close the connection properly.
+tests/test_permission_audit.py::TestPermissionAuditLog::test_query_by_action|<aiosqlite.core.Connection object at <ADDR>> was deleted before being closed. Please use 'async with' or '.close()' to close the connection properly.
+tests/test_plan_state.py::TestPlanState::test_advance_does_not_mutate_original|unclosed database in <sqlite3.Connection object at <ADDR>>
+tests/test_scripts/test_scaffolding_bundles.py::TestChiefSpecialistBundle::test_yaml_passes_schema_validation|unclosed database in <sqlite3.Connection object at <ADDR>>
+tests/test_skill_store_assignment.py::test_assignment_team_name_in_frontmatter|unclosed database in <sqlite3.Connection object at <ADDR>>
+tests/test_stream_coalescer_integration.py::TestCoalescerWiring::test_bridge_owns_coalescer_source_attr|unclosed database in <sqlite3.Connection object at <ADDR>>
+tests/test_teams/test_job_search_service.py::TestBuildStandaloneDeps::test_for_cron_builds_valid_bridge_deps|<aiosqlite.core.Connection object at <ADDR>> was deleted before being closed. Please use 'async with' or '.close()' to close the connection properly.
+tests/test_temporal_knowledge.py::TestSkillDagAddAndRead::test_add_skill_node_invalid_diff_kind_raises|unclosed database in <sqlite3.Connection object at <ADDR>>
+tests/test_tick_context.py::test_daily_log_summary_from_writer|unclosed database in <sqlite3.Connection object at <ADDR>>
+tests/test_tmux_agents.py::TestSpawnAgent::test_spawn_no_tmux|unclosed database in <sqlite3.Connection object at <ADDR>>
+tests/test_version_integration.py::TestHealthzVersionField::test_healthz_includes_top_level_version_field|unclosed database in <sqlite3.Connection object at <ADDR>>
+tests/test_workflow_budget.py::TestBudgetEnforcement::test_budget_exceeded_event_published|unclosed database in <sqlite3.Connection object at <ADDR>>
+tests/test_workorder_ingest.py::test_ingest_handles_temporal_knowledge_exception|unclosed database in <sqlite3.Connection object at <ADDR>>
+tests/test_workorder_wiring.py::TestApiServerVisibility::test_api_server_can_read_workorder_store_after_init|unclosed database in <sqlite3.Connection object at <ADDR>>
+tests/test_workorder_wiring.py::TestGracefulFailure::test_workorder_store_construction_failure_is_graceful|unclosed database in <sqlite3.Connection object at <ADDR>>
+tests/test_workorder_wiring.py::TestWorkOrderStreamConstruction::test_workorder_stream_constructed_during_initialize|unclosed database in <sqlite3.Connection object at <ADDR>>

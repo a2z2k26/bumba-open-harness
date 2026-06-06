@@ -1,0 +1,40 @@
+{
+  "name": "svelte-ts",
+  "description": "Svelte with TypeScript - Lightweight reactive framework setup",
+  "version": "1.0.0",
+  "framework": "svelte",
+  "typescript": true,
+  "outputPath": "src/lib/design-system",
+  "autoSync": true,
+  "storybook": true,
+  "features": {
+    "tests": true,
+    "backups": true,
+    "linting": true
+  },
+  "transformerOptions": {
+    "useStyledComponents": false,
+    "useTailwind": false,
+    "useEmotions": false,
+    "generateStories": true,
+    "generateTests": true
+  },
+  "additionalDependencies": [
+    "svelte",
+    "@storybook/svelte",
+    "@storybook/addon-essentials"
+  ],
+  "devDependencies": [
+    "@testing-library/svelte",
+    "vitest"
+  ],
+  "scripts": {
+    "storybook": "storybook dev -p 6006",
+    "test": "vitest"
+  },
+  "notes": [
+    "Svelte components with TypeScript",
+    "Stories use Svelte component format",
+    "Vitest for testing"
+  ]
+}

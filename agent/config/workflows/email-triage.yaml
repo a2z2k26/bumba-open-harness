@@ -1,0 +1,64 @@
+name: email-triage
+trigger: schedule
+schedule: "cron:0 */2 * * *"  # every 2 hours — matches com.bumba.agent-email cadence
+budget:
+  max_cost_usd: 0.75
+  max_duration_seconds: 180
+# 1.0 milestone box A4 (#1111). Email triage runs every 2 hours via the
+# existing `bridge/services/email.py` LaunchDaemon. This workflow is the
+# WorkflowRegistry equivalent — strategy department reads the inbox,
+# classifies items into urgency tiers, and only escalates to the operator
+# when there's something genuinely actionable. The action-step at the
+# end posts to Discord ONLY if there's something to surface (the strategy
+# step's `escalation_decision` output gates the action via condition).
+#
+# Why one department instead of multiple: email triage doesn't benefit
+# from cross-departmental synthesis. It's a narrow expertise — read,
+# classify, decide. Strategy carries it because the routing decisions
+# (drop / archive / draft / escalate) are strategic, not operational.
+#
+# Cost-bounded tightly ($0.75) because it runs 12× per day. Total daily
+# spend cap: $9.
+steps:
+  - name: scan-inbox
+    department: strategy
+    intent: >
+      Triage the operator's inbox since the last triage run. For each
+      thread, classify into one of:
+
+      - DROP — newsletter, marketing, no action needed
+      - ARCHIVE — informational, file but don't notify
+      - DRAFT — operator should reply; you draft a 1-2 sentence response
+      - ESCALATE — operator must read directly within 24h
+
+      Output a structured summary:
+      - DROP / ARCHIVE counts (no detail per item)
+      - DRAFT items: subject + 1-line summary + suggested reply
+      - ESCALATE items: subject + 1-line "why this matters now"
+
+      Set `escalation_decision` to "notify" if there are any ESCALATE
+      items OR more than 3 DRAFT items pending. Otherwise set to "silent".
+    outputs: [triage_summary, escalation_decision]
+    on_failure: [publish-failure-notice]
+
+  - name: gate-on-escalation
+    gate: operator
+    condition: '{escalation_decision} != "notify"'
+    timeout_seconds: 1
+    message: >
+      _Internal gate — auto-skipped when nothing needs attention.
+      The condition above suppresses notification when the strategy
+      step concluded `escalation_decision = silent`._
+
+  - name: publish-triage-summary
+    action: publish_discord
+    channel: operator
+    message: "# Email Triage\n\n{triage_summary}"
+
+  - name: publish-failure-notice
+    action: publish_discord
+    channel: operator
+    message: >
+      Email triage workflow failed. Inbox not classified this cycle;
+      legacy `bridge/services/email.py` cron will pick up next cycle.
+      Check logs.

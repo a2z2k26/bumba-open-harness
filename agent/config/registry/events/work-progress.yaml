@@ -1,0 +1,216 @@
+# Work & Progress events — WorkOrder lifecycle, pipeline stage transitions.
+
+workorder_created:
+  kind: event
+  name: WorkOrder Created
+  category: "Work & Progress"
+  description: Fires when a WorkOrder transitions from external spec to bridge-tracked state.
+  source_module: bridge.work_order_store
+  schema_ref: bridge.work_order.WorkOrder
+  event_type: workorder.created
+  access_method: push:event_bus
+
+workorder_assigned:
+  kind: event
+  name: WorkOrder Assigned
+  category: "Work & Progress"
+  description: Fires when a WorkOrder is routed to an executor environment.
+  source_module: bridge.dispatcher
+  schema_ref: bridge.work_order.WorkOrder
+  event_type: workorder.assigned
+  access_method: push:event_bus
+
+workorder_dispatched:
+  kind: event
+  name: WorkOrder Dispatched
+  category: "Work & Progress"
+  description: Fires when a WorkOrder is handed off to its selected executor.
+  source_module: bridge.dispatcher
+  schema_ref: bridge.work_order.WorkOrder
+  event_type: workorder.dispatched
+  access_method: push:event_bus
+
+workorder_executing:
+  kind: event
+  name: WorkOrder Executing
+  category: "Work & Progress"
+  description: Fires when executor begins active execution of the WorkOrder payload.
+  source_module: bridge.dispatcher
+  schema_ref: bridge.work_order.WorkOrder
+  event_type: workorder.executing
+  access_method: push:event_bus
+
+workorder_verifying:
+  kind: event
+  name: WorkOrder Verifying
+  category: "Work & Progress"
+  description: Fires when executor output enters the quality verification stage.
+  source_module: bridge.dispatcher
+  schema_ref: bridge.work_order.WorkOrder
+  event_type: workorder.verifying
+  access_method: push:event_bus
+
+workorder_completed:
+  kind: event
+  name: WorkOrder Completed
+  category: "Work & Progress"
+  description: Fires when a WorkOrder passes verification and reaches terminal COMPLETED state.
+  source_module: bridge.dispatcher
+  schema_ref: bridge.work_order.WorkOrder
+  event_type: workorder.completed
+  access_method: push:event_bus
+
+workorder_failed:
+  kind: event
+  name: WorkOrder Failed
+  category: "Work & Progress"
+  description: Fires when a WorkOrder reaches terminal FAILED state due to execution or verification failure.
+  source_module: bridge.dispatcher
+  schema_ref: bridge.work_order.WorkOrder
+  event_type: workorder.failed
+  access_method: push:event_bus
+
+agent_progress:
+  kind: event
+  name: Agent Progress
+  category: "Work & Progress"
+  description: Fires periodically during long-running agent execution with intermediate status.
+  source_module: bridge.tmux_agents
+  schema_ref: "dict — agent_id, step, message"
+  event_type: agent.progress
+  access_method: push:event_bus
+
+pipeline_stage_advanced:
+  kind: event
+  name: Pipeline Stage Advanced
+  category: "Work & Progress"
+  description: Fires when the SDD/TDD pipeline advances to the next stage.
+  source_module: bridge.sdd_pipeline
+  schema_ref: "dict — pipeline_id, from_stage, to_stage"
+  event_type: pipeline.stage_advanced
+  access_method: push:event_bus
+
+pipeline_stage_rejected:
+  kind: event
+  name: Pipeline Stage Rejected
+  category: "Work & Progress"
+  description: Fires when a pipeline stage fails its acceptance criteria and is rejected.
+  source_module: bridge.sdd_pipeline
+  schema_ref: "dict — pipeline_id, stage, reason"
+  event_type: pipeline.stage_rejected
+  access_method: push:event_bus
+
+pipeline_gate_failed:
+  kind: event
+  name: Pipeline Gate Failed
+  category: "Work & Progress"
+  description: Fires when a quality gate in the pipeline fails, blocking stage advancement.
+  source_module: bridge.quality_chain
+  schema_ref: "dict — pipeline_id, gate_name, detail"
+  event_type: pipeline.gate_failed
+  access_method: push:event_bus
+
+task_status_changed:
+  kind: event
+  name: Task Status Changed
+  category: "Work & Progress"
+  description: Fires when a Kanban task transitions between pipeline states (inbox → done / failed).
+  source_module: bridge.task_pipeline
+  schema_ref: bridge.task_pipeline.Task
+  event_type: task.status_changed
+  access_method: push:event_bus
+
+# ── P5.5 / #1736 backfill — events the registry-completeness gate ────────────
+# silently missed before the positional ast-grep rules landed. All are
+# published from `agent/bridge/dispatcher.py` against the Zone 3 WorkOrder
+# pipeline.
+
+workorder_complete:
+  kind: event
+  name: WorkOrder Complete
+  category: "Work & Progress"
+  description: Legacy compatibility event emitted alongside canonical `workorder.completed` when the dispatcher transitions a WorkOrder to COMPLETE after the quality chain passes or auto-complete runs.
+  source_module: bridge.dispatcher
+  schema_ref: "dict — workorder_id, environment, skill, verification_status"
+  event_type: workorder.complete
+  access_method: push:event_bus
+
+workorder_decomposed:
+  kind: event
+  name: WorkOrder Decomposed
+  category: "Work & Progress"
+  description: Fires when the dispatcher's recursive decomposer splits a WorkOrder into child WorkOrders.
+  source_module: bridge.dispatcher
+  schema_ref: "dict — workorder_id, child_count, child_ids"
+  event_type: workorder.decomposed
+  access_method: push:event_bus
+
+workorder_decompose_collapsed:
+  kind: event
+  name: WorkOrder Decompose Collapsed
+  category: "Work & Progress"
+  description: Fires when decomposition collapses an atomic WorkOrder (no children produced); the original WorkOrder dispatches as-is.
+  source_module: bridge.dispatcher
+  schema_ref: "dict — workorder_id, reason"
+  event_type: workorder.decompose.collapsed
+  access_method: push:event_bus
+
+workorder_verifying_stalled:
+  kind: event
+  name: WorkOrder Verifying Stalled
+  category: "Work & Progress"
+  description: Fires when the verification gate is enabled but no quality chain is wired, leaving a WorkOrder stuck in VERIFYING. Observability seam — escalates to operator.
+  source_module: bridge.dispatcher
+  schema_ref: "dict — workorder_id, environment, skill"
+  event_type: workorder.verifying.stalled
+  access_method: push:event_bus
+
+workorder_quality_chain_failed:
+  kind: event
+  name: WorkOrder Quality Chain Failed
+  category: "Work & Progress"
+  description: Fires when the 7-gate quality chain rejects a WorkOrder; carries which gate failed and the reason. Drives the WorkOrder to FAILED.
+  source_module: bridge.dispatcher
+  schema_ref: "dict — workorder_id, environment, skill, failed_at, reason"
+  event_type: workorder.quality_chain.failed
+  access_method: push:event_bus
+
+workorder_quality_chain_human_required:
+  kind: event
+  name: WorkOrder Quality Chain Human Required
+  category: "Work & Progress"
+  description: Fires when the quality chain returns requires_human=True (HITL escalation reasons present). Pre-D1.4 scope-trim — currently logs and proceeds to COMPLETE; AWAITING_HUMAN state is a follow-up sprint.
+  source_module: bridge.dispatcher
+  schema_ref: "dict — workorder_id, skill, escalation_reasons"
+  event_type: workorder.quality_chain.human_required
+  access_method: push:event_bus
+
+dispatcher_breaker_open:
+  kind: event
+  name: Dispatcher Circuit Breaker Open
+  category: "Work & Progress"
+  description: Fires when the per-environment dispatcher circuit breaker (S16) refuses dispatch because the executor has tripped its failure threshold; dispatcher falls through to direct invoke.
+  source_module: bridge.dispatcher
+  schema_ref: "dict — workorder_id, environment, skill"
+  event_type: dispatcher.breaker_open
+  access_method: push:event_bus
+
+dispatcher_selector_skew_warning:
+  kind: event
+  name: Dispatcher Selector Skew Warning
+  category: "Work & Progress"
+  description: Fires when the anti-default-gravity selector flags a skew in environment choice during invocation pipeline. Observability seam for selector tuning.
+  source_module: bridge.invocation_pipeline
+  schema_ref: "dict — workorder_id, environment, skew_warning"
+  event_type: dispatcher.selector_skew_warning
+  access_method: push:event_bus
+
+dojo_gated:
+  kind: event
+  name: Dojo Floor Gated
+  category: "Work & Progress"
+  description: Fires when the Dojo skill-floor gate refuses dispatch because the assigned agent's proficiency for the WorkOrder skill is below the configured floor. Dispatcher falls through to direct invoke.
+  source_module: bridge.dispatcher
+  schema_ref: "dict — workorder_id, agent_id, skill, proficiency, floor"
+  event_type: dojo.gated
+  access_method: push:event_bus

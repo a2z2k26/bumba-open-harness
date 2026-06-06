@@ -1,0 +1,154 @@
+name: strategy.prd_authoring
+trigger: explicit
+schedule: null
+budget:
+  max_cost_usd: 2.0
+  max_duration_seconds: 1200
+# Sprint 5s.03 (#2184). PRD authoring as a Zone 4 Layer 2 workflow.
+# Paired with the strategy-product-chief and strategy-requirement-engineer
+# output bars: handoff-ready specs, Context → Options → Recommendation →
+# Risk/Dependencies → Next steps shape; acceptance criteria that another
+# agent could execute against without prior conversation history.
+#
+# Two-specialist co-authoring instead of a single chief run: the chief
+# carries the framing and trade-off arbitration; the requirement-engineer
+# carries the precision (user stories, acceptance criteria, edge cases,
+# explicit non-goals). Splitting the two makes the seam between
+# "strategic intent" and "implementable spec" observable in the workflow
+# logs — when a PRD ships weak, the operator can see which step
+# under-delivered without re-running the whole thing.
+#
+# Destination of the final PRD doc is operator-decision per invocation
+# (docs/prds/<date>-<topic>.md in-repo vs. Notion page); the workflow
+# emits structured Markdown and the operator picks the durable home.
+# Cheap-ish budget ($2) — two specialists, no expensive search loops.
+steps:
+  - name: gather-context
+    department: strategy
+    intent: >
+      Ingest the problem statement provided as input (or pulled from the
+      operator's most recent capture if none is named). Surface:
+
+      - Who the user is and what job they're trying to do
+      - What the operator has already tried, decided, or rejected on this
+        problem (search recent decisions + relevant memory)
+      - Adjacent prior work in the codebase or product that this PRD
+        will touch or replace
+      - Open questions the operator hasn't answered yet that block a
+        confident spec
+
+      Three to six bullets per heading. Skip a heading entirely if there
+      is nothing material — do not pad.
+    outputs: [problem_context]
+    on_failure: [publish-failure-notice]
+
+  - name: draft-prd-frame
+    department: strategy
+    intent: >
+      Author the strategic frame of the PRD per the strategy-product-chief
+      output bar (Context → Options → Recommendation → Risk/Dependencies
+      → Next steps). Specifically:
+
+      ## Context
+      One paragraph on why this problem matters now and what changes if
+      we don't solve it.
+
+      ## Options considered
+      Two to four candidate approaches with trade-offs spelled out. Name
+      each option distinctly — no straw-man options.
+
+      ## Recommendation
+      The single option to build, with the reason in two sentences. If
+      the recommendation is "don't build this," say so explicitly.
+
+      ## Risk and Dependencies
+      What could derail this; what other workstreams it depends on.
+
+      ## Next steps
+      Three to five concrete next actions, owner per action when known.
+
+      Use the problem context below as ground truth — do not invent
+      facts about the operator's prior decisions:
+
+      {problem_context}
+    inputs: [problem_context]
+    outputs: [prd_frame]
+    on_failure: [publish-failure-notice]
+
+  - name: draft-prd-spec
+    department: strategy
+    intent: >
+      Take the strategic frame below and produce the implementable spec
+      half of the PRD per the strategy-requirement-engineer output bar.
+      The shape the 24/7 agent needs to execute without re-reading the
+      conversation:
+
+      ## User stories
+      "As a <user>, I want <goal>, so that <outcome>." One per story.
+      Three to seven stories — fewer is better if the scope is narrow.
+
+      ## Acceptance criteria
+      Per story: bulleted, testable conditions. "Given / When / Then"
+      framing where it clarifies; plain bullets where it doesn't.
+
+      ## Non-goals
+      Explicit list of what this PRD does NOT cover. This is
+      load-bearing — without it the executor will scope-creep.
+
+      ## Edge cases and error states
+      The two or three failure modes that will bite if not specified
+      up front (auth failure, partial state, race conditions, etc.).
+
+      ## Open questions
+      Anything the operator must answer before execution can start.
+      Empty list is acceptable — only list real unknowns.
+
+      Build on the frame; do not contradict it. If you find a gap in
+      the frame while drafting the spec, surface it under Open
+      questions rather than papering over it.
+
+      Strategic frame:
+      {prd_frame}
+    inputs: [prd_frame]
+    outputs: [prd_spec]
+    on_failure: [publish-failure-notice]
+
+  - name: assemble-prd
+    department: strategy
+    intent: >
+      Merge the frame and the spec into one durable PRD document. Header:
+
+      # PRD: <one-line title>
+      _Authored <YYYY-MM-DD> via strategy.prd_authoring workflow_
+
+      Then the frame sections, then the spec sections, in that order.
+      Do not re-write either input — concatenate cleanly under the
+      header and reconcile any duplicate "Open questions" lists into
+      one combined list.
+
+      Output a single Markdown document ready to commit to
+      docs/prds/<date>-<topic>.md or paste into Notion (the operator
+      picks the home per invocation).
+
+      Frame:
+      {prd_frame}
+
+      Spec:
+      {prd_spec}
+    inputs: [prd_frame, prd_spec]
+    outputs: [prd_doc]
+    on_failure: [publish-failure-notice]
+
+  - name: publish-prd
+    action: publish_discord
+    channel: operator
+    message: "# PRD draft ready\n\n{prd_doc}\n\n---\n_Pick a home: commit to `docs/prds/<date>-<topic>.md` or paste into Notion._"
+
+  - name: publish-failure-notice
+    action: publish_discord
+    channel: operator
+    message: >
+      strategy.prd_authoring workflow failed before producing a PRD
+      draft. Check the workflow run logs for the failing step; the
+      partial context (problem_context, prd_frame if reached) is
+      preserved in the workflow context for re-run.

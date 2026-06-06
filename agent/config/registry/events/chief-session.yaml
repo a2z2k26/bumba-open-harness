@@ -1,0 +1,64 @@
+# ChiefSession lifecycle events — Z4-S01 (#1385).
+#
+# Authored as part of the Z4 chief-session epic. Today these events are
+# emitted by `bridge.chief_session.ChiefSession.transition()` and consumed
+# by ChiefDispatcher (Z4-S21, #1392) + the idle-timeout reaper (Z4-S30,
+# #1391). The store-side payload definitions land with Z4-S03 (#1387);
+# this file ships only the catalog rows so the registry-completeness
+# CI gate sees the events the moment ChiefSession lands.
+
+chief_session_created:
+  kind: event
+  name: ChiefSession Created
+  category: "Agents"
+  description: A new ChiefSession was created for a WorkOrder by the ChiefDispatcher.
+  source_module: bridge.chief_session
+  schema_ref: bridge.chief_session.ChiefSession
+  event_type: chief_session.created
+  access_method: push:event_bus
+
+chief_session_state_changed:
+  kind: event
+  name: ChiefSession State Changed
+  category: "Agents"
+  description: A ChiefSession transitioned between lifecycle states (e.g. WARM -> EXECUTING).
+  source_module: bridge.chief_session
+  schema_ref: bridge.chief_session.ChiefSession
+  event_type: chief_session.state_changed
+  access_method: push:event_bus
+
+chief_session_cost_updated:
+  kind: event
+  name: ChiefSession Cost Updated
+  category: "Agents"
+  description: Cost was charged to a ChiefSession (delta + new total). Emitted by Z4-S40 (#1398).
+  source_module: bridge.chief_session
+  schema_ref: bridge.chief_session.ChiefSession
+  event_type: chief_session.cost_updated
+  access_method: push:event_bus
+
+chief_session_timed_out:
+  kind: event
+  name: ChiefSession Timed Out
+  category: "Agents"
+  description: The idle-timeout reaper (Z4-S30, #1391) shut down an idle ChiefSession.
+  source_module: bridge.chief_session
+  schema_ref: bridge.chief_session.ChiefSession
+  event_type: chief_session.timed_out
+  access_method: push:event_bus
+
+chief_session_history_cleared:
+  kind: event
+  name: ChiefSession Message History Cleared
+  category: "Agents"
+  description: |
+    The idle-timeout reaper (zone4-warmth.D.01, #2299) cleared a
+    ChiefSession's persisted ``message_history_blob`` to NULL at reap so
+    stale Pydantic-AI message history doesn't accumulate in SQLite. Emitted
+    once per reaped session alongside ``chief_session.timed_out``. Payload
+    carries ``session_id`` and ``reason`` (currently always
+    ``"idle_timeout"``).
+  source_module: bridge.background_loops
+  schema_ref: bridge.chief_session.ChiefSession
+  event_type: chief_session.history_cleared
+  access_method: push:event_bus

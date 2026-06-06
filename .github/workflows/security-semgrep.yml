@@ -1,0 +1,22 @@
+name: Security (semgrep)
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  semgrep:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    container:
+      # Pinned for reproducibility. Re-run local triage before bumping.
+      image: returntocorp/semgrep:1.95.0
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run semgrep
+        run: semgrep --config=auto --config=semgrep.yml agent/ --error --severity=ERROR

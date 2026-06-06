@@ -1,0 +1,901 @@
+# Proposed skill allocations — DRAFT for operator review
+# Generated 2026-05-16 during #1112 planning session
+# DO NOT load this into bridge/skill_allocator.py until operator approves
+
+# Schema:
+#   category: human-readable group name (15 total)
+#   skills: list of skill names
+#   allocation: ordered list of allocation rules
+#     - zone: 3 or 4
+#       department: <name> | null  (Zone 3 has only 'engineering'; null for ancillary specialty agents)
+#       role: chief | specialist | null  (null = both)
+#       agents: [list of specific named agents]  (optional, narrows further)
+
+categories:
+  - id: 1
+    name: "Engineering — Code patterns/frameworks"
+    approved: 2026-05-16
+    skills:
+      python_stack:
+        - python-patterns
+        - python-testing
+        - python-packaging
+        - django-patterns
+        - django-security
+        - django-tdd
+        - django-verification
+        - fastapi-templates
+        - uv-package-manager
+        - async-python-patterns
+        allocation:
+          - zone: 3
+            department: engineering
+            agents: [engineering-backend-architect, engineering-api-engineer]
+      go_stack:
+        - golang-patterns
+        - golang-testing
+        allocation:
+          - zone: 3
+            department: engineering
+            agents: [engineering-backend-architect]
+            note: carry-forward for cross-repo work
+      java_jvm_stack:
+        - java-coding-standards
+        - jpa-patterns
+        - springboot-patterns
+        - springboot-security
+        - springboot-tdd
+        - springboot-verification
+        allocation:
+          - zone: 3
+            department: engineering
+            agents: [engineering-backend-architect]
+            note: carry-forward for cross-repo work
+      cpp_stack:
+        - cpp-coding-standards
+        - cpp-testing
+        allocation:
+          - zone: 3
+            department: engineering
+            agents: [engineering-backend-architect]
+            note: carry-forward for cross-repo work
+      swift_stack:
+        - swift-actor-persistence
+        - swift-concurrency-6-2
+        - swift-protocol-di-testing
+        - swiftui-patterns
+        allocation:
+          - zone: 3
+            department: engineering
+            agents: [swift-expert]
+            note: ancillary specialty agent, carry-forward
+      frontend_react:
+        - frontend-patterns
+        - react-modernization
+        - transform-react
+        - transform-react-native
+        - transform-vue
+        - transform-angular
+        - transform-svelte
+        - transform-flutter
+        - transform-swiftui
+        - transform-jetpack-compose
+        allocation:
+          - zone: 3
+            department: engineering
+            agents: [engineering-frontend-developer, react-specialist]
+      gsap_animation:
+        - gsap-core
+        - gsap-fundamentals
+        - gsap-timeline
+        - gsap-scrolltrigger
+        - gsap-plugins
+        - gsap-utils
+        - gsap-react
+        - gsap-frameworks
+        - gsap-performance
+        allocation:
+          - zone: 3
+            department: engineering
+            agents: [engineering-frontend-developer]
+      ai_llm_engineering:
+        - langchain-architecture
+        allocation:
+          - zone: 3
+            department: engineering
+            agents: [ai-engineer, llm-architect]
+            note: ancillary specialty agents
+      node_backend:
+        - nodejs-backend-patterns
+        allocation:
+          - zone: 3
+            department: engineering
+            agents: [engineering-backend-architect]
+      payment_infra:
+        - stripe-integration
+        allocation:
+          - zone: 3
+            department: engineering
+            agents: [engineering-chief, engineering-backend-architect]
+
+# Categories 2-15 pending walk
+
+  - id: 2
+    name: "Engineering — Testing & verification"
+    approved: 2026-05-16
+    skills:
+      foundational:
+        - tdd-workflow
+        - verification-loop
+        allocation:
+          - zone: 3
+            department: engineering  # universal across team — no role narrowing
+      e2e_web:
+        - e2e-testing
+        - webapp-testing
+        allocation:
+          - zone: 3
+            department: engineering
+            agents: [engineering-frontend-developer]
+          - zone: 4
+            department: qa
+            agents: [qa-automation-engineer]
+      llm_eval:
+        - eval-harness
+        - Eval
+        allocation:
+          - zone: 3
+            department: engineering
+            agents: [engineering-chief, ai-engineer, llm-architect]
+
+  - id: 3
+    name: "Engineering — Code review & quality"
+    approved: 2026-05-16
+    skills:
+      review_core:
+        - code-review-excellence
+        - coding-standards
+        - plankton-code-quality
+        - normalize
+        allocation:
+          - zone: 3
+            department: engineering  # universal across team
+      review_owner:
+        - code-review-excellence
+        allocation:
+          - zone: 3
+            department: engineering
+            agents: [engineering-code-reviewer]  # primary owner
+      security:
+        - security-review
+        - security-scan
+        allocation:
+          - zone: 3
+            department: engineering
+            agents: [engineering-code-reviewer]
+          - zone: 4
+            department: qa
+            agents: [qa-security-auditor, qa-penetration-tester]
+      hardening:
+        - harden
+        allocation:
+          - zone: 3
+            department: engineering  # universal
+          - zone: 4
+            department: ops
+      audit_practice:
+        - audit
+        allocation:
+          - zone: 3
+            department: engineering  # universal
+            note: pattern proven in 2026-05-15 audit-remediation
+
+  - id: 4
+    name: "Engineering — Architecture/infrastructure"
+    approved: 2026-05-16
+    skills:
+      arch_core:
+        - architecture-patterns
+        - error-handling-patterns
+        allocation:
+          - zone: 3
+            department: engineering  # universal
+          - zone: 3
+            department: engineering
+            role: chief
+            note: architecture-patterns primary at chief level
+      backend_api:
+        - backend-patterns
+        - api-design
+        allocation:
+          - zone: 3
+            department: engineering
+            agents: [engineering-backend-architect, engineering-api-engineer]
+      database:
+        - database-migrations
+        - postgres-patterns
+        - sql-optimization-patterns
+        allocation:
+          - zone: 3
+            department: engineering
+            agents: [engineering-database-specialist]
+          - zone: 4
+            department: ops
+            agents: [ops-database-admin]
+      deployment_containers:
+        - deployment-patterns
+        - docker-patterns
+        allocation:
+          - zone: 3
+            department: engineering
+            agents: [engineering-devops-engineer]
+          - zone: 4
+            department: ops
+            agents: [ops-devops-specialist, ops-kubernetes-engineer]
+      observability:
+        - distributed-tracing
+        allocation:
+          - zone: 3
+            department: engineering
+            agents: [engineering-performance-engineer]
+          - zone: 4
+            department: ops
+            agents: [ops-monitoring-specialist, ops-sre-engineer]
+
+  - id: 5
+    name: "Design — Figma/visual systems"
+    approved: 2026-05-16
+    skills:
+      figma_core:
+        - figma-use
+        - figma-generate-design
+        - figma-generate-library
+        - figma-implement-design
+        - figma-code-connect
+        - figma-create-design-system-rules
+        - figma-create-new-file
+        - design-figma-sketch
+        - pencil-to-figma
+        allocation:
+          - zone: 4
+            department: design
+            agents: [design-ui-designer, design-visual-designer, design-system-architect]
+      frontend_design_bridge:
+        - frontend-design
+        - bumba-design-director-frontend
+        allocation:
+          - zone: 4
+            department: design
+            role: chief
+          - zone: 3
+            department: engineering
+            agents: [engineering-frontend-developer]
+      visual_aesthetic:
+        - liquid-glass-design
+        allocation:
+          - zone: 4
+            department: design
+            agents: [design-visual-designer]
+      bridge_infra:
+        - design-bridge-shared
+        - design-sync-cascade
+        - design-sync-monitor
+        allocation:
+          - zone: 4
+            department: design
+            role: chief
+      design_general:
+        - design
+        allocation:
+          - zone: 4
+            department: design  # universal
+
+  - id: 6
+    name: "Design — UX research/strategy"
+    approved: 2026-05-16
+    skills:
+      ux_discovery:
+        - discovery-interview-prep
+        - discovery-process
+        - jobs-to-be-done
+        - opportunity-solution-tree
+        - customer-journey-map
+        - customer-journey-mapping-workshop
+        - problem-framing-canvas
+        - problem-statement
+        - proto-persona
+        - lean-ux-canvas
+        - recommendation-canvas
+        allocation:
+          - zone: 4
+            department: design
+            agents: [design-ux-researcher, design-interaction-designer]
+          - zone: 4
+            department: strategy
+            agents: [strategy-requirement-engineer, strategy-user-analyst]
+      user_stories:
+        - user-story
+        - user-story-mapping
+        - user-story-mapping-workshop
+        - user-story-splitting
+        allocation:
+          - zone: 4
+            department: design
+            agents: [design-ux-researcher, design-interaction-designer]
+          - zone: 4
+            department: strategy
+            agents: [strategy-requirement-engineer]
+          - zone: 3
+            department: engineering
+            role: chief
+
+  - id: 7
+    name: "Design — Visual polish/aesthetics"
+    approved: 2026-05-16
+    skills:
+      visual_styling:
+        - taste-skill
+        - soft-skill
+        - ui-ux-pro-max
+        - minimalist-skill
+        - redesign-skill
+        - bolder
+        - quieter
+        - colorize
+        allocation:
+          - zone: 4
+            department: design
+            agents: [design-visual-designer]
+      motion_storyboarding:
+        - animate
+        - storyboard
+        allocation:
+          - zone: 4
+            department: design
+            agents: [design-interaction-designer, design-prototyper]
+      critique_polish:
+        - critique
+        - polish
+        - delight
+        allocation:
+          - zone: 4
+            department: design
+            agents: [design-visual-designer]
+          - zone: 4
+            department: design
+            role: chief
+      adapt_responsive:
+        - adapt
+        allocation:
+          - zone: 4
+            department: design
+            agents: [design-accessibility-specialist]
+      extract_distill:
+        - extract
+        - distill
+        allocation:
+          - zone: 4
+            department: design  # universal across team
+      output_engineering_cross:
+        - output-skill
+        - optimize
+        allocation:
+          - zone: 4
+            department: design  # universal
+          - zone: 3
+            department: engineering
+            agents: [engineering-frontend-developer]
+
+  - id: 8
+    name: "Product strategy"
+    approved: 2026-05-16
+    skills:
+      prd_roadmap:
+        - prd-development
+        - roadmap-planning
+        - product-strategy-session
+        - prioritization-advisor
+        - feature-investment-advisor
+        - epic-hypothesis
+        - epic-breakdown-advisor
+        allocation:
+          - zone: 4
+            department: strategy
+            agents: [strategy-product-chief, strategy-requirement-engineer, strategy-roadmap-strategist]
+      market_positioning:
+        - market-research
+        - company-research
+        - tam-sam-som-calculator
+        - positioning-statement
+        - positioning-workshop
+        - acquisition-channel-advisor
+        - pestel-analysis
+        allocation:
+          - zone: 4
+            department: strategy
+            agents: [strategy-market-researcher, strategy-competitive-intelligence-analyst]
+      finance_metrics:
+        - finance-based-pricing-advisor
+        - finance-metrics-quickref
+        - saas-economics-efficiency-metrics
+        - saas-revenue-growth-metrics
+        - business-health-diagnostic
+        allocation:
+          - zone: 4
+            department: strategy
+            agents: [strategy-business-analyst, strategy-product-metrics-analyst]
+      executive_readiness:
+        - executive-onboarding-playbook
+        - vp-cpo-readiness-advisor
+        - director-readiness-advisor
+        - ai-shaped-readiness-advisor
+        allocation:
+          - zone: 4
+            department: board  # board-level work, not strategy
+      pol_probes:
+        - pol-probe
+        - pol-probe-advisor
+        allocation:
+          - zone: 4
+            department: strategy
+            role: chief
+          - zone: 4
+            department: strategy
+            agents: [strategy-product-chief]
+
+  - id: 9
+    name: "Agent/skill infrastructure (meta)"
+    approved: 2026-05-16
+    skills:
+      universal_skill_discovery:
+        - using-superpowers
+        allocation:
+          - zone: 3  # universal across all zones
+            note: foundational skill-discovery; flow to every agent in every zone
+          - zone: 4
+            note: universal across all Zone 4 departments
+      agent_harness:
+        - agent-development
+        - agent-harness-construction
+        - agent-identifier
+        - configured-agent
+        - agentic-engineering
+        allocation:
+          - zone: 3
+            department: engineering  # universal
+          - zone: 3
+            department: engineering
+            role: chief
+            note: chief is primary owner
+      command_hook_rule:
+        - command-development
+        - command-name
+        - hook-development
+        - rule-identifier
+        - writing-rules
+        - configure-ecc
+        - configure
+        - claude-md-improver
+        - claude-automation-recommender
+        allocation:
+          - zone: 3
+            department: engineering
+            role: chief
+          - zone: 3
+            department: engineering
+            agents: [engineering-devops-engineer]
+      mcp_development:
+        - mcp-builder
+        - mcp-integration
+        - build-mcp-app
+        - build-mcp-server
+        - build-mcpb
+        allocation:
+          - zone: 3
+            department: engineering
+            agents: [mcp-developer]  # ancillary specialty agent
+          - zone: 3
+            department: engineering
+            role: chief
+      plugin_development:
+        - plugin-settings
+        - plugin-structure
+        allocation:
+          - zone: 3
+            department: engineering
+            role: chief
+      skill_development:
+        - skill-authoring-workflow
+        - skill-creator
+        - skill-development
+        - skill-stocktake
+        allocation:
+          - zone: 3
+            department: engineering  # universal — anyone may need to author skills
+      orchestration_swarm:
+        - swarm-advanced
+        - swarm-orchestration
+        - tmux-orchestration
+        - autonomous-loops
+        - continuous-agent-loop
+        allocation:
+          - zone: 3
+            department: engineering
+            role: chief
+          - zone: 3
+            department: engineering
+            agents: [engineering-devops-engineer]
+
+  - id: 10
+    name: "AI/LLM patterns"
+    approved: 2026-05-16
+    skills:
+      claude_api_general:
+        - claude-api
+        - claude-opus-4-5-migration
+        allocation:
+          - zone: 3
+            department: engineering  # universal
+      prompt_engineering:
+        - prompt-engineering-patterns
+        - prompt-improver
+        - context-engineering-advisor
+        allocation:
+          - zone: 3
+            department: engineering  # universal
+          - zone: 3
+            department: engineering
+            agents: [prompt-engineer]  # ancillary specialty primary
+          - zone: 4
+            department: strategy
+            role: chief
+      llm_specialized:
+        - rag-implementation
+        - foundation-models-on-device
+        - cost-aware-llm-pipeline
+        - regex-vs-llm-structured-text
+        - iterative-retrieval
+        - content-engine
+        - content-hash-cache-pattern
+        allocation:
+          - zone: 3
+            department: engineering
+            agents: [ai-engineer, llm-architect]
+      ai_foundational:
+        - karpathy-guidelines
+        - ai-first-engineering
+        allocation:
+          - zone: 3
+            department: engineering  # universal
+          - zone: 3
+            department: engineering
+            role: chief
+
+  - id: 11
+    name: "Workspace / productivity (Google + Notion + Obsidian)"
+    approved: 2026-05-16
+    skills:
+      gws_calendar_meet:
+        - gws-calendar
+        - gws-calendar-agenda
+        - gws-calendar-insert
+        - gws-meet
+        allocation:
+          - zone: 3
+            department: engineering  # universal
+          - zone: 4
+            department: strategy
+          - zone: 4
+            department: board
+      gws_email:
+        - gws-gmail
+        - gws-gmail-read
+        - gws-gmail-send
+        - gws-gmail-triage
+        allocation:
+          - zone: 3
+            department: engineering  # universal
+          - zone: 4
+            department: ops
+            role: chief
+          - zone: 4
+            department: strategy
+      gws_docs_drive:
+        - gws-docs
+        - gws-docs-write
+        - gws-drive
+        - gws-drive-upload
+        - gws-sheets
+        - gws-sheets-append
+        - gws-sheets-read
+        - gws-keep
+        - gws-tasks
+        - gws-people
+        - gws-shared
+        - gws-chat-send
+        allocation:
+          - zone: 3
+            department: engineering  # universal
+          - zone: 4
+            department: strategy
+      notion_integration:
+        - notion-knowledge-capture
+        - notion-meeting-intelligence
+        - notion-research-documentation
+        - notion-spec-to-implementation
+        allocation:
+          - zone: 3
+            department: engineering  # universal
+          - zone: 4
+            department: strategy  # universal — Notion is central data layer
+      obsidian_local:
+        - obsidian-bases
+        - obsidian-cli
+        - obsidian-markdown
+        - defuddle
+        allocation:
+          - zone: 3
+            department: engineering
+            role: chief
+            note: operator-paired only; obsidian is operator's personal vault
+
+  - id: 12
+    name: "Comms & writing"
+    approved: 2026-05-16
+    skills:
+      routine_comms:
+        - article-writing
+        - doc-coauthoring
+        - internal-comms
+        - eol-message
+        allocation:
+          - zone: 4
+            department: strategy  # universal
+          - zone: 3
+            department: engineering
+            role: chief
+      executive_external_comms:
+        - press-release
+        - investor-materials
+        - investor-outreach
+        allocation:
+          - zone: 4
+            department: board
+          - zone: 4
+            department: strategy
+            role: chief
+      presentations:
+        - presentations
+        - frontend-slides
+        allocation:
+          - zone: 4
+            department: design
+            agents: [design-visual-designer]
+          - zone: 4
+            department: strategy
+          - zone: 4
+            department: board
+      brand:
+        - brand-guidelines
+        allocation:
+          - zone: 4
+            department: design  # universal
+          - zone: 4
+            department: strategy
+      utility_misc:
+        - slack-gif-creator
+        allocation:
+          - zone: 3
+            department: engineering
+            role: chief
+            note: operator-paired utility, low-value
+
+  - id: 13
+    name: "Document/file formats"
+    approved: 2026-05-16
+    skills:
+      office_formats:
+        - docx
+        - pdf
+        - pptx
+        - xlsx
+        allocation:
+          - zone: 3
+            department: engineering  # universal
+          - zone: 4
+            department: strategy  # universal
+      design_artifacts:
+        - canvas-design
+        - theme-factory
+        - algorithmic-art
+        allocation:
+          - zone: 4
+            department: design
+            agents: [design-visual-designer]
+      canvas_format:
+        - json-canvas
+        allocation:
+          - zone: 4
+            department: design
+          - zone: 3
+            department: engineering
+            role: chief
+      doc_ai_processing:
+        - nutrient-document-processing
+        allocation:
+          - zone: 3
+            department: engineering
+            agents: [ai-engineer]
+      web_artifacts:
+        - web-artifacts-builder
+        allocation:
+          - zone: 4
+            department: design
+          - zone: 3
+            department: engineering
+            agents: [engineering-frontend-developer]
+      niche_utilities:
+        - visa-doc-translate
+        allocation:
+          - zone: 3
+            department: engineering
+            role: chief
+            note: niche utility, operator-paired only
+
+  - id: 14
+    name: "Workshop/facilitation"
+    approved: 2026-05-16
+    skills:
+      facilitation:
+        - workshop-facilitation
+        allocation:
+          - zone: 4
+            department: strategy  # universal
+          - zone: 4
+            department: design
+            role: chief
+      strategic_framing:
+        - altitude-horizon-framework
+        allocation:
+          - zone: 4
+            department: strategy
+          - zone: 4
+            department: board
+      clarification:
+        - clarify
+        allocation:
+          - zone: 3
+            department: engineering  # universal
+          - zone: 4
+            department: strategy  # universal
+
+  - id: 15
+    name: "Process/orchestration/handoff"
+    approved: 2026-05-16
+    skills:
+      handoff_universal:
+        - handoff-prepare
+        - handoff-receive
+        allocation:
+          - zone: 3
+            note: universal across all zones (handoff protocol is cross-cutting)
+          - zone: 4
+            note: universal across all Zone 4 departments
+      onboarding:
+        - onboard
+        - m5-onboard
+        allocation:
+          - zone: 3
+            department: engineering
+            role: chief
+      session_hygiene_universal:
+        - session-report
+        - learned
+        - continuous-learning
+        - continuous-learning-v2
+        - strategic-compact
+        - search-first
+        allocation:
+          - zone: 3
+            note: universal across all zones
+          - zone: 4
+            note: universal across all Zone 4 departments
+      debugging:
+        - debugging-strategies
+        allocation:
+          - zone: 3
+            department: engineering  # universal
+      rfc_pipeline:
+        - ralphinho-rfc-pipeline
+        allocation:
+          - zone: 3
+            department: engineering
+            role: chief
+          - zone: 4
+            department: strategy
+            role: chief
+      git_github:
+        - git-advanced-workflows
+        - github-actions-templates
+        allocation:
+          - zone: 3
+            department: engineering  # universal
+          - zone: 3
+            department: engineering
+            agents: [engineering-devops-engineer]
+      opencli:
+        - opencli-adapter-author
+        - opencli-autofix
+        - opencli-usage
+        allocation:
+          - zone: 3
+            department: engineering
+            agents: [cli-developer]  # ancillary specialty
+      reference_examples:
+        - example-skill
+        - example-command
+        - project-guidelines-example
+        allocation:
+          - zone: 3
+            department: engineering
+            role: chief
+      enterprise_teaching:
+        - enterprise-agent-ops
+        - teach-impeccable
+        allocation:
+          - zone: 3
+            department: engineering
+            role: chief
+      misc_low_value:
+        - nanoclaw-repl
+        - math-olympiad
+        - cardputer-buddy
+        - playground
+        allocation:
+          - zone: 3
+            department: engineering
+            role: chief
+            note: operator-paired utilities, low-value
+
+  - id: 16
+    name: "Closeout — stragglers not caught in categories 1-15"
+    approved: 2026-05-16
+    note: |
+      Completeness-check pass surfaced 15 inventory items not allocated.
+      10 are README/doc files (.md) inside skill dirs — not actual skills, not allocated.
+      The 5 real skills below are explicitly added here.
+    skills:
+      bumba_plugin_skills:
+        - bumba-frontend-design
+        - bumba-nlp-design
+        allocation:
+          - zone: 4
+            department: design
+            agents: [design-ui-designer, design-visual-designer]
+          - zone: 3
+            department: engineering
+            agents: [engineering-frontend-developer]
+      memory_protocols:
+        - memory-agent-protocol
+        - memory-awareness
+        allocation:
+          - zone: 3
+            department: engineering
+            role: chief
+          - zone: 3
+            department: engineering
+            agents: [ai-engineer]
+      data_io:
+        - clickhouse-io
+        allocation:
+          - zone: 3
+            department: engineering
+            agents: [engineering-database-specialist, data-engineer]
+            note: data-engineer is ancillary specialty agent
+      file_access:
+        - access
+        allocation:
+          - zone: 3
+            department: engineering
+            role: chief
+            note: low-value utility, operator-paired

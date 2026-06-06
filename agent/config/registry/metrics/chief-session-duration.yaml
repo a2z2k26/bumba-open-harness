@@ -1,0 +1,17 @@
+# ChiefSession duration metric — Z4-S04 (#1389).
+#
+# Wall-clock time from EXECUTING → AWAITING_EVALUATION per chief run.
+# Reported per-run, not per-session: a session that requeues and re-
+# enters EXECUTING twice will report two duration samples. This is the
+# load-bearing input for the SLO dashboards Z4-S43 (#1403, 7-day cost
+# baseline) and the operator-visible /status late-night profile.
+
+chief_session_duration_seconds:
+  kind: metric
+  name: ChiefSession Run Duration (seconds)
+  category: "Agents"
+  description: Wall-clock seconds from EXECUTING start to AWAITING_EVALUATION per chief run. One sample per WARM→EXECUTING→AWAITING_EVALUATION traversal; the requeue path produces multiple samples per session.
+  source_module: bridge.chief_session
+  schema_ref: "float — histogram-shaped, seconds"
+  metric_name: chief_session.duration_seconds
+  access_method: "pull:/api/metrics/{name}"

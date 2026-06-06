@@ -1,0 +1,19 @@
+# Zone 4 operator report action (Z4-23 #2449) — cost, provider path, reliability.
+
+zone4_report_get:
+  kind: action
+  name: Zone 4 Operator Report
+  category: "Cost & Resources"
+  description: >-
+    Aggregates Zone 4 run manifests under zone4_artifact_root by department for
+    a window (24h/7d or explicit since/until). Surfaces runs, success/failure by
+    class, primary vs fallback provider counts, token sums, artifact counts,
+    missing-surface counts, and average/longest duration. Links back to manifest
+    paths; reads metadata only (no artifact bodies). Lets the operator detect
+    OpenRouter spend drift.
+  source_module: bridge.api.routes_zone4_reports
+  schema_ref: bridge.zone4_report.Zone4Report
+  method: GET
+  path: /api/zone4/report
+  auth: bearer
+  access_method: rest

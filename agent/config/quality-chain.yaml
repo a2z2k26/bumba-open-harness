@@ -1,0 +1,92 @@
+# Quality Chain — 7-gate verification pipeline
+# Each gate can be enabled/disabled, strict (blocks) or warning-only
+
+gates:
+  lint:
+    level: 1
+    enabled: true
+    strict: true
+    description: "Code style — ruff, black format check"
+    escalate_on_failure: false
+
+  typecheck:
+    level: 2
+    enabled: true
+    strict: true
+    description: "Static type checking — mypy or pyright"
+    escalate_on_failure: false
+
+  test:
+    level: 3
+    enabled: true
+    strict: true
+    description: "pytest pass/fail, coverage >= 80%"
+    escalate_on_failure: false
+
+  security:
+    level: 4
+    enabled: true
+    strict: true
+    description: "bandit scan, no hardcoded secrets"
+    escalate_on_failure: true
+    escalation_reason: "Security issues found — operator must review before merge"
+
+  architecture:
+    level: 5
+    enabled: true
+    strict: false
+    description: "Import boundaries, no circular deps"
+    escalate_on_failure: false
+
+  code_review:
+    level: 6
+    enabled: true
+    strict: true
+    description: "engineering-code-reviewer agent sign-off"
+    escalate_on_failure: true
+    escalation_reason: "CRITICAL or HIGH code review findings — operator review required"
+
+  human_approval:
+    level: 7
+    enabled: false
+    strict: true
+    description: "Operator sign-off gate"
+    escalate_on_failure: true
+    escalation_reason: "Awaiting operator approval"
+
+coverage_threshold: 80
+
+skip_patterns:
+  - "tests/**"
+  - "docs/**"
+  - "*.md"
+  - "config/**"
+
+# Per-skill gate profiles (S06a).
+# Skills not listed here run NO gates (backwards-compatible default).
+# Gates: LINT=1, TYPECHECK=2, TEST=3, SECURITY=4, CODE_REVIEW=6, HUMAN_APPROVAL=7
+# ARCHITECTURE (gate 5) is documented as unregistered pending formal spec.
+skill_gates:
+  fix-test:
+    gates: [LINT, TYPECHECK, TEST, SECURITY]
+    strict: true
+
+  ship-feature:
+    gates: [LINT, TYPECHECK, TEST, SECURITY]
+    strict: true
+
+  refactor:
+    gates: [LINT, TYPECHECK, TEST]
+    strict: true
+
+  # Read-only skills run no gates
+  chat:
+    gates: []
+  query:
+    gates: []
+  review-pr:
+    gates: []
+  search:
+    gates: []
+  summarize:
+    gates: []

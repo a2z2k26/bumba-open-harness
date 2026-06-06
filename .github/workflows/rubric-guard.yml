@@ -1,0 +1,71 @@
+name: rubric-guard
+
+on:
+  pull_request:
+    branches: ["**"]
+    paths:
+      - "agent/job_search/config/rubric.yaml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  guard:
+    name: Reject rubric.yaml change without refreshed OPERATOR-APPROVED line
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify OPERATOR-APPROVED header is fresh
+        run: |
+          set -euo pipefail
+          RUBRIC="agent/job_search/config/rubric.yaml"
+
+          if [ ! -f "$RUBRIC" ]; then
+            echo "ERROR: $RUBRIC missing."
+            exit 1
+          fi
+
+          # Extract the OPERATOR-APPROVED date (YYYY-MM-DD) from the header.
+          HEADER_DATE=$(head -3 "$RUBRIC" | grep -oE 'OPERATOR-APPROVED:[[:space:]]*[0-9]{4}-[0-9]{2}-[0-9]{2}' | grep -oE '[0-9]{4}-[0-9]{2}-[0-9]{2}' | head -1 || true)
+
+          if [ -z "$HEADER_DATE" ]; then
+            echo "ERROR: $RUBRIC has no OPERATOR-APPROVED: YYYY-MM-DD header line in the first 3 lines."
+            echo "Add a header like:  # OPERATOR-APPROVED: 2026-05-01  Operator"
+            exit 1
+          fi
+
+          # Most recent commit (author date, ISO short) that touched rubric.yaml.
+          LAST_COMMIT_DATE=$(git log -1 --format=%ad --date=short -- "$RUBRIC" || true)
+
+          if [ -z "$LAST_COMMIT_DATE" ]; then
+            echo "ERROR: Could not determine last-commit date for $RUBRIC."
+            exit 1
+          fi
+
+          echo "OPERATOR-APPROVED header date : $HEADER_DATE"
+          echo "Last commit touching rubric  : $LAST_COMMIT_DATE"
+
+          # Compare ISO dates lexicographically (YYYY-MM-DD sorts correctly).
+          if [ "$HEADER_DATE" \< "$LAST_COMMIT_DATE" ]; then
+            echo ""
+            echo "ERROR: rubric.yaml was last modified on $LAST_COMMIT_DATE,"
+            echo "but the OPERATOR-APPROVED header is dated $HEADER_DATE (older)."
+            echo ""
+            echo "Refresh the header with today's date and operator initials, e.g.:"
+            echo "  # OPERATOR-APPROVED: $(date -u +%Y-%m-%d)  Operator"
+            echo ""
+            echo "See agent/job_search/docs/rubric.md (Amending the rubric)."
+            exit 1
+          fi
+
+          echo "OK: rubric.yaml header is fresh."

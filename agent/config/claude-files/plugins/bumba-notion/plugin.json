@@ -1,0 +1,23 @@
+{
+  "name": "bumba-notion",
+  "version": "1.0.0",
+  "description": "Notion integration for project orchestration with GitHub sync",
+  "requires": {
+    "mcp": ["notion", "github", "bumba-memory"],
+    "claudeCode": ">=2.0.0"
+  },
+  "commands": [
+    "commands/project-init.md",
+    "commands/sync-github.md"
+  ],
+  "hooks": [
+    {
+      "event": "session-start",
+      "script": "hooks/session-start.js"
+    },
+    {
+      "event": "session-end",
+      "script": "hooks/session-end.js"
+    }
+  ]
+}

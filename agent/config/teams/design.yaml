@@ -1,0 +1,206 @@
+team:
+  name: design
+  zone: 4
+  description: >
+    Design department. Responsible for UX research, interaction design,
+    visual design, accessibility, and design system stewardship. Invoked
+    when operator needs design decisions, UX review, visual direction,
+    or component/token specifications for engineering handoff.
+
+  escalation:
+    from_zone: 3
+    triggers:
+      - "Design review requested"
+      - "UX research needed"
+      - "Visual design direction needed"
+      - "Accessibility design review"
+      - "Design system component needed"
+      - "Interaction design specification requested"
+    complexity_threshold: 5
+    auto_escalate: false
+
+  chief:
+    name: design-chief
+    role: >
+      Orchestrates the Design department. Translates product requirements
+      into design briefs, delegates to appropriate design specialists,
+      synthesizes work into coherent design decisions, and ensures
+      design quality and consistency across the product.
+    # 2026-06-04 #2566: chief on anthropic-oauth (subscription Claude via the
+    # bridge's minted OAuth token), NOT codex. Codex `exec` cannot drive
+    # pydantic-ai tool-calling (delegate/final_result) — it's an autonomous
+    # agent that runs its own tools + returns prose (verified vs codex docs +
+    # issue openai/codex#15451). Chiefs REQUIRE tool-calling, so they run on
+    # anthropic-oauth (native AnthropicModel = full tool support, subscription-
+    # billed, no OpenRouter, no API key). Workers stay codex-exec (prose only).
+    # Mirrors the proven strategy-chief + ops-chief (#2596) pattern.
+    model: anthropic-oauth:claude-sonnet-4-5
+    adapter: "claude"
+    # 2026-05-20 production smoke: cheap-frontier chiefs need tool/output
+    # validation retry headroom for malformed delegate/final_result calls.
+    retries: 3
+    skills:
+      - zero-micromanagement
+      - mental-model
+      - active-listener
+    expertise: agent/config/expertise/updatable/design-chief.md
+    expertise_max_lines: 1000
+    system_prompt: agent/config/agents/zone4/design/design-chief.md
+    domain:
+      read: ["*"]
+      write:
+        - "agent/config/expertise/design-chief.md"
+        - "sessions/"
+        - "docs/design/"
+    thinking: extended
+    max_turns: 30
+    timeout_minutes: 20.0
+
+  workers:
+    - name: design-ux-researcher
+      role: "User research, usability testing, insight synthesis, research planning"
+      model: "codex-exec:"
+      adapter: "codex-exec"
+      skills: [mental-model]
+      expertise: agent/config/expertise/updatable/design-ux-researcher.md
+      system_prompt: agent/config/agents/zone4/design/design-ux-researcher.md
+      domain:
+        read: ["*"]
+        write: ["docs/design/research/", "sessions/"]
+
+    - name: design-interaction-designer
+      role: "Interaction patterns, user flows, wireframes, micro-interactions, prototyping specs"
+      model: "codex-exec:"
+      adapter: "codex-exec"
+      skills: [mental-model]
+      expertise: agent/config/expertise/updatable/design-interaction-designer.md
+      system_prompt: agent/config/agents/zone4/design/design-interaction-designer.md
+      domain:
+        read: ["*"]
+        write: ["docs/design/interaction/", "sessions/"]
+
+    - name: design-visual-designer
+      role: "Visual hierarchy, typography, color, layout, brand expression, aesthetic direction"
+      # #2026-05-18 zone4-model-allocation: the singular Claude exception.
+      # Opus 4.7 (not Sonnet) because this is the ONE role where we trade
+      # cost for quality — distinctive aesthetic + prose voice for visual
+      # design copy. The carve-out is rare-invocation by design.
+      model: "codex-exec:"
+      adapter: "codex-exec"
+      skills: [mental-model]
+      expertise: agent/config/expertise/updatable/design-visual-designer.md
+      system_prompt: agent/config/agents/zone4/design/design-visual-designer.md
+      domain:
+        read: ["*"]
+        write: ["docs/design/visual/", "sessions/"]
+
+    - name: design-ui-designer
+      role: "UI component design, screen design, responsive layouts, design-to-code specs"
+      model: "codex-exec:"
+      adapter: "codex-exec"
+      skills: [mental-model]
+      expertise: agent/config/expertise/updatable/design-ui-designer.md
+      system_prompt: agent/config/agents/zone4/design/design-ui-designer.md
+      domain:
+        read: ["*"]
+        write: ["docs/design/ui/", "sessions/"]
+
+    - name: design-system-architect
+      role: "Design token systems, component libraries, design system governance and documentation"
+      model: "codex-exec:"
+      adapter: "codex-exec"
+      skills: [mental-model]
+      expertise: agent/config/expertise/updatable/design-system-architect.md
+      system_prompt: agent/config/agents/zone4/design/design-system-architect.md
+      domain:
+        read: ["*"]
+        write: ["docs/design/system/", "sessions/"]
+
+    - name: design-accessibility-specialist
+      role: "Accessible design patterns, WCAG compliance, inclusive design principles"
+      model: "codex-exec:"
+      adapter: "codex-exec"
+      skills: [mental-model]
+      expertise: agent/config/expertise/updatable/design-accessibility-specialist.md
+      system_prompt: agent/config/agents/zone4/design/design-accessibility-specialist.md
+      domain:
+        read: ["*"]
+        write: ["docs/design/accessibility/", "sessions/"]
+
+    - name: design-prototyper
+      role: "Interactive prototypes, design validation, usability test prep, prototype documentation"
+      # #2026-05-18 zone4-model-allocation: GLM for structured code-gen of interactive prototypes
+      model: "codex-exec:"
+      adapter: "codex-exec"
+      skills: [mental-model]
+      expertise: agent/config/expertise/updatable/design-prototyper.md
+      system_prompt: agent/config/agents/zone4/design/design-prototyper.md
+      domain:
+        read: ["*"]
+        write: ["docs/design/prototypes/", "sessions/"]
+
+  constraints:
+    cost_limit_usd: 2.00
+    timeout_seconds: 900
+    concurrency_limit: 4
+    # #1645: strict-floor activation 2026-05-12. Chiefs of delegate-
+    # mode teams MUST delegate to ≥1 specialist. Gate 8 in teams._verify
+    # fires `success=False` when employee_results count < this value.
+    expected_min_specialists: 1
+    usage_limits:
+      request_limit: 30
+      # 2026-05-20 production smoke: keep all real teams at board-parity
+      # 250k token ceilings. Design previously exposed placeholder-delegate
+      # failures only after reaching richer chief context.
+      request_token_limit: 250000
+      response_token_limit: 250000
+    # zone4-warmth.D.01 (#2299) — design iterates at moderate operator
+    # cadence; 2h warm idle balances reuse with avoiding stale visual
+    # context bleeding into a fresh ask.
+    warm_idle_timeout_seconds: 7200  # 2 hours
+
+  budget:
+    daily_limit_usd: 6.00
+    alert_thresholds: [0.50, 0.75, 0.90]
+
+  tools:
+    common: [read_file, search_knowledge, memory_recall]
+    department: [search_design_system, lookup_component, recall_brand_guidelines]
+    per_employee:
+      design-accessibility-specialist: [check_wcag_contrast]
+      design-prototyper: [read_file]
+
+  # Sprint P2.4 follow-up (#1658) — Design team flipped to
+  # `deny_by_default` with an empty `allowed_servers` list. The design
+  # chief + 7 specialists call only in-process pydantic-ai tools
+  # (`search_design_system`, `lookup_component`, `recall_brand_guidelines`,
+  # `check_wcag_contrast`, plus the `common` set) — no MCP server is
+  # consulted at runtime.
+  # Evidence:
+  #   - Grep across `agent/config/agents/zone4/design/*.md` (8 files)
+  #     returns zero matches for `mcp__`, `@mcp`, "MCP server", or any
+  #     server name (figma, shadcn, magic-ui, paper, pencil, etc.).
+  #   - `tools.{common,department,per_employee}` enumerates only
+  #     in-process tool names registered in `teams/tools/_design.py`,
+  #     each implemented as a pure-Python pydantic-ai tool function
+  #     (no subprocess, no MCP call).
+  #   - `teams/tools/_design.py` calls `ctx.deps.knowledge_search` /
+  #     `ctx.deps.memory_store.get` only — no `mcp__*` symbols.
+  # Effect: the filtered `.mcp.json` emitted for design runs is `{}`.
+  # Any future need to reach an MCP server (e.g. real Figma integration)
+  # surfaces as a subprocess error, forcing the operator to enumerate
+  # the precise need rather than silently inheriting the bridge default.
+  mcp:
+    mode: deny_by_default
+    allowed_servers: []
+
+  vapi:
+    enabled: true
+    model: gpt-4o-mini
+    voice: nova
+    greeting: "Design department. What should we work on?"
+    tools: [search_design_system, lookup_component]
+
+# S04: MCP server allowlist for DEPARTMENT write jail
+# Empty list = inherit bridge default (permissive); expand via operator PR
+mcp_servers: []

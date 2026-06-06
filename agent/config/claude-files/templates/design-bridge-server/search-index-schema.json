@@ -1,0 +1,128 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Design Bridge Search Index",
+  "description": "Schema for component and token search index",
+  "type": "object",
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "Index schema version",
+      "default": "1.0.0"
+    },
+    "generated": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp when index was generated"
+    },
+    "projectPath": {
+      "type": "string",
+      "description": "Absolute path to project root"
+    },
+    "framework": {
+      "type": "string",
+      "description": "Primary framework",
+      "enum": ["react", "vue", "angular", "svelte", "react-native", "flutter", "swiftui", "jetpack-compose"]
+    },
+    "components": {
+      "type": "object",
+      "description": "Component index keyed by component name",
+      "additionalProperties": {
+        "$ref": "#/definitions/ComponentEntry"
+      }
+    },
+    "tokens": {
+      "type": "object",
+      "description": "Token index keyed by token name",
+      "additionalProperties": {
+        "$ref": "#/definitions/TokenEntry"
+      }
+    },
+    "categories": {
+      "type": "object",
+      "description": "Components grouped by category",
+      "properties": {
+        "layout": { "type": "array", "items": { "type": "string" } },
+        "navigation": { "type": "array", "items": { "type": "string" } },
+        "form": { "type": "array", "items": { "type": "string" } },
+        "data-display": { "type": "array", "items": { "type": "string" } },
+        "feedback": { "type": "array", "items": { "type": "string" } },
+        "overlay": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "statistics": {
+      "type": "object",
+      "properties": {
+        "totalComponents": { "type": "number" },
+        "totalTokens": { "type": "number" },
+        "categorized": { "type": "number" },
+        "uncategorized": { "type": "number" }
+      }
+    }
+  },
+  "required": ["version", "generated", "components", "tokens", "categories"],
+  "definitions": {
+    "ComponentEntry": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "path": { "type": "string", "description": "Relative path from .design/" },
+        "absolutePath": { "type": "string" },
+        "category": {
+          "type": "string",
+          "enum": ["layout", "navigation", "form", "data-display", "feedback", "overlay", "uncategorized"]
+        },
+        "description": { "type": "string" },
+        "tags": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "User-defined or auto-generated tags"
+        },
+        "searchTerms": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "All searchable terms for this component"
+        },
+        "props": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "type": { "type": "string" },
+              "required": { "type": "boolean" }
+            }
+          }
+        },
+        "hasStory": { "type": "boolean" },
+        "hasTests": { "type": "boolean" },
+        "figmaNodeId": { "type": "string" },
+        "figmaUrl": { "type": "string" },
+        "score": {
+          "type": "number",
+          "description": "Relevance score (0-100)",
+          "default": 50
+        }
+      },
+      "required": ["name", "path", "category", "searchTerms"]
+    },
+    "TokenEntry": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "value": { "type": ["string", "number", "object"] },
+        "type": {
+          "type": "string",
+          "enum": ["color", "typography", "spacing", "effect", "borderRadius"]
+        },
+        "path": { "type": "string" },
+        "searchTerms": { "type": "array", "items": { "type": "string" } },
+        "usedInComponents": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Component names using this token"
+        }
+      },
+      "required": ["name", "value", "type", "searchTerms"]
+    }
+  }
+}

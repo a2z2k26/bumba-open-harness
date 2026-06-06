@@ -1,0 +1,68 @@
+# Z4 chief-dispatcher actions — REST endpoints for the ChiefSession subsystem.
+#
+# Z4-S12 (#1383) lands the two GET endpoints below behind the
+# ``chief_dispatcher_enabled`` feature flag. Z4-S22 wires
+# BridgeApp._chief_session_store so these handlers stop returning 503.
+# Future chief-dispatcher actions (POST /api/chief_sessions/{sid}/requeue,
+# DELETE /shutdown, etc.) will land in this file as their sprints ship.
+
+chief_sessions_list_get:
+  kind: action
+  name: List Chief Sessions
+  category: "Agents"
+  description: >-
+    Lists ChiefSession envelopes with optional filtering by work_order_id,
+    state, or department. Defaults to the non-SHUTDOWN aggregate; supports
+    limit/offset pagination.
+  source_module: bridge.api_server
+  schema_ref: "dict — sessions: list[ChiefSession.to_dict()], count, total, limit, offset"
+  method: GET
+  path: /api/chief_sessions
+  auth: bearer
+  access_method: rest
+
+chief_session_get:
+  kind: action
+  name: Get Chief Session
+  category: "Agents"
+  description: >-
+    Returns the full ChiefSession envelope for a given session_id, including
+    state, timestamps, run_count, cost_usd, and metadata. 404 on unknown id.
+  source_module: bridge.api_server
+  schema_ref: "ChiefSession.to_dict() — session_id, work_order_id, department, chief_name, state, ..."
+  method: GET
+  path: /api/chief_sessions/{session_id}
+  auth: bearer
+  access_method: rest
+
+chief_session_cost_get:
+  kind: action
+  name: Get Chief Session Cost
+  category: "Cost & Resources"
+  description: >-
+    Returns per-session cost for a chief session — both the cached store-side
+    total (session.cost_usd) and the live JSONL recompute
+    (CostTracker.get_session_cost, Z4-S40). Pass include_entries=true to also
+    return the list of CostEntry rows tagged with this chief_session_id.
+    404 on unknown id; 503 when the store or cost tracker isn't wired.
+  source_module: bridge.api_server
+  schema_ref: "dict — session_id, session_cost_usd, total_usd, entries?: list[CostEntry]"
+  method: GET
+  path: /api/chief_sessions/{session_id}/cost
+  auth: bearer
+  access_method: rest
+
+chief_sessions_warmth_stats_get:
+  kind: action
+  name: Chief Session Warmth Stats
+  category: "Agents"
+  description: >-
+    Returns aggregate warm-session population stats, including active
+    counts by state, warm-session age, and 24h warmth-reuse/cold-start
+    counts for the ChiefSession subsystem.
+  source_module: bridge.api.routes_chief_sessions
+  schema_ref: "dict — by_state, warm_session_count, warm_session_*_seconds, reuse_rate_24h"
+  method: GET
+  path: /api/chief_sessions/warmth_stats
+  auth: bearer
+  access_method: rest

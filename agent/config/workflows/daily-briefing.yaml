@@ -1,0 +1,67 @@
+name: daily-briefing
+trigger: schedule
+schedule: "cron:0 8 * * *"  # 08:00 UTC daily — matches com.bumba.agent-briefing plist
+budget:
+  max_cost_usd: 1.5
+  max_duration_seconds: 240
+# 1.0 milestone box A4 (#1111). The Daily Briefing is the operator's
+# morning anchor — one Discord message that says "here's what's worth
+# your attention today." Currently produced by `bridge/services/briefing.py`
+# (see Scheduled Services in agent/CLAUDE.md). This workflow is the
+# WorkflowRegistry equivalent — when the operator wants the determinism +
+# observability of the workflow surface (cost cap, partial-DAG, gate
+# escalation), they trigger this instead of the cron service.
+#
+# Today's briefing service is single-shot. This workflow runs strategy
+# signals + ops health in parallel (saves ~60s wall-clock), then has the
+# board synthesise. Same shape as weekly-ceo-review.yaml, narrower scope
+# (one day, not one week) and tighter budget ($1.50 vs. $3).
+steps:
+  - name: gather-strategy-signals
+    department: strategy
+    intent: >
+      Summarise the operator's strategic-signal landscape for today: any
+      new competitive moves observed in the last 24h, product-metric
+      shifts, decisions worth flagging. Three bullets max. Skip if no
+      meaningful signal — say "nothing notable" rather than padding.
+    outputs: [strategy_signals]
+
+  - name: check-ops-health
+    department: ops
+    intent: >
+      Summarise service health, uptime since last briefing, any incidents
+      or alerts in the last 24h, and any cron failures. Three bullets max.
+      If everything is green, say so in one line.
+    outputs: [ops_health]
+    parallel_with: gather-strategy-signals
+
+  - name: board-synthesize-briefing
+    department: board
+    intent: >
+      Synthesize today's morning briefing from the inputs below. Phone-
+      readable shape (≤ 1500 chars). Lead with one sentence on overall
+      state, then 2-3 bullets each under "What's worth your attention"
+      and "What I'll be working on if uninterrupted". Skip "Risks to
+      Watch" if nothing material — don't pad.
+
+      Strategy signals:
+      {strategy_signals}
+
+      Ops health:
+      {ops_health}
+    inputs: [strategy_signals, ops_health]
+    outputs: [briefing]
+    on_failure: [publish-failure-notice]
+
+  - name: publish-briefing
+    action: publish_discord
+    channel: operator
+    message: "# Morning Briefing\n\n{briefing}"
+
+  - name: publish-failure-notice
+    action: publish_discord
+    channel: operator
+    message: >
+      Daily briefing workflow failed during synthesis. Falling back to
+      the legacy `bridge/services/briefing.py` cron next cycle. Check
+      logs at `data/logs/<today>.md`.

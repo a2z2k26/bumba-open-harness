@@ -1,0 +1,167 @@
+{
+  "_README": "MCP server template — 24 servers. Deploy to /opt/bumba-harness/agent-flat/agent/.mcp.json (chmod 600, owned by bumba-agent). Credentials use ${VAR} references resolved from data/.secrets at runtime.",
+
+  "mcpServers": {
+    "github": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": { "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}" }
+    },
+    "brave-search": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-brave-search"],
+      "env": { "BRAVE_API_KEY": "${BRAVE_API_KEY}" }
+    },
+    "context7": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp"]
+    },
+    "pinecone": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@pinecone-database/mcp"],
+      "env": { "PINECONE_API_KEY": "${PINECONE_API_KEY}" }
+    },
+    "notion": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "https://mcp.notion.com/mcp"]
+    },
+    "mongodb": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "mongodb-mcp-server"],
+      "env": {
+        "MDB_MCP_API_CLIENT_ID": "${MDB_MCP_API_CLIENT_ID}",
+        "MDB_MCP_API_CLIENT_SECRET": "${MDB_MCP_API_CLIENT_SECRET}"
+      }
+    },
+    "bumba-memory": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["/opt/bumba-harness/agent-flat/mcp-servers/bumba-memory/mcp-server.js"],
+      "env": { "BUMBA_MEMORY_DIR": "/opt/bumba-harness/data/shared-memory" }
+    },
+    "bumba-sandbox": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["/opt/bumba-harness/agent-flat/mcp-servers/bumba-sandbox/dist/mcp-servers/bumba-sandbox.js"],
+      "env": {
+        "E2B_API_KEY": "${E2B_API_KEY}",
+        "GITHUB_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}",
+        "NODE_ENV": "production",
+        "LOG_LEVEL": "info"
+      }
+    },
+    "bumba-figma": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["/opt/bumba-harness/agent-flat/agent/mcp-servers/bumba-design/server/mcp/server.js"]
+    },
+    "playwright": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp"],
+      "env": {
+        "PLAYWRIGHT_CHROMIUM_CHANNEL": "chrome",
+        "PLAYWRIGHT_HEADLESS": "true",
+        "PLAYWRIGHT_VIEWPORT_SIZE": "1280x720",
+        "PLAYWRIGHT_TIMEOUT_ACTION": "5000"
+      }
+    },
+    "chrome-devtools": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "chrome-devtools-mcp", "--headless", "--isolated"]
+    },
+    "cloudflare": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["mcp-remote", "https://bindings.mcp.cloudflare.com/mcp"],
+      "env": {
+        "CF_ACCOUNT_ID": "${CF_ACCOUNT_ID}",
+        "CF_API_TOKEN": "${CF_API_TOKEN}"
+      }
+    },
+    "digitalocean": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@digitalocean/mcp", "--services", "apps,databases,droplets"],
+      "env": { "DIGITALOCEAN_API_TOKEN": "${DIGITALOCEAN_API_TOKEN}" }
+    },
+    "docker-gateway": {
+      "type": "stdio",
+      "command": "docker",
+      "args": ["mcp", "gateway", "run"]
+    },
+    "shadcn": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["shadcn@latest", "mcp"]
+    },
+    "magic-ui": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@21st-dev/magic"]
+    },
+    "figma-context": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "figma-developer-mcp", "--figma-api-key=${FIGMA_ACCESS_TOKEN}", "--stdio"]
+    },
+    "figma-console": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["/opt/bumba-harness/agent-flat/agent/mcp-servers/figma-console/dist/local.js"],
+      "env": {
+        "FIGMA_ACCESS_TOKEN": "${FIGMA_ACCESS_TOKEN}",
+        "ENABLE_MCP_APPS": "true"
+      }
+    },
+    "paper": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["mcp-remote", "http://127.0.0.1:29979/mcp"]
+    },
+    "stitch": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@_davideast/stitch-mcp", "proxy"]
+    },
+    "browser-use": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": ["browser-use", "--mcp"],
+      "env": { "ANONYMIZED_TELEMETRY": "false" }
+    },
+    "designlang": {
+      "type": "stdio",
+      "command": "designlang",
+      "args": ["--mcp"]
+    },
+    "repomix": {
+      "type": "stdio",
+      "command": "repomix",
+      "args": ["--mcp"]
+    },
+    "serena": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/oraios/serena@v0.1.4",
+        "serena",
+        "start-mcp-server",
+        "--transport",
+        "stdio",
+        "--context",
+        "agent",
+        "--project",
+        "/opt/bumba-harness/agent-flat"
+      ]
+    }
+  }
+}

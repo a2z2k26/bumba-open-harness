@@ -1,0 +1,122 @@
+{
+  "mcpServers": {
+    "github": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}"
+      }
+    },
+    "brave-search": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-brave-search"],
+      "env": {
+        "BRAVE_API_KEY": "${BRAVE_API_KEY}"
+      }
+    },
+    "mongodb": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "mongodb-mcp-server"],
+      "env": {
+        "MDB_MCP_API_CLIENT_ID": "${MDB_MCP_API_CLIENT_ID}",
+        "MDB_MCP_API_CLIENT_SECRET": "${MDB_MCP_API_CLIENT_SECRET}"
+      }
+    },
+    "_cloudflare_disabled": {
+      "_comment": "Disabled 2026-05-09 — crash loop for 4 days, burning tokens. Re-enable when upstream mcp-remote/cloudflare binding is stable.",
+      "_type": "stdio",
+      "_command": "npx",
+      "_args": ["mcp-remote", "https://bindings.mcp.cloudflare.com/mcp"],
+      "_env": {
+        "CF_ACCOUNT_ID": "${CF_ACCOUNT_ID}",
+        "CF_API_TOKEN": "${CF_API_TOKEN}"
+      }
+    },
+    "digitalocean": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@digitalocean/mcp", "--services", "apps,databases,droplets"],
+      "env": {
+        "DIGITALOCEAN_API_TOKEN": "${DIGITALOCEAN_API_TOKEN}"
+      }
+    },
+    "pinecone": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@pinecone-database/mcp"],
+      "env": {
+        "PINECONE_API_KEY": "${PINECONE_API_KEY}"
+      }
+    },
+    "context7": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp"]
+    },
+    "playwright": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp"],
+      "env": {
+        "PLAYWRIGHT_CHROMIUM_CHANNEL": "chrome",
+        "PLAYWRIGHT_HEADLESS": "true",
+        "PLAYWRIGHT_VIEWPORT_SIZE": "1280x720",
+        "PLAYWRIGHT_TIMEOUT_ACTION": "5000"
+      }
+    },
+    "chrome-devtools": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "chrome-devtools-mcp", "--headless", "--isolated"]
+    },
+    "shadcn": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["shadcn@latest", "mcp"],
+      "cwd": "/opt/bumba-harness/agent"
+    },
+    "paper": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["mcp-remote", "http://127.0.0.1:29979/mcp"]
+    },
+    "bumba-memory": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["/opt/bumba-harness/agent-flat/mcp-servers/bumba-memory/src/mcp-server.js"],
+      "env": {
+        "BUMBA_MEMORY_DIR": "/opt/bumba-harness/data/shared-memory"
+      }
+    },
+    "bumba-sandbox": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["/opt/bumba-harness/agent-flat/mcp-servers/bumba-sandbox/dist/mcp-servers/bumba-sandbox.js"],
+      "env": {
+        "E2B_API_KEY": "${E2B_API_KEY}",
+        "GITHUB_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}",
+        "NODE_ENV": "production",
+        "LOG_LEVEL": "info"
+      }
+    },
+    "serena": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/oraios/serena@v0.1.4",
+        "serena",
+        "start-mcp-server",
+        "--transport",
+        "stdio",
+        "--context",
+        "agent",
+        "--project",
+        "/opt/bumba-harness/agent-flat"
+      ]
+    }
+  }
+}

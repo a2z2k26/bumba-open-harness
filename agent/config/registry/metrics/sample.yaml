@@ -1,0 +1,12 @@
+# FIXTURE ONLY — sample entry for loader tests and CI health smoke.
+# Not a real entry. Real entries land in E2.5.
+# E2.6 gate exempts files matching sample*.yaml.
+bridge_request_count:
+  kind: metric
+  name: Bridge Request Count
+  category: "Health & Status"
+  description: "Total number of Claude invocations processed since last restart."
+  source_module: bridge.metrics
+  schema_ref: "int — cumulative counter"
+  metric_name: request_count
+  access_method: "pull:/api/metrics/{name}"

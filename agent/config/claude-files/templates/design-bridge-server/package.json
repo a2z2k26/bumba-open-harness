@@ -1,0 +1,43 @@
+{
+  "name": "@bumba/design-bridge",
+  "version": "4.0.0",
+  "description": "Design-to-Code Bridge for BUMBA CLI - Automated design system synchronization with MCP server",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test.js",
+    "build:plugin": "npm run build --prefix figma-plugin",
+    "build:catalog": "node catalog-generator/build.js",
+    "sync": "node sync/sync-engine.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.24.3",
+    "axios": "^1.6.0",
+    "chalk": "^4.1.2",
+    "chokidar": "^3.5.3",
+    "cli-table3": "^0.6.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
+    "express": "^4.21.2",
+    "inquirer": "^8.2.5",
+    "jsonschema": "^1.4.1",
+    "ora": "^5.4.1",
+    "uuid": "^9.0.0",
+    "ws": "^8.18.3",
+    "zod": "^3.22.0"
+  },
+  "devDependencies": {
+    "@figma/plugin-typings": "^1.82.0",
+    "esbuild": "^0.27.1",
+    "typescript": "^5.3.3"
+  },
+  "keywords": [
+    "figma",
+    "design-system",
+    "design-tokens",
+    "automation",
+    "mcp",
+    "bumba"
+  ],
+  "author": "BUMBA Team",
+  "license": "MIT"
+}

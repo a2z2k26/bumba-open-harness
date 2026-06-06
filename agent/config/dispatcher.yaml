@@ -1,0 +1,67 @@
+# Dispatcher — routing rules for WorkOrder execution environments
+# Reference material for Chief Engineer prompt and EnvironmentSelector
+
+routing_rules:
+  subagent:
+    description: "In-process — default for focused, short tasks"
+    use_when:
+      - "Complexity 0-5, single domain, well-scoped"
+      - "Needs shared session context"
+      - "Expected duration < 10 minutes"
+    avoid_when:
+      - "Untrusted or experimental code"
+      - "Needs its own git branch state"
+      - "Expected duration > 30 minutes"
+    max_parallel: 4
+
+  tmux:
+    description: "Background tmux session — persistent, long-running work"
+    use_when:
+      - "Expected duration > 30 minutes"
+      - "Must survive session context expiry"
+      - "Multiple agents running parallel workstreams"
+    avoid_when:
+      - "Needs git branch isolation (use worktree)"
+      - "Runs untrusted code (use E2B)"
+    requires: "tmux_manager"
+    max_parallel: 8
+
+  worktree:
+    description: "Git worktree — parallel feature work with branch isolation"
+    use_when:
+      - "Complexity 6-8, needs own branch state"
+      - "Modifies files other agents are touching"
+      - "Feature branch that needs review before merge"
+    avoid_when:
+      - "No codebase changes (analysis, research)"
+      - "Runs untrusted code (use E2B)"
+    max_parallel: 4
+
+  e2b:
+    description: "Cloud sandbox — fully isolated, for untrusted/design exploration"
+    use_when:
+      - "Untrusted or experimental code"
+      - "Design exploration — 4 parallel divergent directions"
+      - "Installs packages or modifies system state"
+    avoid_when:
+      - "Routine feature work (use worktree)"
+      - "Budget pressure is high"
+    requires: "bumba-sandbox MCP"
+    cost_note: "~$0.10-0.40/hour per sandbox — check budget first"
+
+  pydantic_ai:
+    description: "Pydantic AI agent process — Zone 4 department agents"
+    use_when:
+      - "Task maps to a department specialist"
+      - "Structured tool use with typed inputs/outputs"
+      - "Agent-to-agent communication via A2A protocol"
+    avoid_when:
+      - "Task requires Claude Code CLI features (worktrees, MCP)"
+    requires: "zone4_runtime"
+    status: "future — not yet implemented"
+
+skew_detection:
+  window_size: 20
+  skew_threshold: 0.60
+
+default_environment: subagent
