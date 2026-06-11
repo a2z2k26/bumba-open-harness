@@ -78,6 +78,67 @@ async def test_manager_rate_limit_uses_configured_fallback_model() -> None:
 
 
 @pytest.mark.asyncio
+async def test_manager_fallback_publishes_event() -> None:
+    """The rate-limit → fallback transition must be operator-visible: a
+    ``department.manager.fallback`` event is published on the EventBus
+    (audit-2026-06-11)."""
+    from unittest.mock import MagicMock
+
+    config = DepartmentConfig(
+        name="strategy",
+        zone=4,
+        description="Strategy",
+        manager=AgentSpec(
+            name="strategy-product-chief",
+            model="anthropic-oauth:claude-sonnet-4-5",
+            fallback_model="openrouter:z-ai/glm-5.1",
+        ),
+        employees=(),
+        constraints=Constraints(timeout_seconds=10, cost_limit_usd=10.0),
+    )
+    team = DepartmentTeam(config=config, lazy_build=False)
+    deps = make_deps(session_id="s1", department="strategy")
+    error = ModelHTTPError(
+        status_code=429,
+        model_name="claude-sonnet-4-5",
+        body={
+            "type": "error",
+            "error": {"type": "rate_limit_error", "message": "Error"},
+        },
+    )
+
+    fake_bus = MagicMock()
+    with (
+        patch.object(team.manager, "run", new=AsyncMock(side_effect=error)),
+        patch.object(
+            team._manager_fallback,
+            "run",
+            new=AsyncMock(return_value=_RunResult()),
+        ),
+        patch(
+            "bridge.event_bus.EventBus.get_instance",
+            return_value=fake_bus,
+        ),
+    ):
+        result = await team.run("ready to work?", deps=deps)
+
+    assert result.success is True
+    from bridge.event_bus import DEPARTMENT_MANAGER_FALLBACK
+
+    fallback_calls = [
+        c
+        for c in fake_bus.publish.call_args_list
+        if c.args and c.args[0] == DEPARTMENT_MANAGER_FALLBACK
+    ]
+    assert len(fallback_calls) == 1
+    payload = fallback_calls[0].args[1]
+    assert payload["department"] == "strategy"
+    assert payload["primary_model"] == "anthropic-oauth:claude-sonnet-4-5"
+    assert payload["fallback_model"] == "openrouter:z-ai/glm-5.1"
+    assert payload["reason"] == "http_429"
+
+
+@pytest.mark.asyncio
 async def test_manager_non_rate_limit_error_does_not_use_fallback() -> None:
     config = DepartmentConfig(
         name="strategy",

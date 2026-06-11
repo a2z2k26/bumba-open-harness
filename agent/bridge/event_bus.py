@@ -102,6 +102,9 @@ DEPARTMENT_TASK_STARTED = "department.task.started"
 DEPARTMENT_TASK_COMPLETED = "department.task.completed"
 DEPARTMENT_TASK_FAILED = "department.task.failed"
 DEPARTMENT_DELEGATION_STARTED = "department.delegation.started"
+# audit-2026-06-11: rate-limit → fallback-model transitions must be
+# operator-visible, not just process-log lines.
+DEPARTMENT_MANAGER_FALLBACK = "department.manager.fallback"
 
 # Phase 5 protocol event type constants (Sprint 23)
 DIRECTIVE_ISSUED = "directive.issued"
