@@ -37,6 +37,7 @@ message, and the Zone 4 teams path drives agents through the non-streaming
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import json
 import logging
 from typing import TYPE_CHECKING
@@ -155,9 +156,20 @@ class CodexExecModel(Model):
     docstring for why streaming is deferred.
     """
 
-    def __init__(self, model_name: str, *, config: BridgeConfig | None = None) -> None:
+    # Matches the Constraints.timeout_seconds default (teams/_types.py) so a
+    # hung codex child can never outlive the team-level run budget by much.
+    DEFAULT_TIMEOUT_SECONDS: float = 600.0
+
+    def __init__(
+        self,
+        model_name: str,
+        *,
+        config: BridgeConfig | None = None,
+        timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS,
+    ) -> None:
         super().__init__()
         self._model_name = model_name
+        self._timeout_seconds = timeout_seconds
         self._backend = CodexBackend(config) if config is not None else CodexBackend(_load_config_best_effort())
 
     @property
@@ -191,7 +203,21 @@ class CodexExecModel(Model):
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
         )
-        stdout_bytes, stderr_bytes = await proc.communicate()
+        try:
+            stdout_bytes, stderr_bytes = await asyncio.wait_for(
+                proc.communicate(), timeout=self._timeout_seconds
+            )
+        except TimeoutError:
+            # audit-2026-06-11: cancelling communicate() does NOT kill the
+            # child — without this, a hung codex process leaks past the
+            # team-level run timeout. Kill, reap, surface a typed error.
+            with contextlib.suppress(ProcessLookupError):
+                proc.kill()
+            with contextlib.suppress(Exception):
+                await proc.wait()
+            raise CodexExecModelError(
+                f"codex exec timed out after {self._timeout_seconds:.0f}s"
+            ) from None
         stdout = stdout_bytes.decode("utf-8", errors="replace")
         stderr = stderr_bytes.decode("utf-8", errors="replace")
 
