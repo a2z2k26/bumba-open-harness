@@ -163,6 +163,6 @@ printed — that is your signal that something failed before the summary.
 
 ## References
 
-- Audit: [`docs/audits/2026-05-15-comprehensive-codebase-audit.md`](../docs/audits/2026-05-15-comprehensive-codebase-audit.md) §M-3 ("Toolchain reproducibility is fragile outside the project venv").
+- Audit: `docs/audits/2026-05-15-comprehensive-codebase-audit.md` §M-3 ("Toolchain reproducibility is fragile outside the project venv").
 - Sprint: `audit-2026-05-15.D.03` — "docs(test): document pytest plugin environment for clean worktrees" (this file).
 - Pytest plugin discovery: <https://docs.pytest.org/en/stable/how-to/plugins.html#autoload-explicit-loading>.
