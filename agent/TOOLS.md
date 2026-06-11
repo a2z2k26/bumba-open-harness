@@ -4,7 +4,7 @@
 
 All auto-discovered via `.mcp.json`. Credentials resolved from `.secrets` via `${VAR}` references. Canonical mirror of runtime: `config/mcp-servers.canonical.json` (verified via operator probe 2026-05-12, issue #1735). Template `config/mcp-servers.template.json` is a 23-server historical reference used as a test fixture, NOT a deploy target.
 
-> **Canonical tool surface:** see [`docs/architecture/main-agent-tool-surface.md`](../docs/architecture/main-agent-tool-surface.md) for the full inventory of built-in tools, MCP servers, bash patterns, and filesystem scope — the baseline against which drift is measured.
+> **Canonical tool surface:** see `docs/architecture/main-agent-tool-surface.md` for the full inventory of built-in tools, MCP servers, bash patterns, and filesystem scope — the baseline against which drift is measured.
 
 | Server | Category | Purpose |
 |--------|----------|---------|

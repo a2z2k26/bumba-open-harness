@@ -1468,6 +1468,27 @@ class DepartmentTeam:
                         fallback_model,
                         exc,
                     )
+                    # audit-2026-06-11: surface the fallback transition on the
+                    # EventBus so the operator sees rate-limit → fallback
+                    # switches, not just a process-log line. Best-effort —
+                    # never blocks the fallback run itself.
+                    try:
+                        from bridge.event_bus import (
+                            DEPARTMENT_MANAGER_FALLBACK,
+                            EventBus,
+                        )
+
+                        EventBus.get_instance().publish(
+                            DEPARTMENT_MANAGER_FALLBACK,
+                            {
+                                "department": self._config.name,
+                                "primary_model": self._config.manager.model,
+                                "fallback_model": fallback_model,
+                                "reason": "http_429",
+                            },
+                        )
+                    except Exception:
+                        pass
                     result = await self._manager_fallback.run(
                         task, **manager_run_kwargs
                     )

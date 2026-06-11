@@ -1,8 +1,15 @@
 # Bumba Agent — Developer Reference
 
+> **Note — private-tree documentation references.** Inline pointers to
+> `docs/architecture/…`, `docs/operator/…`, `docs/audits/…`, and `docs/plans/…`
+> refer to the private operational repository this public tree was extracted
+> from; those documents are not included here. The doctrine summaries in this
+> file are self-contained, and the public adoption docs live in
+> [`../docs/`](../docs/).
+
 ## CANONICAL PATHS — READ BEFORE WRITING ANY FILE
 
-**Load-bearing doctrine:** see [`docs/architecture/canonical-write-territory.md`](../docs/architecture/canonical-write-territory.md) for the full rules, the three forbidden moves, the pre-PR self-checks, and the wrong-tree recovery protocol. Every agent (autonomous or operator-driven) must read that file before its first commit and run the pre-PR checks before every `gh pr create`.
+**Load-bearing doctrine:** see `docs/architecture/canonical-write-territory.md` for the full rules, the three forbidden moves, the pre-PR self-checks, and the wrong-tree recovery protocol. Every agent (autonomous or operator-driven) must read that file before its first commit and run the pre-PR checks before every `gh pr create`.
 
 All Python source, tests, configs, and scripts live under `/agent/`. Never write
 to these shadow locations at repo root:
@@ -28,19 +35,19 @@ those universal rules with bridge-specific discipline.
 
 ### Hard Rules (bridge-additional)
 
-- **Soak before shipping externally-consequential features**: see [`docs/architecture/soak-harness-pattern.md`](../docs/architecture/soak-harness-pattern.md)
+- **Soak before shipping externally-consequential features**: see `docs/architecture/soak-harness-pattern.md`
 
 ---
 
 ## Config knobs known dormant
 
-Dormant `BridgeConfig` fields (`smart_tool_rag_enabled`, `memory_tiers_enabled`) moved to [`../docs/operator/bridge-config-reference.md`](../docs/operator/bridge-config-reference.md). Don't try to "fix" them — each is wired to a not-yet-shipped subsystem.
+Dormant `BridgeConfig` fields (`smart_tool_rag_enabled`, `memory_tiers_enabled`) moved to `docs/operator/bridge-config-reference.md`. Don't try to "fix" them — each is wired to a not-yet-shipped subsystem.
 
 ---
 
 ## Dialogue gate operator reference
 
-Per-knob operator reference for `interrupts.tool_call_gate_enabled` and `interrupts.min_pending_to_gate` moved to [`../docs/operator/operator-reference.md`](../docs/operator/operator-reference.md). **Doctrine that stays inline:** the gate sits in front of `ClaudeRunner.invoke()`, classifies every pending operator message by severity (HALT > QUESTION > INFO), and decides whether the agent may start another tool-call turn. HALT is always immediate. INFO never blocks. Code: `bridge/tool_call_gate.py::evaluate_gate` + `bridge/operator_inbox.py::classify_severity`.
+Per-knob operator reference for `interrupts.tool_call_gate_enabled` and `interrupts.min_pending_to_gate` moved to `docs/operator/operator-reference.md`. **Doctrine that stays inline:** the gate sits in front of `ClaudeRunner.invoke()`, classifies every pending operator message by severity (HALT > QUESTION > INFO), and decides whether the agent may start another tool-call turn. HALT is always immediate. INFO never blocks. Code: `bridge/tool_call_gate.py::evaluate_gate` + `bridge/operator_inbox.py::classify_severity`.
 
 ---
 
@@ -120,7 +127,7 @@ C.01 (contract + default builder) + C.02–C.05 (call-site migration: warm-chief
 Sprint P3.6 (PR #1644) shipped the validator rule `delegation_floor`.
 Sprint #1645 (2026-05-12) activated it as a strict-fail per operator
 policy call, per the classification doc at
-[`docs/architecture/2026-05-12-1645-delegation-floor-classification.md`](../docs/architecture/2026-05-12-1645-delegation-floor-classification.md).
+`docs/architecture/2026-05-12-1645-delegation-floor-classification.md`.
 
 ### Rule
 
@@ -153,20 +160,20 @@ Discord → DiscordBot → BridgeApp → ClaudeRunner → Claude Code (`claude -
 
 All state is persisted in SQLite. The bridge is stateless between restarts — sessions resume via `--resume`.
 
-The memory surface is **three-tier** (PREFERENCE / DECISION / CONTEXT) when `memory_tiers_enabled = true`, with per-tier TTL, dual-write fan-out to SQLite + second_brain + vector, and tier-aware recall. Flag-off (default) preserves the legacy flat memory path. Design rationale: [`docs/architecture/memory-tier-architecture.md`](../docs/architecture/memory-tier-architecture.md). Operator runbook: [`docs/operator/memory-tiers-runbook.md`](../docs/operator/memory-tiers-runbook.md).
+The memory surface is **three-tier** (PREFERENCE / DECISION / CONTEXT) when `memory_tiers_enabled = true`, with per-tier TTL, dual-write fan-out to SQLite + second_brain + vector, and tier-aware recall. Flag-off (default) preserves the legacy flat memory path. Design rationale: `docs/architecture/memory-tier-architecture.md`. Operator runbook: `docs/operator/memory-tiers-runbook.md`.
 
 ## Bridge architecture reference
 
-Module-by-module breakdown of `bridge/`, the Mission Control REST API, Zone 3 / Workflows / Zone 4 / Voice / Cross-Machine / Subpackages module tables, and the Chief Lifecycle (durable ChiefSession + WARM single-run) reference moved to [`docs/architecture/bridge-reference.md`](../docs/architecture/bridge-reference.md) in PR 2 of the 2026-05-18 cleanup. Read that file when you need to look up a module, an endpoint, or the ChiefSession state machine.
+Module-by-module breakdown of `bridge/`, the Mission Control REST API, Zone 3 / Workflows / Zone 4 / Voice / Cross-Machine / Subpackages module tables, and the Chief Lifecycle (durable ChiefSession + WARM single-run) reference moved to `docs/architecture/bridge-reference.md` in PR 2 of the 2026-05-18 cleanup. Read that file when you need to look up a module, an endpoint, or the ChiefSession state machine.
 
 **Subagent-preamble doctrine stays inline here** (it's load-bearing for every dispatcher): every subagent task brief should be prefixed by `agent/config/zone1/subagent-preamble.md` (manual prepend, pre-1.0; auto-injection post-1.0). The preamble carries the Behavioral Doctrine excerpt, Operator-Decides Rule, verification convention, and worktree contract — the minimum the subagent needs before reading the task. Dispatchers (main agent or operator) are responsible for prepend discipline until auto-injection lands.
 
-**ADR pointer:** [`docs/architecture/adr/2026-z4-chief-session-lifecycle.md`](../docs/architecture/adr/2026-z4-chief-session-lifecycle.md) for chief-session lifecycle decisions.
+**ADR pointer:** `docs/architecture/adr/2026-z4-chief-session-lifecycle.md` for chief-session lifecycle decisions.
 
 
 ## Operator Commands (three-tier surface — 88 total)
 
-Full command catalog (Tier-1 essential / Tier-2 Z4 operational / Tier-3 power-user) moved to [`../docs/operator/operator-reference.md`](../docs/operator/operator-reference.md). The canonical source remains `agent/bridge/commands.py` (`_TIER_1_ESSENTIAL` / `_TIER_2_Z4` / `_TIER_3_POWER_USER`). Tier-3 is dynamically registered and changes frequently.
+Full command catalog (Tier-1 essential / Tier-2 Z4 operational / Tier-3 power-user) moved to `docs/operator/operator-reference.md`. The canonical source remains `agent/bridge/commands.py` (`_TIER_1_ESSENTIAL` / `_TIER_2_Z4` / `_TIER_3_POWER_USER`). Tier-3 is dynamically registered and changes frequently.
 
 ## Scheduled Services (`bridge/services/`)
 
@@ -371,7 +378,7 @@ Identity docs (`SOUL.md`, `OPERATOR.md`, `TOOLS.md`, `RULES.md`, `AGENTS.md`, `C
 
 ## Configuration + Secrets
 
-Per-section `bridge.toml` reference (logging, API bind, verification policy, evaluator opt-out, `[backends]` routing) and `.secrets` file inventory moved to [`../docs/operator/bridge-config-reference.md`](../docs/operator/bridge-config-reference.md). Config file path: `/opt/bumba-harness/agent-flat/agent/config/bridge.toml`. Secrets file: `/opt/bumba-harness/data/.secrets` (mode 0600). LaunchDaemons have NO Keychain access. Claude OAuth tokens auto-refresh via `token_refresher.py` (~8h rotation). For env-var override casting (`BUMBA_*`), see [`../docs/operator/configuration.md`](../docs/operator/configuration.md).
+Per-section `bridge.toml` reference (logging, API bind, verification policy, evaluator opt-out, `[backends]` routing) and `.secrets` file inventory moved to `docs/operator/bridge-config-reference.md`. Config file path: `/opt/bumba-harness/agent-flat/agent/config/bridge.toml`. Secrets file: `/opt/bumba-harness/data/.secrets` (mode 0600). LaunchDaemons have NO Keychain access. Claude OAuth tokens auto-refresh via `token_refresher.py` (~8h rotation). For env-var override casting (`BUMBA_*`), see `docs/operator/configuration.md`.
 
 ## MCP Servers
 
@@ -380,7 +387,7 @@ Config: `/opt/bumba-harness/agent-flat/agent/.mcp.json` (chmod 600, owned by bum
 Canonical: `config/mcp-servers.canonical.json` — mirrors the live runtime exactly (post P5.4 reconciliation, #1735). This is the **source of truth** for the runtime `.mcp.json`. Because `.mcp.json` is gitignored, a hand-edit on the runtime never round-trips back to source and can silently drift; deploy step 1c diffs the two and the canonical file wins. Server invocation paths use the post-D6-bis sibling layout `/opt/bumba-harness/agent-flat/mcp-servers/<server>/` — **no** extra `agent/` segment (`mcp-servers/` is a sibling of `agent/`, not a child). The 2026-06-02 E2B outage (#2582) was a runtime `.mcp.json` carrying the pre-D6-bis `…/agent/mcp/bumba-sandbox/` path; the canonical file already had the correct sibling path.
 Template: `config/mcp-servers.template.json` — historical reference copy used as a test fixture (`test_warm_mcp_config.py` asserts the warm narrow-set is a strict subset); diverges from runtime by design. See `TOOLS.md` for full inventory. Note (#2582): reconciled `bumba-sandbox` and `bumba-memory` to the canonical sibling layout (`/agent-flat/mcp-servers/<server>/`, no extra `agent/`) — both confirmed against `mcp-servers.canonical.json`. The `bumba-figma` and `figma-console` entries STILL carry the legacy `agent-flat/agent/mcp-servers/` path: neither server is listed in canonical, so the correct runtime path could not be confirmed and they were left rather than guessed. Confirm those two against the live runtime `.mcp.json` (or add them to canonical) before reconciling the template's last two stale paths.
 
-> **Canonical tool surface (E4.4):** [`docs/architecture/main-agent-tool-surface.md`](../docs/architecture/main-agent-tool-surface.md) — full inventory of built-in tools, MCP servers with rationales, bash deny-list, and filesystem scope.
+> **Canonical tool surface (E4.4):** `docs/architecture/main-agent-tool-surface.md` — full inventory of built-in tools, MCP servers with rationales, bash deny-list, and filesystem scope.
 
 ## Testing
 
@@ -441,7 +448,7 @@ Configuration:
 
 **Halt mode**: `/halt` sets `data/halt.flag`. Bridge stops processing but stays connected to Discord. `/resume` clears the flag.
 
-**Voice**: VAPI integration is wired and default-off (D1.7a-D1.7c). Set `voice_enabled = true` in `[voice]` and add **both** `vapi_api_key` and `vapi_webhook_secret` to `.secrets` to activate. The `vapi_api_key` authenticates outbound bridge-to-VAPI API calls; the `vapi_webhook_secret` (P2.3 #1578, audit C8) is the shared secret VAPI sends in the `X-VAPI-SECRET` header on every callback to `/api/v1/voice/webhook`; the handler verifies it via `secrets.compare_digest`. The bridge **refuses to boot** if `voice_enabled = true` and `vapi_webhook_secret` is empty (fail-closed validator in `APIServer.start()`, mirrors #1626's `allow_remote_bind` pattern). Operator commands: `/voice` (status/call), `/tts` (text synthesis). Squad architecture: 4 assistants (receptionist + engineering + qa + ops) provisioned to VAPI at startup. The Discord voice-receive pipeline (`audio_pipeline.py`, `voice_metrics.py`, `stt_engine.py`) was removed in PR #1773 (P2.2). Operator activation checklist: [`../docs/operator/vapi-voice-activation-runbook.md`](../docs/operator/vapi-voice-activation-runbook.md).
+**Voice**: VAPI integration is wired and default-off (D1.7a-D1.7c). Set `voice_enabled = true` in `[voice]` and add **both** `vapi_api_key` and `vapi_webhook_secret` to `.secrets` to activate. The `vapi_api_key` authenticates outbound bridge-to-VAPI API calls; the `vapi_webhook_secret` (P2.3 #1578, audit C8) is the shared secret VAPI sends in the `X-VAPI-SECRET` header on every callback to `/api/v1/voice/webhook`; the handler verifies it via `secrets.compare_digest`. The bridge **refuses to boot** if `voice_enabled = true` and `vapi_webhook_secret` is empty (fail-closed validator in `APIServer.start()`, mirrors #1626's `allow_remote_bind` pattern). Operator commands: `/voice` (status/call), `/tts` (text synthesis). Squad architecture: 4 assistants (receptionist + engineering + qa + ops) provisioned to VAPI at startup. The Discord voice-receive pipeline (`audio_pipeline.py`, `voice_metrics.py`, `stt_engine.py`) was removed in PR #1773 (P2.2). Operator activation checklist: `docs/operator/vapi-voice-activation-runbook.md`.
 
 **Smart model routing**: Short/conversational messages route to Haiku (~5-10s), code/analysis to Sonnet, complex architecture to Opus. Department-aware: engineering messages stay Sonnet even if short. Override with `@haiku:`, `@sonnet:`, `@opus:` prefix.
 
@@ -469,7 +476,7 @@ When enabled (`[consolidation] enabled = true`), the DreamAgent runs a deep cons
 
 ## Operator runbooks
 
-Dead-Man's Switch setup (healthchecks.io heartbeat ping), Experiment Loop (`scripts/experiment_loop.py` autonomous self-improvement), and Local Development Setup (`uv sync --dev` + `pre-commit install`) all moved to [`../docs/operator/operator-reference.md`](../docs/operator/operator-reference.md).
+Dead-Man's Switch setup (healthchecks.io heartbeat ping), Experiment Loop (`scripts/experiment_loop.py` autonomous self-improvement), and Local Development Setup (`uv sync --dev` + `pre-commit install`) all moved to `docs/operator/operator-reference.md`.
 
 ## Hook System
 

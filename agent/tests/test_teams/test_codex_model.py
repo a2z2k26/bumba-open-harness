@@ -200,6 +200,23 @@ async def test_request_raises_on_error_event(
 
 
 @pytest.mark.asyncio
+async def test_request_times_out_and_kills_hung_codex(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A hung codex subprocess must not block the specialist indefinitely
+    (audit-2026-06-11): the request times out, the child is killed, and a
+    typed CodexExecModelError surfaces."""
+    script = tmp_path / "hung_codex.py"
+    script.write_text("import time\ntime.sleep(30)\n", encoding="utf-8")
+    script.chmod(script.stat().st_mode | stat.S_IEXEC)
+    monkeypatch.setenv("BUMBA_CODEX_BINARY", f"{sys.executable} {script}")
+    model = CodexExecModel("gpt-5-codex", timeout_seconds=0.2)
+    messages = [ModelRequest(parts=[UserPromptPart(content="hi")])]
+    with pytest.raises(CodexExecModelError, match="timed out"):
+        await model.request(messages, None, ModelRequestParameters())
+
+
+@pytest.mark.asyncio
 async def test_request_raises_when_no_assistant_text(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

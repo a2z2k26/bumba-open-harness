@@ -758,12 +758,25 @@ class ClaudeRunner:
                             is_error=False,
                         )
                 except Exception:
-                    # Gate evaluation must never crash the invocation path.
-                    # Log and proceed — fail-open is safer than blocking work
-                    # due to a monitor bug.
+                    # Fail closed (audit-2026-06-11): a broken gate must not
+                    # silently disable operator-priority enforcement — that is
+                    # the silent-degradation anti-pattern the wiring doctrine
+                    # exists to eliminate. Block this turn loudly; the operator
+                    # can set interrupts.tool_call_gate_enabled = false to
+                    # bypass a persistent gate bug.
                     logger.exception(
                         "invoke: gate evaluation raised unexpectedly — "
-                        "proceeding without gate enforcement"
+                        "failing closed and blocking this turn"
+                    )
+                    return ClaudeResult(
+                        response_text=(
+                            "BLOCKED: the operator-message gate failed to "
+                            "evaluate, so this turn was stopped rather than "
+                            "run unenforced. Check the bridge logs for the "
+                            "gate error; set interrupts.tool_call_gate_enabled "
+                            "= false to bypass while it is being fixed."
+                        ),
+                        is_error=False,
                     )
 
             _sess_token = log_format._session_id.set(session_id or "")
