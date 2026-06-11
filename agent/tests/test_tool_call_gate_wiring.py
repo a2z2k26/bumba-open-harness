@@ -151,6 +151,37 @@ async def test_gate_allows_when_empty(tmp_path):
 
 
 # ---------------------------------------------------------------------------
+# Test 3b: gate evaluation failure fails CLOSED (audit-2026-06-11)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_gate_exception_fails_closed(tmp_path):
+    """If gate evaluation raises, invoke() blocks the turn without spawning a
+    subprocess. A broken gate must not silently disable operator-priority
+    enforcement (fail-closed, matching the bridge's bootstrap posture).
+    """
+    config = make_config(tmp_path, universal_tool_gate_enabled=True)
+    runner = ClaudeRunner(config)
+
+    inbox = OperatorInbox(session_id="test-session")
+    runner.set_operator_inbox(inbox)
+
+    with (
+        patch(
+            "bridge.tool_call_gate.evaluate_gate",
+            side_effect=RuntimeError("gate exploded"),
+        ),
+        patch("asyncio.create_subprocess_exec") as mock_spawn,
+    ):
+        result = await runner.invoke("do some work", session_id="test-session")
+
+    mock_spawn.assert_not_called()
+    assert result.is_error is False
+    assert "BLOCKED" in result.response_text
+
+
+# ---------------------------------------------------------------------------
 # Test 4: DiscordForcePauseAlerter.alert() sets paused + calls notify_fn
 # ---------------------------------------------------------------------------
 
